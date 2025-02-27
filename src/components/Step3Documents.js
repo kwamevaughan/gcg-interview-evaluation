@@ -27,7 +27,7 @@ export default function Step3Documents({
                         mode === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                 >
-                    Upload your resume and cover letter to complete your application.
+                    Please upload both your resume and cover letter to complete your application. Both fields are required.
                 </p>
                 <div className="space-y-6">
                     <DragDropZone
@@ -39,6 +39,7 @@ export default function Step3Documents({
                         setFormData={setFormData}
                         setUploadProgress={setUploadProgress}
                         mode={mode}
+                        required // Indicate it's mandatory
                         {...fileUploadProps}
                     />
                     <DragDropZone
@@ -50,6 +51,7 @@ export default function Step3Documents({
                         setFormData={setFormData}
                         setUploadProgress={setUploadProgress}
                         mode={mode}
+                        required // Indicate it's mandatory
                         {...fileUploadProps}
                     />
                 </div>

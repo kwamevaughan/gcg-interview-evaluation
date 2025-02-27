@@ -13,6 +13,7 @@ export default function DragDropZone({
                                          handleDragLeave,
                                          removeFile,
                                          mode,
+                                         required, // New prop to indicate mandatory status
                                      }) {
     return (
         <div
@@ -42,7 +43,8 @@ export default function DragDropZone({
                         }`}
                     >
                         <span className={`font-medium ${mode === "dark" ? "text-white" : "text-[#231812]"}`}>
-                            Drop your {type === "resume" ? "Resume" : "Cover Letter"} here or{" "}
+                            {type === "resume" ? "Resume" : "Cover Letter"}{" "}
+                            <span className="text-red-500">*</span> - Drop your file here or{" "}
                         </span>
                         <input
                             type="file"
@@ -51,6 +53,7 @@ export default function DragDropZone({
                             onChange={(e) => handleFileChange(e, type)}
                             className="hidden"
                             id={`${type}-upload`}
+                            required={required}
                         />
                         <label
                             htmlFor={`${type}-upload`}

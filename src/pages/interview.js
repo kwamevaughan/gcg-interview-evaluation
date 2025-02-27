@@ -58,6 +58,11 @@ export default function InterviewPage({ mode, toggleMode }) {
         } else if (step === 3) {
             setIsSubmitting(true);
             const maxFileSize = 5 * 1024 * 1024; // 5MB
+            if (!formData.resume || !formData.coverLetter) {
+                toast.error("Please upload both your resume and cover letter.", { icon: "⚠️" });
+                setIsSubmitting(false);
+                return;
+            }
             if (formData.resume && formData.resume.size > maxFileSize) {
                 toast.error("Resume file size exceeds 5MB limit.", { icon: "⚠️" });
                 setIsSubmitting(false);
