@@ -46,7 +46,7 @@ export default function LandingPage() {
 
                     {/* Heading */}
                     <h1 className="text-3xl font-bold text-[#231812] mb-4">
-                        Welcome to Growthpad Consulting Group
+                        Welcome to Careers at Growthpad
                     </h1>
 
                     {/* About Text */}
