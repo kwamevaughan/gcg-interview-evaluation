@@ -51,8 +51,7 @@ export default function LandingPage() {
 
                     {/* About Text */}
                     <p className="text-[#231812] mb-4 text-base ">
-                        We are a Nairobi-headquartered digital media and tech consulting firm, blending strategy,
-                        creativity, and technology to deliver powerful results for organizations across East Africa.
+                        We are a Nairobi Headquartered – cross-Africa communication, technology, and digital services firm that blends strategy, creativity, and technology to bring powerful results for organizations in the African market.
                     </p>
 
                     <hr className="h-px my-8 bg-[#F05D23] border-0 dark:bg-gray-700"/>
