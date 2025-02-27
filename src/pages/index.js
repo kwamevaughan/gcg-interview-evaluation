@@ -35,9 +35,9 @@ export default function LandingPage() {
                         <a target="_blank"
                            rel="noopener noreferrer" href="https://growthpad.co.ke">
                             <Image
-                                src="/assets/images/logo.svg"
+                                src="/assets/images/logo-tagline-orange.svg"
                                 alt="Growthpad Consulting Group Logo"
-                                width={200}
+                                width={350}
                                 height={200}
                                 className="mx-auto transform transition duration-300 hover:scale-110"
                             />
