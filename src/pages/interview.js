@@ -29,17 +29,17 @@ export default function InterviewPage({ mode, toggleMode }) {
     const handleNext = async () => {
         if (step === 1) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const linkedinRegex = /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/;
-            if (!formData.fullName || !formData.email) {
-                toast.error("Please fill in your name and email.", { icon: "⚠️" });
+            const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+            if (!formData.fullName || !formData.email || !formData.phone || !formData.linkedin) {
+                toast.error("Please fill out all required fields.", { icon: "⚠️" });
                 return;
             }
             if (!emailRegex.test(formData.email)) {
                 toast.error("Please enter a valid email (e.g., hello@gmail.com)", { icon: "⚠️" });
                 return;
             }
-            if (formData.linkedin && !linkedinRegex.test(formData.linkedin)) {
-                toast.error("Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)", { icon: "⚠️" });
+            if (!urlRegex.test(formData.linkedin)) {
+                toast.error("Please enter a valid URL for LinkedIn (e.g., https://example.com)", { icon: "⚠️" });
                 return;
             }
             setStep(2);

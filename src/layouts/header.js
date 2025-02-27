@@ -31,11 +31,11 @@ const Header = ({ mode, toggleMode, step, currentPage, totalPages, uploadProgres
                 <div className="flex-shrink-0">
                     <a href="/" >
                         <Image
-                            src={mode === "dark" ? "/assets/images/logo-white.svg" : "/assets/images/logo.svg"}
+                            src={mode === "dark" ? "/assets/images/logo-tagline-white.svg" : "/assets/images/logo-tagline-orange.svg"}
                             alt="Growthpad Logo"
                             width={240}
                             height={40}
-                            className="w-32 md:w-[200px]"
+                            className="w-32 md:w-[300px]"
                         />
                     </a>
                 </div>
