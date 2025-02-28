@@ -1,6 +1,6 @@
 // src/components/JobListings.js
 import { Icon } from "@iconify/react";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
 export default function JobListings({ mode, jobs, onJobDeleted }) {

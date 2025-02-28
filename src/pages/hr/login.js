@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import ReCAPTCHA from "react-google-recaptcha";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";

@@ -1,6 +1,6 @@
 // src/hooks/useQuestions.js
 import { useState, useEffect } from "react";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
 
 export const useQuestions = () => {

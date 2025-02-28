@@ -1,6 +1,6 @@
 // src/components/JobForm.js
 import { useState } from "react";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 

@@ -1,10 +1,10 @@
 // src/utils/dbUtils.js
-import { supabase } from "/lib/supabase";
+import { supabaseServer } from "@/lib/supabaseServer"; // Adjusted path
 
 export async function upsertCandidate({ fullName, email, phone, linkedin, opening }) {
     try {
         console.log("Checking for existing candidate with email:", email);
-        const { data: existingCandidate, error: fetchError } = await supabase
+        const { data: existingCandidate, error: fetchError } = await supabaseServer
             .from("candidates")
             .select("id")
             .eq("email", email)
@@ -18,9 +18,9 @@ export async function upsertCandidate({ fullName, email, phone, linkedin, openin
 
         if (existingCandidate) {
             console.log("Updating existing candidate with email:", email);
-            const { data: updatedCandidate, error: updateError } = await supabase
+            const { data: updatedCandidate, error: updateError } = await supabaseServer
                 .from("candidates")
-                .update({ full_name: fullName, phone, linkedin, opening }) // Include opening
+                .update({ full_name: fullName, phone, linkedin, opening })
                 .eq("email", email)
                 .select()
                 .single();
@@ -28,9 +28,9 @@ export async function upsertCandidate({ fullName, email, phone, linkedin, openin
             userId = updatedCandidate.id;
         } else {
             console.log("Inserting new candidate with data:", { full_name: fullName, email, phone, linkedin, opening });
-            const { data: newCandidate, error: insertError } = await supabase
+            const { data: newCandidate, error: insertError } = await supabaseServer
                 .from("candidates")
-                .insert([{ full_name: fullName, email, phone, linkedin, opening }]) // Include opening
+                .insert([{ full_name: fullName, email, phone, linkedin, opening }])
                 .select()
                 .single();
             if (insertError) throw insertError;
@@ -54,7 +54,7 @@ export async function upsertResponse({ userId, answers, score, resumeUrl, coverL
             resume_file_id: resumeFileId,
             cover_letter_file_id: coverLetterFileId,
         });
-        const { error } = await supabase
+        const { error } = await supabaseServer
             .from("responses")
             .upsert(
                 [

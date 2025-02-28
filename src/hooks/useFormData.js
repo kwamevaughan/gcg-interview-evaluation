@@ -8,7 +8,8 @@ export const useFormData = () => {
         email: "",
         phone: "",
         linkedin: "",
-        answers: {},
+        opening: "", // Added for completeness
+        answers: [], // Initialize as array instead of object
         resume: null,
         coverLetter: null,
     });
@@ -20,25 +21,27 @@ export const useFormData = () => {
     };
 
     const handleOptionToggle = (questionIndex, option) => {
-        const currentAnswers = formData.answers[questionIndex] || [];
-        let newAnswers;
-        if (currentAnswers.includes(option)) {
-            newAnswers = currentAnswers.filter((ans) => ans !== option);
-        } else {
-            newAnswers = questionIndex === 0 ? [...currentAnswers, option] : [option];
-        }
-        setFormData((prev) => ({
-            ...prev,
-            answers: { ...prev.answers, [questionIndex]: newAnswers },
-        }));
-        toast(`${option} ${newAnswers.includes(option) ? "selected" : "deselected"}`, { duration: 1000 });
+        setFormData((prev) => {
+            const newAnswers = [...prev.answers]; // Clone answers array
+            newAnswers[questionIndex] = newAnswers[questionIndex] || []; // Ensure sub-array exists
+            const currentAnswers = newAnswers[questionIndex];
+            let updatedAnswers;
+            if (currentAnswers.includes(option)) {
+                updatedAnswers = currentAnswers.filter((ans) => ans !== option); // Remove option
+            } else {
+                updatedAnswers = questionIndex === 0 ? [...currentAnswers, option] : [option]; // Multi-select for Q1, single-select for others
+            }
+            newAnswers[questionIndex] = updatedAnswers;
+            return { ...prev, answers: newAnswers };
+        });
+        toast(`${option} ${formData.answers[questionIndex]?.includes(option) ? "deselected" : "selected"}`, { duration: 1000 });
     };
 
     const fileToBase64 = (file) =>
         new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(",")[1]);
+            reader.onload = () => resolve(reader.result.split(",")[1]); // Return base64 without data URI prefix
             reader.onerror = (error) => reject(error);
         });
 

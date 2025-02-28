@@ -11,7 +11,7 @@ import Step4Confirmation from "@/components/Step4Confirmation";
 import { Icon } from "@iconify/react";
 import Footer from "@/layouts/footer";
 import { useRouter } from "next/router";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export default function InterviewPage({ mode, toggleMode }) {
     const router = useRouter();
@@ -20,11 +20,10 @@ export default function InterviewPage({ mode, toggleMode }) {
     const [uploadProgress, setUploadProgress] = useState({ resume: 0, coverLetter: 0 });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isClient, setIsClient] = useState(false);
-    const [questions, setQuestions] = useState([]); // State for fetched questions
+    const [questions, setQuestions] = useState([]);
     const { formData, setFormData, submissionStatus, setSubmissionStatus, handleChange, handleOptionToggle, fileToBase64 } =
         useFormData();
 
-    // Fetch questions from Supabase on mount
     useEffect(() => {
         setIsClient(true);
         const fetchQuestions = async () => {
@@ -37,6 +36,11 @@ export default function InterviewPage({ mode, toggleMode }) {
                 toast.error("Failed to load questions.");
             } else {
                 setQuestions(data);
+                // Initialize answers array with empty sub-arrays for each question
+                setFormData((prev) => ({
+                    ...prev,
+                    answers: Array(data.length).fill([]),
+                }));
             }
         };
         fetchQuestions();
@@ -108,7 +112,7 @@ export default function InterviewPage({ mode, toggleMode }) {
                 phone: formData.phone,
                 linkedin: formData.linkedin,
                 opening: formData.opening,
-                answers: formData.answers,
+                answers: formData.answers, // Now an array of arrays
                 resume: formData.resume ? await fileToBase64(formData.resume) : null,
                 coverLetter: formData.coverLetter ? await fileToBase64(formData.coverLetter) : null,
             };

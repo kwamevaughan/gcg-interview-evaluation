@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 const JobDescriptionModal = dynamic(() => import("../components/JobDescriptionModal"), { ssr: false });
 

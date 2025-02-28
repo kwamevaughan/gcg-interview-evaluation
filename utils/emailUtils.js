@@ -1,6 +1,5 @@
 // src/utils/emailUtils.js
 import nodemailer from "nodemailer";
-import { questions } from "@/data/questions";
 
 export async function sendEmails({
                                      fullName,
@@ -14,6 +13,7 @@ export async function sendEmails({
                                      answers,
                                      candidateTemplate,
                                      adminTemplate,
+                                     questions, // Add questions as a parameter
                                  }) {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
@@ -25,13 +25,13 @@ export async function sendEmails({
         },
     });
 
-    // Calculate percentage
+    // Calculate percentage (assuming max score is still 190)
     const percentage = Math.round((score / 190) * 100);
 
-    // Format answers for admin email
+    // Format answers for admin email using passed questions
     const formattedAnswers = Object.keys(answers).map((key) => {
         const questionIndex = parseInt(key, 10);
-        const question = questions[questionIndex]?.text || `Question ${parseInt(key) + 1}`;
+        const question = questions[questionIndex]?.text || `Question ${questionIndex + 1}`;
         const answer = Array.isArray(answers[key]) ? answers[key].join(", ") : answers[key];
         return { question, answer };
     });
@@ -39,12 +39,12 @@ export async function sendEmails({
     // Send candidate email
     const candidateHtml = candidateTemplate
         .replace("{{fullName}}", fullName)
-        .replace("{{score}}", `${score}/190 (${percentage}%)`); // Include percentage
+        .replace("{{score}}", `${score}/190 (${percentage}%)`);
 
     await transporter.sendMail({
         from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Thank You for Submitting Your Application!", // Updated subject
+        subject: "Thank You for Submitting Your Application!",
         html: candidateHtml,
     });
 
@@ -81,7 +81,7 @@ export async function sendEmails({
     await transporter.sendMail({
         from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
         to: "analytics.growthpad@gmail.com",
-        subject: `New Interview Submission from ${fullName} - ${opening} - Score (${score}/190) - Percentage - ${percentage}%`, // Updated subject
+        subject: `New Interview Submission from ${fullName} - ${opening} - Score (${score}/190) - Percentage - ${percentage}%`,
         html: adminHtml,
     });
 

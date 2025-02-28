@@ -8,7 +8,7 @@ import useSidebar from "@/hooks/useSidebar";
 import JobForm from "@/components/JobForm";
 import JobListings from "@/components/JobListings";
 import dynamic from "next/dynamic";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 
 const JobDescriptionModal = dynamic(() => import("@/components/JobDescriptionModal"), { ssr: false });

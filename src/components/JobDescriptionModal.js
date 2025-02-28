@@ -1,7 +1,7 @@
 // src/components/JobDescriptionModal.js
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { supabase } from "lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export default function JobDescriptionModal({ isOpen, onClose, onProceed, selectedOpening }) {
     const [jobDetails, setJobDetails] = useState(null);

@@ -1,5 +1,5 @@
 // src/pages/api/submit.js
-import { supabaseServer } from "../../../lib/supabaseServer";
+import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { uploadFileToDrive, deleteFileFromDrive } from "../../../utils/driveUtils";
 import { sendEmails } from "../../../utils/emailUtils";
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "All fields (full name, email, phone, LinkedIn, and opening) are required" });
         }
 
-        // Fetch questions for scoring
+        // Fetch questions for scoring and email
         const { data: questions, error: questionsError } = await supabaseServer
             .from("interview_questions")
             .select("*")
@@ -101,6 +101,7 @@ export default async function handler(req, res) {
             answers,
             candidateTemplate: candidateEmailTemplate,
             adminTemplate: adminEmailTemplate,
+            questions, // Pass the fetched questions to sendEmails
         });
 
         return res.status(200).json({ message: "Submission successful", score });
