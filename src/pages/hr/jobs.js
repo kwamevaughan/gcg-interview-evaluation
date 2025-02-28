@@ -10,6 +10,7 @@ import JobListings from "@/components/JobListings";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
+import SimpleFooter from "@/layouts/simpleFooter";  // Adjust the path if necessary
 
 const JobDescriptionModal = dynamic(() => import("@/components/JobDescriptionModal"), { ssr: false });
 
@@ -296,13 +297,9 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                 </div>
             )}
 
-            <footer
-                className={`p-4 text-center text-sm shadow-inner ${
-                    mode === "dark" ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"
-                }`}
-            >
-                © {new Date().getFullYear()} Growthpad Consulting Group. All rights reserved.
-            </footer>
+            <SimpleFooter mode={mode} />
+
+
         </div>
     );
 }

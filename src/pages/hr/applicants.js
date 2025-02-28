@@ -3,6 +3,7 @@ import { useState } from "react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
 import { Toaster } from "react-hot-toast";
+import Footer from "@/layouts/footer";
 
 export default function HRApplicants({ mode = "light", toggleMode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -46,6 +47,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             >
                 © {new Date().getFullYear()} Growthpad Consulting Group. All rights reserved.
             </footer>
+
         </div>
     );
 }
