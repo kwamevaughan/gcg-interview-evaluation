@@ -24,7 +24,7 @@ export default function Step2Questions({
     );
     const allQuestionsAnswered = questions.every((q) => formData.answers[q.id - 1]?.length > 0);
     const isLastPage = currentPage === totalPages - 1;
-    const lastQuestionId = questions[questions.length - 1].id;
+    const lastQuestionId = questions[questions.length - 1]?.id;
     const isLastQuestionAnswered = formData.answers[lastQuestionId - 1]?.length > 0;
 
     useEffect(() => {

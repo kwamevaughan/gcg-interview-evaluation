@@ -15,6 +15,9 @@ export default function Step4Confirmation({ formData, submissionStatus, mode }) 
         }
     }, [submissionStatus]);
 
+    // Calculate percentage
+    const percentage = submissionStatus?.success ? Math.round((submissionStatus.score / 190) * 100) : 0;
+
     return (
         <div className="animate-fade-in max-w-2xl mx-auto">
             <div
@@ -50,7 +53,7 @@ export default function Step4Confirmation({ formData, submissionStatus, mode }) 
                     {submissionStatus.success && (
                         <>
                             <p className="text-xl font-semibold text-[#f05d23] mb-6">
-                                Your Score: {submissionStatus.score}/190
+                                Your Score: {submissionStatus.score}/190 ({percentage}%)
                             </p>
                             <p
                                 className={`text-sm max-w-md mx-auto ${

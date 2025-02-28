@@ -1,6 +1,5 @@
 // src/pages/interview.js
-import { useState } from "react";
-import { questions } from "@/data/questions";
+import { useState, useEffect } from "react";
 import Header from "@/layouts/header";
 import toast, { Toaster } from "react-hot-toast";
 import { useFormData } from "@/hooks/useFormData";
@@ -11,19 +10,48 @@ import Step3Documents from "@/components/Step3Documents";
 import Step4Confirmation from "@/components/Step4Confirmation";
 import { Icon } from "@iconify/react";
 import Footer from "@/layouts/footer";
+import { useRouter } from "next/router";
+import { supabase } from "lib/supabase";
 
 export default function InterviewPage({ mode, toggleMode }) {
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [currentPage, setCurrentPage] = useState(0);
     const [uploadProgress, setUploadProgress] = useState({ resume: 0, coverLetter: 0 });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+    const [questions, setQuestions] = useState([]); // State for fetched questions
     const { formData, setFormData, submissionStatus, setSubmissionStatus, handleChange, handleOptionToggle, fileToBase64 } =
         useFormData();
+
+    // Fetch questions from Supabase on mount
+    useEffect(() => {
+        setIsClient(true);
+        const fetchQuestions = async () => {
+            const { data, error } = await supabase
+                .from("interview_questions")
+                .select("*")
+                .order("id", { ascending: true });
+            if (error) {
+                console.error("Error fetching questions:", error);
+                toast.error("Failed to load questions.");
+            } else {
+                setQuestions(data);
+            }
+        };
+        fetchQuestions();
+
+        const opening = router.query.opening;
+        if (opening && !formData.opening) {
+            setFormData((prev) => ({ ...prev, opening: decodeURIComponent(opening) }));
+        }
+    }, [router.query.opening, formData.opening, setFormData]);
+
     const fileUploadProps = useFileUpload(formData, setFormData);
 
     const questionsPerPage = 5;
     const totalPages = Math.ceil(questions.length / questionsPerPage);
-    const totalQuestions = questions.length; // 19
+    const totalQuestions = questions.length;
     const currentQuestions = questions.slice(currentPage * questionsPerPage, (currentPage + 1) * questionsPerPage);
 
     const handleNext = async () => {
@@ -79,6 +107,7 @@ export default function InterviewPage({ mode, toggleMode }) {
                 email: formData.email,
                 phone: formData.phone,
                 linkedin: formData.linkedin,
+                opening: formData.opening,
                 answers: formData.answers,
                 resume: formData.resume ? await fileToBase64(formData.resume) : null,
                 coverLetter: formData.coverLetter ? await fileToBase64(formData.coverLetter) : null,
@@ -182,7 +211,7 @@ export default function InterviewPage({ mode, toggleMode }) {
                 }`}
             >
                 <div className="max-w-3xl w-full mx-auto p-6">
-                    <Toaster position="top-right" reverseOrder={false} />
+                    {isClient && <Toaster position="top-right" reverseOrder={false} />}
                     {step === 1 && <Step1Form formData={formData} handleChange={handleChange} mode={mode} />}
                     {step === 2 && (
                         <Step2Questions

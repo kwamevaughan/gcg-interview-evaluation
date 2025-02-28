@@ -1,5 +1,5 @@
 // src/pages/api/submit.js
-import { supabase } from "../../../lib/supabase";
+import { supabaseServer } from "../../../lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { uploadFileToDrive, deleteFileFromDrive } from "../../../utils/driveUtils";
 import { sendEmails } from "../../../utils/emailUtils";
@@ -21,32 +21,40 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { fullName, email, phone, linkedin, answers, resume, coverLetter } = req.body;
-
+        const { fullName, email, phone, linkedin, answers, resume, coverLetter, opening } = req.body;
         console.log("Received data:", {
             fullName,
             email,
             phone,
             linkedin,
+            opening,
             answers,
             resume: resume ? "present" : "none",
             coverLetter: coverLetter ? "present" : "none",
         });
 
-        if (!fullName || !email) {
-            return res.status(400).json({ error: "Full name and email are required" });
+        if (!fullName || !email || !phone || !linkedin || !opening) {
+            return res.status(400).json({ error: "All fields (full name, email, phone, LinkedIn, and opening) are required" });
         }
 
-        // Handle candidate upsert
-        const { userId, error: candidateError } = await upsertCandidate({ fullName, email, phone, linkedin });
+        // Fetch questions for scoring
+        const { data: questions, error: questionsError } = await supabaseServer
+            .from("interview_questions")
+            .select("*")
+            .order("order", { ascending: true });
+        if (questionsError) {
+            console.error("Error fetching questions:", questionsError);
+            return res.status(500).json({ error: "Error fetching questions", details: questionsError.message });
+        }
+
+        const { userId, error: candidateError } = await upsertCandidate({ fullName, email, phone, linkedin, opening });
         if (candidateError) {
             return res.status(candidateError.status).json({ error: candidateError.message, details: candidateError.details });
         }
 
-        const score = calculateScore(answers);
+        const score = calculateScore(answers, questions);
 
-        // Fetch existing response to get old file IDs
-        const { data: existingResponse, error: fetchResponseError } = await supabase
+        const { data: existingResponse, error: fetchResponseError } = await supabaseServer
             .from("responses")
             .select("resume_file_id, cover_letter_file_id")
             .eq("user_id", userId)
@@ -60,13 +68,11 @@ export default async function handler(req, res) {
         const oldResumeFileId = existingResponse?.resume_file_id;
         const oldCoverLetterFileId = existingResponse?.cover_letter_file_id;
 
-        // Upload files to Google Drive, deleting old ones first
         const resumeResult = resume ? await uploadFileToDrive(userId, resume, "resume", oldResumeFileId) : { url: null, fileId: null };
         const coverLetterResult = coverLetter
             ? await uploadFileToDrive(userId, coverLetter, "cover-letter", oldCoverLetterFileId)
             : { url: null, fileId: null };
 
-        // Handle response upsert
         const { error: responseError } = await upsertResponse({
             userId,
             answers,
@@ -80,7 +86,6 @@ export default async function handler(req, res) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
         }
 
-        // Send emails
         const candidateEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/candidateEmail.html"), "utf8");
         const adminEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/adminEmail.html"), "utf8");
 
@@ -89,6 +94,7 @@ export default async function handler(req, res) {
             email,
             phone,
             linkedin,
+            opening,
             score,
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,

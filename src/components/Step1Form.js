@@ -6,7 +6,7 @@ export default function Step1Form({ formData, handleChange, mode }) {
     const [errors, setErrors] = useState({});
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/; // General URL validation
+    const urlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
 
     const validateField = (name, value) => {
         let error = "";
@@ -81,9 +81,9 @@ export default function Step1Form({ formData, handleChange, mode }) {
                             />
                         </div>
                         {errors.fullName && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                            <span className="mt-1 text-xs text-red-500 flex items-center">
                                 <Icon icon="mdi:alert-circle" className="w-4 h-4 mr-1" /> {errors.fullName}
-                            </p>
+                            </span>
                         )}
                     </div>
 
@@ -113,9 +113,9 @@ export default function Step1Form({ formData, handleChange, mode }) {
                             />
                         </div>
                         {errors.email && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                            <span className="mt-1 text-xs text-red-500 flex items-center">
                                 <Icon icon="mdi:alert-circle" className="w-4 h-4 mr-1" /> {errors.email}
-                            </p>
+                            </span>
                         )}
                     </div>
 
@@ -145,9 +145,9 @@ export default function Step1Form({ formData, handleChange, mode }) {
                             />
                         </div>
                         {errors.phone && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                            <span className="mt-1 text-xs text-red-500 flex items-center">
                                 <Icon icon="mdi:alert-circle" className="w-4 h-4 mr-1" /> {errors.phone}
-                            </p>
+                            </span>
                         )}
                     </div>
 
@@ -177,10 +177,27 @@ export default function Step1Form({ formData, handleChange, mode }) {
                             />
                         </div>
                         {errors.linkedin && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center">
+                            <span className="mt-1 text-xs text-red-500 flex items-center">
                                 <Icon icon="mdi:alert-circle" className="w-4 h-4 mr-1" /> {errors.linkedin}
-                            </p>
+                            </span>
                         )}
+                    </div>
+
+                    <div className="relative">
+                        <label className="block text-sm font-medium mb-1">
+                            Applying for <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex items-center">
+                            <Icon icon="mdi:briefcase" className="absolute left-3 text-[#f05d23] w-5 h-5" />
+                            <input
+                                type="text"
+                                value={formData.opening || "Please select an opening on the landing page"}
+                                readOnly
+                                className={`w-full pl-10 pr-4 py-3 border rounded-lg shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed ${
+                                    mode === "dark" ? "bg-gray-600 border-gray-500 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-500"
+                                }`}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

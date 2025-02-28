@@ -2,6 +2,8 @@ import Image from "next/image";
 import { Icon } from "@iconify/react";
 
 const Footer = ({ mode }) => {
+    const currentYear = new Date().getFullYear(); // Get the current year
+
     return (
         <footer
             className={`${
@@ -59,11 +61,11 @@ const Footer = ({ mode }) => {
                     </div>
 
 
-                    <p className="text-base mt-6 mb-4">
+                    <span className="text-base mt-6 mb-4">
                         7th Floor, Mitsumi Business Park,<br/>
                         Westlands – Nairobi, Kenya <br/>
                         P.O. Box 1093-00606
-                    </p>
+                    </span>
 
                     <div className="flex space-x-4 sm:space-x-6">
                         {/* Social Icons */}
@@ -111,7 +113,6 @@ const Footer = ({ mode }) => {
                         alt="Growthpad Logo"
                         width={500}
                         height={40}
-                        className=""
                     />
                 </div>
             </div>
@@ -119,8 +120,8 @@ const Footer = ({ mode }) => {
             {/* New section with two columns */}
             <div className="flex w-full justify-between items-center px-24 mt-4 text-white">
                 <div className="flex flex-col">
-                    <p className="text-base">
-                        © 2024 Growthpad Consulting Group. Made with ♡ in{" "}
+                    <span className="text-base">
+                        © {currentYear} Growthpad Consulting Group. Made with ♡ in
                         <span className="relative group">
                             <span className="cursor-default">Nairobi</span>
                             {/* Nairobi Flag */}
@@ -149,7 +150,7 @@ const Footer = ({ mode }) => {
                                 />
                             </div>
                         </span>
-                    </p>
+                    </span>
                 </div>
 
                 <div className="hidden md:flex flex-col items-end">
@@ -159,7 +160,6 @@ const Footer = ({ mode }) => {
                             alt="Growthpad Logo"
                             width={300}
                             height={40}
-                            className=""
                         />
                     </a>
                 </div>

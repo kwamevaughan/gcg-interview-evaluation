@@ -1,7 +1,7 @@
 // src/utils/dbUtils.js
 import { supabase } from "/lib/supabase";
 
-export async function upsertCandidate({ fullName, email, phone, linkedin }) {
+export async function upsertCandidate({ fullName, email, phone, linkedin, opening }) {
     try {
         console.log("Checking for existing candidate with email:", email);
         const { data: existingCandidate, error: fetchError } = await supabase
@@ -10,44 +10,32 @@ export async function upsertCandidate({ fullName, email, phone, linkedin }) {
             .eq("email", email)
             .single();
 
+        let userId;
         if (fetchError && fetchError.code !== "PGRST116") {
             console.error("Fetch existing candidate error:", fetchError);
             return { error: { status: 500, message: "Error checking existing candidate", details: fetchError.message } };
         }
 
-        let userId;
-
         if (existingCandidate) {
             console.log("Updating existing candidate with email:", email);
             const { data: updatedCandidate, error: updateError } = await supabase
                 .from("candidates")
-                .update({ full_name: fullName, phone, linkedin })
+                .update({ full_name: fullName, phone, linkedin, opening }) // Include opening
                 .eq("email", email)
                 .select()
                 .single();
-
-            if (updateError) {
-                console.error("Update candidate error:", updateError);
-                return { error: { status: 403, message: "Failed to update candidate", details: updateError.message } };
-            }
+            if (updateError) throw updateError;
             userId = updatedCandidate.id;
-            console.log("Updated candidate ID:", userId);
         } else {
-            console.log("Attempting to insert into candidates with data:", { full_name: fullName, email, phone, linkedin });
+            console.log("Inserting new candidate with data:", { full_name: fullName, email, phone, linkedin, opening });
             const { data: newCandidate, error: insertError } = await supabase
                 .from("candidates")
-                .insert([{ full_name: fullName, email, phone, linkedin }])
+                .insert([{ full_name: fullName, email, phone, linkedin, opening }]) // Include opening
                 .select()
                 .single();
-
-            if (insertError) {
-                console.error("Insert candidate error:", insertError);
-                return { error: { status: 403, message: "Failed to insert candidate", details: insertError.message } };
-            }
+            if (insertError) throw insertError;
             userId = newCandidate.id;
-            console.log("Inserted candidate ID:", userId);
         }
-
         return { userId };
     } catch (error) {
         console.error("Database operation error:", error.message);
