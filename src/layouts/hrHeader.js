@@ -82,7 +82,7 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                         <div className="flex items-center gap-2 cursor-pointer">
                             <div className="w-10 h-10 rounded-full overflow-hidden">
                                 <Image
-                                    src="/assets/images/placeholder.png" // Placeholder, update with user profile later
+                                    src="/favicon.png"
                                     alt="User Profile"
                                     width={40}
                                     height={40}
@@ -106,7 +106,7 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                                 </span>
                             </div>
                             <Icon
-                                icon={dropdownOpen ? "bxs:up-arrow" : "bxs:down-arrow"}
+                                icon={dropdownOpen ? "mingcute:arrow-up-fill" : "mingcute:arrow-down-fill"}
                                 className={`h-5 w-5 font-bold transform transition-transform duration-300 ${
                                     mode === "dark" ? "text-white" : "text-[#231812]"
                                 }`}
@@ -124,7 +124,7 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                                     <div className="flex items-center gap-2 border-b pb-6 w-full">
                                         <div className="rounded-full overflow-hidden flex-shrink-0">
                                             <Image
-                                                src="/assets/images/placeholder.png"
+                                                src="/favicon.png"
                                                 alt="User Profile"
                                                 width={40}
                                                 height={40}

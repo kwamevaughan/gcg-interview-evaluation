@@ -2,6 +2,7 @@
 import { useState } from "react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
+import useSidebar from "@/hooks/useSidebar";
 import { Toaster } from "react-hot-toast";
 import { Icon } from "@iconify/react";
 import { DndProvider } from "react-dnd";
@@ -11,7 +12,7 @@ import QuestionTable from "@/components/QuestionTable";
 import QuestionForm from "@/components/QuestionForm";
 
 export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { isSidebarOpen, toggleSidebar } = useSidebar();
     const [isAdding, setIsAdding] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
 
@@ -70,13 +71,20 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                 }`}
             >
                 <Toaster position="top-right" reverseOrder={false} />
-                <HRHeader mode={mode} toggleMode={toggleMode} onLogout={handleLogout} />
+                <HRHeader
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                    mode={mode}
+                    toggleMode={toggleMode}
+                    onLogout={handleLogout}
+                />
+
                 <div className="flex flex-1">
                     <HRSidebar
                         isOpen={isSidebarOpen}
                         mode={mode}
                         onLogout={handleLogout}
-                        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                        toggleSidebar={toggleSidebar}
                     />
                     <div
                         className={`flex-1 p-6 transition-all duration-300 ${

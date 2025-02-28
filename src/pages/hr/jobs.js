@@ -169,8 +169,9 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                     }`}
                 >
                     <div className="max-w-4xl mx-auto">
-                        <JobForm mode={mode} onJobAdded={fetchJobs} />
                         <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
+
+                        <JobForm mode={mode} onJobAdded={fetchJobs} />
                     </div>
                 </div>
             </div>

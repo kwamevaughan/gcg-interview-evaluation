@@ -19,7 +19,7 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
 
     return (
         <div
-            className={`rounded-lg shadow-lg overflow-hidden ${
+            className={`p-6 rounded-lg shadow-lg mb-8 border-t-4 border-[#f05d23] ${
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
@@ -52,30 +52,30 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                 <button
                                     onClick={() =>
                                         window.dispatchEvent(
-                                            new CustomEvent("openJobModal", { detail: job.title })
+                                            new CustomEvent("openJobModal", {detail: job.title})
                                         )
                                     }
                                     className="px-3 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:eye" width={16} height={16} />
+                                    <Icon icon="mdi:eye" width={16} height={16}/>
                                     View
                                 </button>
                                 <button
                                     onClick={() =>
                                         window.dispatchEvent(
-                                            new CustomEvent("editJobModal", { detail: job })
+                                            new CustomEvent("editJobModal", {detail: job})
                                         )
                                     }
                                     className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:pencil" width={16} height={16} />
+                                    <Icon icon="mdi:pencil" width={16} height={16}/>
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => handleDelete(job.id, job.title)}
                                     className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:trash-can" width={16} height={16} />
+                                    <Icon icon="mdi:trash-can" width={16} height={16}/>
                                     Delete
                                 </button>
                             </td>
