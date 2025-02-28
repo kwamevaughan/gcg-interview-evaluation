@@ -86,11 +86,11 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
 
                     {/* Countdown Timer */}
                     {!isExpired(expires_on) && timeLeft && (
-                        <div className="mb-6 bg-[#fff8f0] p-4 rounded-lg shadow-sm flex items-center justify-center gap-4">
+                        <div className="justify-center mb-6 bg-[#fff8f0] p-4 rounded-lg shadow-sm flex items-center gap-2">
                             <Icon icon="mdi:timer" className="w-6 h-6 text-[#f05d23]" />
-                            <div className="text-[#231812] text-center">
-                                <strong>Time Left:</strong>
-                                <div className="flex gap-2 justify-center">
+                            <div className="flex items-center text-[#231812]">
+                                <strong className="mr-2">Time Left:</strong>
+                                <div className="flex gap-2 text-lg">
                                     <span>{timeLeft.days}d</span>
                                     <span>{timeLeft.hours}h</span>
                                     <span>{timeLeft.minutes}m</span>
@@ -99,6 +99,7 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                             </div>
                         </div>
                     )}
+
 
                     {/* Description */}
                     {description && (
