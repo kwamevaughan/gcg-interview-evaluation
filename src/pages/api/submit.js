@@ -1,11 +1,7 @@
 // src/pages/api/submit.js
 import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
-import { uploadFileToDrive, deleteFileFromDrive } from "../../../utils/driveUtils";
-import { sendEmails } from "../../../utils/emailUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
-import fs from "fs";
-import path from "path";
 
 export const config = {
     api: {
@@ -37,7 +33,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "All fields (full name, email, phone, LinkedIn, and opening) are required" });
         }
 
-        // Fetch questions for scoring and email
+        // Fetch questions for scoring
         const { data: questions, error: questionsError } = await supabaseServer
             .from("interview_questions")
             .select("*")
@@ -52,62 +48,44 @@ export default async function handler(req, res) {
             return res.status(candidateError.status).json({ error: candidateError.message, details: candidateError.details });
         }
 
-        const score = calculateScore(answers, questions); // Returns { totalScore, maxPossibleScore }
+        const score = calculateScore(answers, questions);
 
-        const { data: existingResponse, error: fetchResponseError } = await supabaseServer
-            .from("responses")
-            .select("resume_file_id, cover_letter_file_id")
-            .eq("user_id", userId)
-            .single();
-
-        if (fetchResponseError && fetchResponseError.code !== "PGRST116") {
-            console.error("Fetch existing response error:", fetchResponseError);
-            return res.status(500).json({ error: "Error fetching existing response", details: fetchResponseError.message });
-        }
-
-        const oldResumeFileId = existingResponse?.resume_file_id;
-        const oldCoverLetterFileId = existingResponse?.cover_letter_file_id;
-
-        // Updated to pass fullName and opening
-        const resumeResult = resume
-            ? await uploadFileToDrive(fullName, opening, resume, "resume", oldResumeFileId)
-            : { url: null, fileId: null };
-        const coverLetterResult = coverLetter
-            ? await uploadFileToDrive(fullName, opening, coverLetter, "cover-letter", oldCoverLetterFileId)
-            : { url: null, fileId: null };
-
+        // Save to Supabase first, without Drive URLs yet
         const { error: responseError } = await upsertResponse({
             userId,
             answers,
             score: score.totalScore,
-            resumeUrl: resumeResult.url,
-            coverLetterUrl: coverLetterResult.url,
-            resumeFileId: resumeResult.fileId,
-            coverLetterFileId: coverLetterResult.fileId,
+            resumeUrl: null, // Will updated later
+            coverLetterUrl: null,
+            resumeFileId: null,
+            coverLetterFileId: null,
         });
         if (responseError) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
         }
 
-        const candidateEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/candidateEmail.html"), "utf8");
-        const adminEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/adminEmail.html"), "utf8");
-
-        await sendEmails({
-            fullName,
-            email,
-            phone,
-            linkedin,
-            opening,
-            score,
-            resumeUrl: resumeResult.url,
-            coverLetterUrl: coverLetterResult.url,
-            answers,
-            candidateTemplate: candidateEmailTemplate,
-            adminTemplate: adminEmailTemplate,
-            questions,
+        // Trigger background task via Supabase Edge Function
+        const { error: invokeError } = await supabaseServer.functions.invoke("process-submission", {
+            body: JSON.stringify({
+                userId,
+                fullName,
+                email,
+                phone,
+                linkedin,
+                opening,
+                answers,
+                resume,
+                coverLetter,
+                score,
+                questions,
+            }),
         });
+        if (invokeError) {
+            console.error("Error invoking background task:", invokeError);
+            // Don’t fail the request—background task can retry
+        }
 
-        return res.status(200).json({ message: "Submission successful", score: score.totalScore });
+        return res.status(200).json({ message: "Submission successful, processing in background", score: score.totalScore });
     } catch (error) {
         console.error("Submission error:", error.message);
         return res.status(500).json({ error: "Internal server error", details: error.message });

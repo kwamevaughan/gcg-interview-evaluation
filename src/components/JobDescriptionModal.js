@@ -34,11 +34,13 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                 if (diff <= 0) {
                     setTimeLeft(null);
                 } else {
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30)); // Approximate month length
+                    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    setTimeLeft({ days, hours, minutes, seconds });
+
+                    setTimeLeft({ months, days, hours, minutes, seconds });
                 }
             };
             updateTimer();
@@ -46,6 +48,7 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
             return () => clearInterval(timer);
         }
     }, [jobDetails]);
+
 
     if (!isOpen || !selectedOpening || !jobDetails) return null;
 
@@ -91,10 +94,11 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                             <div className="flex items-center text-[#231812]">
                                 <strong className="mr-2">Time Left:</strong>
                                 <div className="flex gap-2 text-lg">
-                                    <span>{timeLeft.days}d</span>
-                                    <span>{timeLeft.hours}h</span>
-                                    <span>{timeLeft.minutes}m</span>
-                                    <span>{timeLeft.seconds}s</span>
+                                    {timeLeft.months > 0 && <span>{timeLeft.months} month{timeLeft.months > 1 ? 's' : ''}</span>}
+                                    {timeLeft.days > 0 && <span>{timeLeft.days} day{timeLeft.days > 1 ? 's' : ''}</span>}
+                                    {timeLeft.hours > 0 && <span>{timeLeft.hours}h</span>}
+                                    {timeLeft.minutes > 0 && <span>{timeLeft.minutes}m</span>}
+                                    {timeLeft.seconds > 0 && <span>{timeLeft.seconds}s</span>}
                                 </div>
                             </div>
                         </div>
