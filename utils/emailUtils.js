@@ -79,7 +79,7 @@ export async function sendEmails({
 
     await transporter.sendMail({
         from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
-        to: "analytics.growthpad@gmail.com",
+        to: "careers@growthpad.co.ke",
         subject: `New Interview Submission from ${fullName} - ${opening} - Score (${score.totalScore}/${score.maxPossibleScore}) - ${percentage}%`,
         html: adminHtml,
     });
