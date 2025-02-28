@@ -38,7 +38,7 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                     >
                         {isSidebarOpen ? <XMarkIcon className="h-6 w-6"/> : <Bars3Icon className="h-6 w-6"/>}
                     </button>
-                    <h1 className="text-2xl font-bold">HR Dashboard</h1>
+                    <h1 className="text-2xl font-bold">Career Dashboard</h1>
                 </div>
 
                 {/* Right Section: Dark Mode, User */}

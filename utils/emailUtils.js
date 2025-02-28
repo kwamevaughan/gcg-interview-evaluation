@@ -1,13 +1,40 @@
 // src/utils/emailUtils.js
 import nodemailer from "nodemailer";
 
+export async function sendStatusEmail({ fullName, email, opening, status, subject, template }) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: parseInt(process.env.EMAIL_PORT),
+        secure: process.env.EMAIL_SECURE === "true",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    // Use the provided subject, fallback to a default if not supplied
+    const emailSubject = subject || "Application Status Update";
+
+    // Use the provided template (body) as-is, assuming it’s fully edited
+    const html = template;
+
+    await transporter.sendMail({
+        from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: emailSubject,
+        html,
+    });
+
+    console.log(`Status email (${status}) sent to ${email} with subject: ${emailSubject}`);
+}
+
 export async function sendEmails({
                                      fullName,
                                      email,
                                      phone,
                                      linkedin,
                                      opening,
-                                     score, // Now an object { totalScore, maxPossibleScore }
+                                     score,
                                      resumeUrl,
                                      coverLetterUrl,
                                      answers,
@@ -25,17 +52,14 @@ export async function sendEmails({
         },
     });
 
-    // Calculate percentage dynamically
     const percentage = Math.round((score.totalScore / score.maxPossibleScore) * 100);
 
-    // Format answers for admin email using passed questions
     const formattedAnswers = answers.map((answer, idx) => {
         const question = questions[idx]?.text || `Question ${idx + 1}`;
         const answerText = Array.isArray(answer) ? answer.join(", ") : answer;
         return { question, answer: answerText };
     });
 
-    // Send candidate email
     const candidateHtml = candidateTemplate
         .replace("{{fullName}}", fullName)
         .replace("{{score}}", `${score.totalScore}/${score.maxPossibleScore} (${percentage}%)`);
@@ -47,7 +71,6 @@ export async function sendEmails({
         html: candidateHtml,
     });
 
-    // Send admin email
     const adminHtml = adminTemplate
         .replace("{{fullName}}", fullName)
         .replace("{{email}}", email)

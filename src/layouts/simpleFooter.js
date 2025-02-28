@@ -1,14 +1,17 @@
 import Image from "next/image";
 import { Icon } from "@iconify/react";
+import HRSidebar from "@/layouts/hrSidebar";
+import useSidebar from "@/hooks/useSidebar";
 
 const simpleFooter = ({ mode }) => {
     const currentYear = new Date().getFullYear(); // Get the current year
 
     return (
+
         <footer
             className={`${
                 mode === "dark" ? "bg-gray-800 border-gray-700" : "bg-[#231812] border-[#231812]"
-            } border-b shadow-lg py-4 md:py-6 px-4  flex flex-col items-center sticky top-0 z-50`}
+            } border-b shadow-lg py-4 md:py-6 px-4  flex flex-col items-center sticky top-0 z-10`}
         >
             {/* New section with two columns */}
             <div className="flex w-full justify-between items-center px-24 mt-4 text-white">
