@@ -2,7 +2,25 @@
 import { google } from "googleapis";
 import { Readable } from "stream";
 
-export async function uploadFileToDrive(userId, fileData, fileType, oldFileId) {
+// Format date as "20th February 2024"
+const formatDate = () => {
+    const date = new Date();
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+    const suffix = (day) => {
+        if (day > 3 && day < 21) return "th";
+        switch (day % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    };
+    return `${day}${suffix(day)} ${month} ${year}`;
+};
+
+export async function uploadFileToDrive(fullName, opening, fileData, fileType, oldFileId) {
     try {
         const serviceAccountCreds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
         const auth = new google.auth.GoogleAuth({
@@ -19,7 +37,7 @@ export async function uploadFileToDrive(userId, fileData, fileType, oldFileId) {
         console.log(`Processing ${fileType} upload...`);
         const isPdf = fileData.startsWith("JVBERi0");
         const ext = isPdf ? "pdf" : "docx";
-        const fileName = `${userId}-${fileType}-${Date.now()}.${ext}`;
+        const fileName = `${fullName} - ${opening} - ${formatDate()}.${ext}`;
         const buffer = Buffer.from(fileData, "base64");
         console.log(`${fileType} size (bytes):`, buffer.length);
 

@@ -2,12 +2,34 @@
 import { google } from "googleapis";
 import { Readable } from "stream";
 
+// Format date as "20th February 2024"
+const formatDate = () => {
+    const date = new Date();
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+    const suffix = (day) => {
+        if (day > 3 && day < 21) return "th";
+        switch (day % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    };
+    return `${day}${suffix(day)} ${month} ${year}`;
+};
+
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { fileData, fileType } = req.body;
+    const { fileData, fileType, opening } = req.body; // Added opening to request body
+
+    if (!opening) {
+        return res.status(400).json({ error: "Opening is required for file naming" });
+    }
 
     try {
         const serviceAccountCreds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
@@ -19,7 +41,7 @@ export default async function handler(req, res) {
 
         const isPdf = fileType === "pdf";
         const ext = isPdf ? "pdf" : "docx";
-        const fileName = `job-opening-${Date.now()}.${ext}`;
+        const fileName = `${opening} - ${formatDate()}.${ext}`; // e.g., "Business Developer Intern - 20th February 2024.pdf"
         const buffer = Buffer.from(fileData, "base64");
 
         const bufferStream = new Readable();
@@ -28,7 +50,7 @@ export default async function handler(req, res) {
 
         const fileMetadata = {
             name: fileName,
-            parents: [process.env.GOOGLE_DRIVE_FOLDER_NEW], // Updated to new folder ID
+            parents: [process.env.GOOGLE_DRIVE_FOLDER_NEW],
         };
 
         const media = {

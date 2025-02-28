@@ -68,15 +68,18 @@ export default async function handler(req, res) {
         const oldResumeFileId = existingResponse?.resume_file_id;
         const oldCoverLetterFileId = existingResponse?.cover_letter_file_id;
 
-        const resumeResult = resume ? await uploadFileToDrive(userId, resume, "resume", oldResumeFileId) : { url: null, fileId: null };
+        // Updated to pass fullName and opening
+        const resumeResult = resume
+            ? await uploadFileToDrive(fullName, opening, resume, "resume", oldResumeFileId)
+            : { url: null, fileId: null };
         const coverLetterResult = coverLetter
-            ? await uploadFileToDrive(userId, coverLetter, "cover-letter", oldCoverLetterFileId)
+            ? await uploadFileToDrive(fullName, opening, coverLetter, "cover-letter", oldCoverLetterFileId)
             : { url: null, fileId: null };
 
         const { error: responseError } = await upsertResponse({
             userId,
             answers,
-            score: score.totalScore, // Store only totalScore in DB
+            score: score.totalScore,
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,
             resumeFileId: resumeResult.fileId,
@@ -95,7 +98,7 @@ export default async function handler(req, res) {
             phone,
             linkedin,
             opening,
-            score, // Pass the full score object
+            score,
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,
             answers,
