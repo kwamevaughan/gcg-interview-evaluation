@@ -52,7 +52,7 @@ export default async function handler(req, res) {
             return res.status(candidateError.status).json({ error: candidateError.message, details: candidateError.details });
         }
 
-        const score = calculateScore(answers, questions);
+        const score = calculateScore(answers, questions); // Returns { totalScore, maxPossibleScore }
 
         const { data: existingResponse, error: fetchResponseError } = await supabaseServer
             .from("responses")
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         const { error: responseError } = await upsertResponse({
             userId,
             answers,
-            score,
+            score: score.totalScore, // Store only totalScore in DB
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,
             resumeFileId: resumeResult.fileId,
@@ -95,16 +95,16 @@ export default async function handler(req, res) {
             phone,
             linkedin,
             opening,
-            score,
+            score, // Pass the full score object
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,
             answers,
             candidateTemplate: candidateEmailTemplate,
             adminTemplate: adminEmailTemplate,
-            questions, // Pass the fetched questions to sendEmails
+            questions,
         });
 
-        return res.status(200).json({ message: "Submission successful", score });
+        return res.status(200).json({ message: "Submission successful", score: score.totalScore });
     } catch (error) {
         console.error("Submission error:", error.message);
         return res.status(500).json({ error: "Internal server error", details: error.message });

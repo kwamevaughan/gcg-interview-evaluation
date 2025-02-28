@@ -7,13 +7,13 @@ export async function sendEmails({
                                      phone,
                                      linkedin,
                                      opening,
-                                     score,
+                                     score, // Now an object { totalScore, maxPossibleScore }
                                      resumeUrl,
                                      coverLetterUrl,
                                      answers,
                                      candidateTemplate,
                                      adminTemplate,
-                                     questions, // Add questions as a parameter
+                                     questions,
                                  }) {
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
@@ -25,21 +25,20 @@ export async function sendEmails({
         },
     });
 
-    // Calculate percentage (assuming max score is still 190)
-    const percentage = Math.round((score / 190) * 100);
+    // Calculate percentage dynamically
+    const percentage = Math.round((score.totalScore / score.maxPossibleScore) * 100);
 
     // Format answers for admin email using passed questions
-    const formattedAnswers = Object.keys(answers).map((key) => {
-        const questionIndex = parseInt(key, 10);
-        const question = questions[questionIndex]?.text || `Question ${questionIndex + 1}`;
-        const answer = Array.isArray(answers[key]) ? answers[key].join(", ") : answers[key];
-        return { question, answer };
+    const formattedAnswers = answers.map((answer, idx) => {
+        const question = questions[idx]?.text || `Question ${idx + 1}`;
+        const answerText = Array.isArray(answer) ? answer.join(", ") : answer;
+        return { question, answer: answerText };
     });
 
     // Send candidate email
     const candidateHtml = candidateTemplate
         .replace("{{fullName}}", fullName)
-        .replace("{{score}}", `${score}/190 (${percentage}%)`);
+        .replace("{{score}}", `${score.totalScore}/${score.maxPossibleScore} (${percentage}%)`);
 
     await transporter.sendMail({
         from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
@@ -55,7 +54,7 @@ export async function sendEmails({
         .replace("{{phone}}", phone || "N/A")
         .replace("{{linkedin}}", linkedin ? `<a href="${linkedin}" style="color: #f05d23;">${linkedin}</a>` : "N/A")
         .replace("{{opening}}", opening)
-        .replace("{{score}}", score)
+        .replace("{{score}}", `${score.totalScore}/${score.maxPossibleScore} (${percentage}%)`)
         .replace(
             "{{resumeUrl}}",
             resumeUrl ? `<a href="${resumeUrl}" style="color: #f05d23;">Download</a>` : "Not provided"
@@ -81,7 +80,7 @@ export async function sendEmails({
     await transporter.sendMail({
         from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
         to: "analytics.growthpad@gmail.com",
-        subject: `New Interview Submission from ${fullName} - ${opening} - Score (${score}/190) - Percentage - ${percentage}%`,
+        subject: `New Interview Submission from ${fullName} - ${opening} - Score (${score.totalScore}/${score.maxPossibleScore}) - ${percentage}%`,
         html: adminHtml,
     });
 
