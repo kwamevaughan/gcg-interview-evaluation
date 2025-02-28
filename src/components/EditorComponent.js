@@ -1,5 +1,5 @@
 // src/components/EditorComponent.js
-"use client"; // Marks this as a Client Component (Next.js 13+), or use dynamic import for Pages Router
+"use client";
 
 import { useEffect, useRef } from "react";
 import EditorJS from '@editorjs/editorjs';
@@ -10,14 +10,18 @@ import toast from "react-hot-toast";
 
 export default function EditorComponent({ emailData, setEmailData, setIsSaving, mode }) {
     const editorRef = useRef(null);
+    const isMounted = useRef(false); // Track initial mount
 
     useEffect(() => {
-        initializeEditor();
+        if (!isMounted.current) {
+            initializeEditor();
+            isMounted.current = true;
+        }
 
         return () => {
             cleanupEditor();
         };
-    }, [emailData.body]);
+    }, []); // Empty dependency array to run only once on mount
 
     const initializeEditor = () => {
         console.log("Initializing EditorJS with body:", emailData.body);
@@ -36,15 +40,23 @@ export default function EditorComponent({ emailData, setEmailData, setIsSaving, 
                 tools: {
                     header: { class: Header, inlineToolbar: true },
                     list: { class: List, inlineToolbar: true },
-                    paragraph: { class: Paragraph, inlineToolbar: true },
+                    paragraph: {
+                        class: Paragraph,
+                        inlineToolbar: true,
+                        config: {
+                            preserveBlank: true, // Preserve blank lines
+                        },
+                    },
                 },
                 data: {
-                    blocks: [
-                        {
-                            type: "paragraph",
-                            data: { text: emailData.body || "Start typing your email here..." },
-                        },
-                    ],
+                    blocks: emailData.body
+                        ? parseHtmlToBlocks(emailData.body)
+                        : [
+                            {
+                                type: "paragraph",
+                                data: { text: "Start typing your email here..." },
+                            },
+                        ],
                 },
                 onChange: async () => {
                     await handleEditorChange();
@@ -69,12 +81,30 @@ export default function EditorComponent({ emailData, setEmailData, setIsSaving, 
         }
     };
 
+    const parseHtmlToBlocks = (html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const paragraphs = doc.querySelectorAll("p");
+        const blocks = Array.from(paragraphs).map(p => ({
+            type: "paragraph",
+            data: { text: p.innerHTML || p.textContent },
+        }));
+        return blocks.length > 0 ? blocks : [
+            {
+                type: "paragraph",
+                data: { text: html || "Start typing your email here..." },
+            },
+        ];
+    };
+
     const handleEditorChange = async () => {
         if (!editorRef.current) return;
 
         try {
             setIsSaving(true);
             const content = await editorRef.current.save();
+            console.log("Editor content saved:", content);
+
             const html = content.blocks
                 .map((block) => {
                     switch (block.type) {
@@ -84,12 +114,12 @@ export default function EditorComponent({ emailData, setEmailData, setIsSaving, 
                             const items = block.data.items.map((item) => `<li>${item}</li>`).join("");
                             return block.data.style === "ordered" ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
                         case "paragraph":
-                            return `<p>${block.data.text}</p>`;
+                            return `<p>${block.data.text || ""}</p>`;
                         default:
                             return "";
                     }
                 })
-                .join("");
+                .join("\n");
             setEmailData((prev) => ({ ...prev, body: html }));
             setIsSaving(false);
         } catch (error) {
