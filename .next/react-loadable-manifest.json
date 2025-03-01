@@ -1,4 +1,12 @@
 {
+  "src/components/EmailModal.js -> ./EditorComponent": {
+    "id": "src/components/EmailModal.js -> ./EditorComponent",
+    "files": [
+      "static/chunks/node_modules_0acf0c._.js",
+      "static/chunks/src_components_EditorComponent_1c7887.js",
+      "static/chunks/src_components_EditorComponent_bd64ad.js"
+    ]
+  },
   "src/pages/index.js -> ../components/JobDescriptionModal": {
     "id": "src/pages/index.js -> ../components/JobDescriptionModal",
     "files": [
@@ -6,14 +14,6 @@
       "static/chunks/src_cf4917._.js",
       "static/chunks/node_modules_6c57eb._.js",
       "static/chunks/src_components_JobDescriptionModal_bd64ad.js"
-    ]
-  },
-  "src/components/EmailModal.js -> ./EditorComponent": {
-    "id": "src/components/EmailModal.js -> ./EditorComponent",
-    "files": [
-      "static/chunks/node_modules_0acf0c._.js",
-      "static/chunks/src_components_EditorComponent_1c7887.js",
-      "static/chunks/src_components_EditorComponent_bd64ad.js"
     ]
   }
 }

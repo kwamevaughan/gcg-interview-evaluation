@@ -2,6 +2,6 @@
   "/_app": "pages/_app.js",
   "/_document": "pages/_document.js",
   "/interview": "pages/interview.js",
-  "/": "pages/index.js",
-  "/hr/applicants": "pages/hr/applicants.js"
+  "/hr/applicants": "pages/hr/applicants.js",
+  "/": "pages/index.js"
 }
