@@ -5,6 +5,10 @@ export default function TopPerformers({ candidates, setEmailData, setIsEmailModa
 
     const handleEmailClick = (candidate) => {
         setEmailData({
+            fullName: candidate.full_name,
+            email: candidate.email, // Include email here
+            opening: candidate.opening,
+            status: candidate.status,
             subject: `Congratulations, ${candidate.full_name}!`,
             body: `Dear ${candidate.full_name},\n\nWe’re impressed with your score of ${candidate.score}! Next steps...`,
         });

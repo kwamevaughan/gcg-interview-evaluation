@@ -3,7 +3,7 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } fro
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
-export default function DeviceChart({ candidates, mode }) {
+export default function DeviceChart({ candidates, mode, onFilter }) {
     const deviceCounts = candidates.reduce((acc, c) => {
         acc[c.device || "Unknown"] = (acc[c.device || "Unknown"] || 0) + 1;
         return acc;
@@ -37,6 +37,13 @@ export default function DeviceChart({ candidates, mode }) {
                         plugins: {
                             legend: { display: false },
                             tooltip: { backgroundColor: "#f05d23" },
+                        },
+                        onClick: (_, elements) => {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const device = data.labels[index];
+                                onFilter(device);
+                            }
                         },
                     }}
                 />

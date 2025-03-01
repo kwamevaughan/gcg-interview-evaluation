@@ -4,7 +4,7 @@ import "chartjs-adapter-date-fns";
 
 ChartJS.register(LineElement, PointElement, TimeScale, LinearScale, Tooltip, Legend);
 
-export default function ScoreTrend({ candidates, mode }) {
+export default function ScoreTrend({ candidates, mode, onFilter }) {
     const scoresByDate = candidates.map(c => ({
         x: new Date(c.submitted_at).getTime(),
         y: c.score,
@@ -42,6 +42,13 @@ export default function ScoreTrend({ candidates, mode }) {
                         plugins: {
                             legend: { labels: { color: mode === "dark" ? "#fff" : "#231812" } },
                             tooltip: { backgroundColor: "#f05d23" },
+                        },
+                        onClick: (_, elements) => {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const timestamp = scoresByDate[index].x;
+                                onFilter(timestamp);
+                            }
                         },
                     }}
                 />

@@ -3,7 +3,7 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } fro
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
-export default function ScoreChart({ candidates, mode }) {
+export default function ScoreChart({ candidates, mode, onFilter }) {
     const scoreDistribution = candidates.reduce((acc, c) => {
         const bin = Math.floor(c.score / 20) * 20;
         acc[bin] = (acc[bin] || 0) + 1;
@@ -38,6 +38,13 @@ export default function ScoreChart({ candidates, mode }) {
                         plugins: {
                             legend: { display: false },
                             tooltip: { backgroundColor: "#f05d23" },
+                        },
+                        onClick: (_, elements) => {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const range = data.labels[index];
+                                onFilter(range);
+                            }
                         },
                     }}
                 />

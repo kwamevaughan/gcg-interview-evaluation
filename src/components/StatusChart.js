@@ -3,7 +3,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function StatusChart({ candidates, mode }) {
+export default function StatusChart({ candidates, mode, onFilter }) {
     const statusCounts = candidates.reduce((acc, c) => {
         acc[c.status] = (acc[c.status] || 0) + 1;
         return acc;
@@ -31,6 +31,13 @@ export default function StatusChart({ candidates, mode }) {
                         plugins: {
                             legend: { position: "bottom", labels: { color: mode === "dark" ? "#fff" : "#231812" } },
                             tooltip: { backgroundColor: "#f05d23" },
+                        },
+                        onClick: (_, elements) => {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const status = data.labels[index];
+                                onFilter(status);
+                            }
                         },
                     }}
                 />
