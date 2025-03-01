@@ -1,1 +1,14 @@
+# Ignore Node modules
 node_modules/
+
+# Ignore Next.js build output
+.next/
+
+# Ignore OS-specific files
+.DS_Store
+
+# Ignore environment variable files
+.env
+
+# Ignore IDE or editor configurations
+.idea/
