@@ -38,11 +38,11 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                             legend: { display: false },
                             tooltip: { backgroundColor: "#f05d23" },
                         },
-                        onClick: (_, elements) => {
+                        onClick: (e, elements) => {
                             if (elements.length > 0) {
                                 const index = elements[0].index;
                                 const device = data.labels[index];
-                                onFilter(device);
+                                onFilter("device", device);
                             }
                         },
                     }}

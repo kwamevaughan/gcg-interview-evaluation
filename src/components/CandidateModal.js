@@ -34,9 +34,10 @@ export default function CandidateModal({ candidate, isOpen, onClose, onStatusCha
         }
     };
 
+    const maxScore = candidate.questions ? candidate.questions.length * 10 : 0;
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-            <div className={`rounded-xl shadow-2xl transform transition-all duration-300 animate-fade-in w-full max-w-3xl mx-4 flex flex-col max-h-[90vh] overflow-hidden ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[60]"> {/* Changed to z-60 */}            <div className={`rounded-xl shadow-2xl transform transition-all duration-300 animate-fade-in w-full max-w-3xl mx-4 flex flex-col max-h-[90vh] overflow-hidden ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -90,8 +91,8 @@ export default function CandidateModal({ candidate, isOpen, onClose, onStatusCha
                             <Icon icon="mdi:star" className="w-5 h-5 text-[#f05d23]" />
                             <p className="text-sm font-medium">Score: </p>
                             <p className="text-base">
-                                {candidate.score}/{candidate.questions.length * 10} (
-                                {Math.round((candidate.score / (candidate.questions.length * 10)) * 100)}%)
+                                {candidate.score}/{maxScore} (
+                                {maxScore > 0 ? Math.round((candidate.score / maxScore) * 100) : 0}%)
                             </p>
                         </div>
 
@@ -175,8 +176,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, onStatusCha
 
             {/* Document Preview Modal */}
             {isPreviewModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-                    <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-70"> {/* Changed to z-70 */}                    <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
                         <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
                             <h2 className="text-2xl font-bold text-white">Document Preview</h2>
                             <button onClick={closePreviewModal} className="text-white hover:text-gray-200 transition duration-200">
@@ -199,8 +199,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, onStatusCha
 
             {/* Answers Modal */}
             {isAnswersModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-                    <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-70"> {/* Changed to z-70 */}                    <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
                         <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
                             <h2 className="text-2xl font-bold text-white">Interview Answers for {candidate.full_name}</h2>
                             <button onClick={closeAnswersModal} className="text-white hover:text-gray-200 transition duration-200">
@@ -209,7 +208,7 @@ export default function CandidateModal({ candidate, isOpen, onClose, onStatusCha
                         </div>
                         <div className="flex-1 p-6 overflow-y-auto">
                             <div className="space-y-4">
-                                {candidate.answers && candidate.answers.length > 0 ? (
+                                {candidate.answers && candidate.answers.length > 0 && candidate.questions && candidate.questions.length > 0 ? (
                                     candidate.answers.map((answer, idx) => (
                                         <div
                                             key={idx}

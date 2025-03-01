@@ -29,14 +29,21 @@ export default function CountryChart({ candidates, mode, onFilter }) {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: "bottom", labels: { color: mode === "dark" ? "#fff" : "#231812" } },
+                            legend: {
+                                position: "bottom",
+                                labels: { color: mode === "dark" ? "#fff" : "#231812" },
+                                onClick: (e, legendItem) => {
+                                    const country = data.labels[legendItem.index];
+                                    onFilter("country", country);
+                                },
+                            },
                             tooltip: { backgroundColor: "#f05d23" },
                         },
-                        onClick: (_, elements) => {
+                        onClick: (event, elements) => {
                             if (elements.length > 0) {
                                 const index = elements[0].index;
                                 const country = data.labels[index];
-                                onFilter(country);
+                                onFilter("country", country);
                             }
                         },
                     }}

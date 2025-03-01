@@ -29,14 +29,21 @@ export default function StatusChart({ candidates, mode, onFilter }) {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: "bottom", labels: { color: mode === "dark" ? "#fff" : "#231812" } },
+                            legend: {
+                                position: "bottom",
+                                labels: { color: mode === "dark" ? "#fff" : "#231812" },
+                                onClick: (e, legendItem) => {
+                                    const status = data.labels[legendItem.index];
+                                    onFilter("status", status);
+                                },
+                            },
                             tooltip: { backgroundColor: "#f05d23" },
                         },
-                        onClick: (_, elements) => {
+                        onClick: (event, elements) => {
                             if (elements.length > 0) {
                                 const index = elements[0].index;
                                 const status = data.labels[index];
-                                onFilter(status);
+                                onFilter("status", status);
                             }
                         },
                     }}

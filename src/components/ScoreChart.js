@@ -39,11 +39,11 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
                             legend: { display: false },
                             tooltip: { backgroundColor: "#f05d23" },
                         },
-                        onClick: (_, elements) => {
+                        onClick: (e, elements) => {
                             if (elements.length > 0) {
                                 const index = elements[0].index;
                                 const range = data.labels[index];
-                                onFilter(range);
+                                onFilter("score", range);
                             }
                         },
                     }}

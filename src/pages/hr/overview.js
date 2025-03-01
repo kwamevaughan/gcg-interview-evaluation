@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
+import { Icon } from "@iconify/react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
 import useSidebar from "@/hooks/useSidebar";
@@ -17,13 +18,19 @@ import TopPerformers from "@/components/TopPerformers";
 import CountryChart from "@/components/CountryChart";
 import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
-import { Icon } from "@iconify/react";
+import CandidateModal from "@/components/CandidateModal";
 
 export default function HROverview({ mode = "light", toggleMode }) {
     const [candidates, setCandidates] = useState([]);
-    const [filteredCandidates, setFilteredCandidates] = useState([]);
     const [jobOpenings, setJobOpenings] = useState([]);
+    const [questions, setQuestions] = useState([]);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [filteredCandidates, setFilteredCandidates] = useState([]); // For filter modal
+    const [filterType, setFilterType] = useState(""); // For modal title
+    const [filterValue, setFilterValue] = useState(""); // For modal title
     const [emailData, setEmailData] = useState({ subject: "", body: "", email: "" });
     const { isSidebarOpen, toggleSidebar } = useSidebar();
     const router = useRouter();
@@ -49,6 +56,12 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 .select("user_id, answers, score, resume_url, cover_letter_url, status, country, device, submitted_at");
             if (responsesError) throw responsesError;
 
+            const { data: questionsData, error: questionsError } = await supabaseServer
+                .from("interview_questions")
+                .select("*")
+                .order("order", { ascending: true });
+            if (questionsError) throw questionsError;
+
             const combinedData = candidatesData.map((candidate) => {
                 const response = responsesData.find((r) => r.user_id === candidate.id) || {};
                 let parsedAnswers = [];
@@ -73,10 +86,11 @@ export default function HROverview({ mode = "light", toggleMode }) {
                     country: response.country || "Unknown",
                     device: response.device || "Unknown",
                     submitted_at: response.submitted_at || null,
+                    questions: questionsData,
                 };
             });
             setCandidates(combinedData);
-            setFilteredCandidates(combinedData);
+            setQuestions(questionsData);
             setJobOpenings([...new Set(combinedData.map((c) => c.opening))]);
             toast.success("Data loaded successfully!", { id: loadingToast });
         } catch (error) {
@@ -118,6 +132,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
     };
 
     const handleChartFilter = (type, value) => {
+        console.log(`Opening modal for ${type}: ${value}`); // Debug log
         let filtered;
         switch (type) {
             case "status":
@@ -144,9 +159,51 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 break;
             default:
                 filtered = candidates;
-                toast.success("Reset filters", { duration: 2000 });
+                toast.success("Showing all candidates", { duration: 2000 });
         }
         setFilteredCandidates(filtered);
+        setFilterType(type);
+        setFilterValue(value);
+        setIsFilterModalOpen(true);
+    };
+
+    const handleCloseCandidateModal = () => {
+        setIsCandidateModalOpen(false);
+        setSelectedCandidate(null);
+    };
+
+    const handleCloseFilterModal = () => {
+        setIsFilterModalOpen(false);
+        setFilteredCandidates([]);
+        setFilterType("");
+        setFilterValue("");
+    };
+
+    const handleStatusChange = async (candidateId, newStatus) => {
+        try {
+            const { error } = await supabaseServer
+                .from("responses")
+                .update({ status: newStatus })
+                .eq("user_id", candidateId);
+            if (error) throw error;
+
+            const updatedCandidates = candidates.map(c =>
+                c.id === candidateId ? { ...c, status: newStatus } : c
+            );
+            setCandidates(updatedCandidates);
+            if (filteredCandidates.length > 0) {
+                setFilteredCandidates(filteredCandidates.map(c =>
+                    c.id === candidateId ? { ...c, status: newStatus } : c
+                ));
+            }
+            if (selectedCandidate && selectedCandidate.id === candidateId) {
+                setSelectedCandidate({ ...selectedCandidate, status: newStatus });
+            }
+            toast.success(`Status updated to ${newStatus}!`, { duration: 2000 });
+        } catch (error) {
+            console.error("Error updating status:", error);
+            toast.error("Failed to update status.");
+        }
     };
 
     return (
@@ -195,14 +252,14 @@ export default function HROverview({ mode = "light", toggleMode }) {
 
                         {/* Section 1: Status and Country (2 Columns) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <StatusChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("status", value)} />
-                            <CountryChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("country", value)} />
+                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
 
                         {/* Section 2: Score Distribution and Trend (2 Columns) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <ScoreChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("score", value)} />
-                            <ScoreTrend candidates={candidates} mode={mode} onFilter={value => handleChartFilter("date", value)} />
+                            <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
 
                         {/* Section 3: Widgets (2 Columns) */}
@@ -213,8 +270,13 @@ export default function HROverview({ mode = "light", toggleMode }) {
                                 setIsEmailModalOpen={setIsEmailModalOpen}
                                 mode={mode}
                             />
-                            <RecentActivity candidates={filteredCandidates} router={router} mode={mode} />
-                            <DeviceChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("device", value)} />
+                            <RecentActivity
+                                candidates={candidates} // Show all recent, not filtered
+                                setSelectedCandidate={setSelectedCandidate}
+                                setIsModalOpen={setIsCandidateModalOpen}
+                                mode={mode}
+                            />
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
 
                         {/* Full-width Job Openings */}
@@ -232,8 +294,84 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 onSend={handleSendEmail}
                 mode={mode}
             />
+            <CandidateModal
+                candidate={selectedCandidate}
+                isOpen={isCandidateModalOpen}
+                onClose={handleCloseCandidateModal}
+                onStatusChange={handleStatusChange}
+                mode={mode}
+            />
+            {isFilterModalOpen && (
+                <ChartFilterModal
+                    candidates={filteredCandidates}
+                    type={filterType}
+                    value={filterValue}
+                    onClose={handleCloseFilterModal}
+                    setSelectedCandidate={setSelectedCandidate}
+                    setIsCandidateModalOpen={setIsCandidateModalOpen}
+                    mode={mode}
+                />
+            )}
 
             <SimpleFooter mode={mode} />
+        </div>
+    );
+}
+
+function ChartFilterModal({ candidates, type, value, onClose, setSelectedCandidate, setIsCandidateModalOpen, mode }) {
+    const handleViewClick = (candidate) => {
+        setSelectedCandidate(candidate);
+        setIsCandidateModalOpen(true);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+            <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
+                <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">
+                        {type === "status" && `Status: ${value}`}
+                        {type === "country" && `Country: ${value}`}
+                        {type === "score" && `Score Range: ${value}`}
+                        {type === "device" && `Device: ${value}`}
+                        {type === "date" && `Date: ${new Date(value).toLocaleDateString()}`}
+                    </h2>
+                    <button onClick={onClose} className="text-white hover:text-gray-200 transition duration-200">
+                        <Icon icon="mdi:close" width={24} height={24} />
+                    </button>
+                </div>
+                <div className="flex-1 p-6 overflow-y-auto">
+                    {candidates.length > 0 ? (
+                        <ul className="space-y-4">
+                            {candidates.map((candidate) => (
+                                <li key={candidate.id} className="flex justify-between items-center animate-fade-in">
+                                    <span className={`${mode === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+                                        {candidate.full_name} - {candidate.opening} (Score: {candidate.score})
+                                    </span>
+                                    <button
+                                        onClick={() => handleViewClick(candidate)}
+                                        className="text-[#f05d23] hover:text-[#d94f1e] flex items-center gap-1"
+                                    >
+                                        <Icon icon="mdi:eye" className="w-4 h-4" /> View
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-gray-500 dark:text-gray-400 italic">No candidates match this filter.</p>
+                    )}
+                </div>
+                <div className={`p-4 border-t border-gray-200 dark:border-gray-700 rounded-b-xl shadow-md ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+                    <div className="flex justify-end gap-4">
+                        <button
+                            onClick={onClose}
+                            className="px-6 py-2 bg-gray-200 dark:bg-gray-600 text-[#231812] dark:text-white rounded-full hover:bg-gray-300 dark:hover:bg-gray-500 transition duration-200 flex items-center gap-2 shadow-md"
+                        >
+                            <Icon icon="mdi:close" width={20} height={20} />
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

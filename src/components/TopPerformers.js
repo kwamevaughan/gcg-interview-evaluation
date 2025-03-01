@@ -1,18 +1,21 @@
 import { Icon } from "@iconify/react";
+import toast from "react-hot-toast";
 
 export default function TopPerformers({ candidates, setEmailData, setIsEmailModalOpen, mode }) {
     const topThree = candidates.sort((a, b) => b.score - a.score).slice(0, 3);
 
     const handleEmailClick = (candidate) => {
+        toast.loading("Preparing email...");
         setEmailData({
             fullName: candidate.full_name,
-            email: candidate.email, // Include email here
+            email: candidate.email,
             opening: candidate.opening,
             status: candidate.status,
             subject: `Congratulations, ${candidate.full_name}!`,
-            body: `Dear ${candidate.full_name},\n\nWe’re impressed with your score of ${candidate.score}! Next steps...`,
+            body: `<p>Dear ${candidate.full_name},</p><p>We’re impressed with your score of ${candidate.score}!</p><p>Next steps...</p>`,
         });
         setIsEmailModalOpen(true);
+        toast.dismiss(); // Clear loading toast
     };
 
     return (
