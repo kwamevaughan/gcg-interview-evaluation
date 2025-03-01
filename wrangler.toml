@@ -1,0 +1,9 @@
+name = "gcg-careers"
+main = "dist/worker.js"
+
+[build]
+command = "npm run build"
+
+[env.production]
+name = "gcg-careers-prod"
+route = "your-worker-route-url/*"
