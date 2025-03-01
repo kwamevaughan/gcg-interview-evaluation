@@ -31,7 +31,7 @@ export default function EmailModal({ candidate, isOpen, onClose, emailData, setE
     if (!isOpen || !candidate) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-[100]">
             <div className={`${mode === "dark" ? "bg-gray-800 text-white" : "bg-white"} rounded-xl max-w-3xl w-full mx-4 shadow-2xl transform transition-all duration-300 animate-fade-in flex flex-col max-h-[80vh]`}>
                 <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
                     <div className="flex items-center">
