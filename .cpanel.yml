@@ -18,6 +18,3 @@ deployment:
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/public $DEPLOYPATH
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/package.json $DEPLOYPATH
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/package-lock.json $DEPLOYPATH
-
-    # Optionally, if you are using SSR, run the app with PM2 or another process manager:
-    # - pm2 start /home/influenc/public_html/new.growthpad.co.ke/server.js --name nextjs
