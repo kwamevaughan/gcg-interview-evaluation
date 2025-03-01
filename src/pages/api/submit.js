@@ -4,7 +4,7 @@ import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
 import fetch from "node-fetch";
 
-// Use try-catch to handle UAParser import/constructor issues
+// Use try-catch to handle UAParser import/constructor issues.
 let UAParser;
 try {
     UAParser = (await import("ua-parser-js")).default;
