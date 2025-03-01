@@ -2,10 +2,10 @@
 deployment:
   tasks:
     # Set the deployment path to the subdomain's folder
-    - export DEPLOYPATH=/home/influenc/public_html/new.growthpad.co.ke
+    - export DEPLOYPATH=/home/gdcblcgb/public_html/new.growthpad.co.ke
 
     # Navigate to the repository directory
-    - cd /home/influenc/repositories/gcg-interview-evaluation
+    - cd /home/gdcblcgb/repositories/gcg-interview-evaluation
 
     # Install dependencies
     - npm install
@@ -14,7 +14,7 @@ deployment:
     - npm run build
 
     # Copy necessary files to the subdomain folder
-    - cp -r /home/influenc/repositories/gcg-interview-evaluation/.next $DEPLOYPATH
-    - cp -r /home/influenc/repositories/gcg-interview-evaluation/public $DEPLOYPATH
-    - cp -r /home/influenc/repositories/gcg-interview-evaluation/package.json $DEPLOYPATH
-    - cp -r /home/influenc/repositories/gcg-interview-evaluation/package-lock.json $DEPLOYPATH
+    - cp -r /home/gdcblcgb/repositories/gcg-interview-evaluation/.next $DEPLOYPATH
+    - cp -r /home/gdcblcgb/repositories/gcg-interview-evaluation/public $DEPLOYPATH
+    - cp -r /home/gdcblcgb/repositories/gcg-interview-evaluation/package.json $DEPLOYPATH
+    - cp -r /home/gdcblcgb/repositories/gcg-interview-evaluation/package-lock.json $DEPLOYPATH
