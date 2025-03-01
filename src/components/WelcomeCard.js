@@ -1,4 +1,4 @@
-import { Icon } from "@iconify/react";
+// src/components/WelcomeCard.js
 import CountUp from "react-countup";
 
 export default function WelcomeCard({ totalApplicants, openPositions, pendingReviews, mode }) {
@@ -8,10 +8,7 @@ export default function WelcomeCard({ totalApplicants, openPositions, pendingRev
                 mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"
             }`}
         >
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-                <Icon icon="mdi:hand-wave" className="w-6 h-6 text-[#f05d23]" />
-                Welcome back, HR Team!
-            </h3>
+            <h3 className="text-xl font-semibold">Welcome back, HR Team!</h3>
             <p className={`text-sm ${mode === "dark" ? "text-gray-400" : "text-gray-600"}`}>
                 {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
