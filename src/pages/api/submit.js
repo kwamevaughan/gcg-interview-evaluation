@@ -34,7 +34,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "All fields (full name, email, phone, LinkedIn, and opening) are required" });
         }
 
-        // Fetch questions for scoring
         const { data: questions, error: questionsError } = await supabaseServer
             .from("interview_questions")
             .select("*")
@@ -66,6 +65,7 @@ export default async function handler(req, res) {
 
         // Fire-and-forget request to process Drive uploads and emails
         const processUrl = `${req.headers.origin || "http://localhost:3000"}/api/process-submission`;
+        console.log("Triggering background process at URL:", processUrl);
         fetch(processUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,7 +83,16 @@ export default async function handler(req, res) {
                 questions,
             }),
             keepalive: true,
-        }).catch(error => console.error("Background processing request failed:", error));
+        })
+            .then(response => {
+                console.log("Background process response status:", response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Background process failed with status ${response.status}: ${text}`);
+                    });
+                }
+            })
+            .catch(error => console.error("Background processing request failed:", error.message));
 
         return res.status(200).json({ message: "Submission successful, processing in background", score: score.totalScore });
     } catch (error) {
