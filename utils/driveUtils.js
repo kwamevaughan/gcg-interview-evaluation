@@ -22,7 +22,8 @@ const formatDate = () => {
 
 export async function uploadFileToDrive(fullName, opening, fileData, fileType, oldFileId) {
     try {
-        const serviceAccountCreds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+        const cleanedServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT.replace(/\n/g, "").replace(/\s+/g, " ").trim();
+        const serviceAccountCreds = JSON.parse(cleanedServiceAccount);
         const auth = new google.auth.GoogleAuth({
             credentials: serviceAccountCreds,
             scopes: ["https://www.googleapis.com/auth/drive.file"],
@@ -34,12 +35,10 @@ export async function uploadFileToDrive(fullName, opening, fileData, fileType, o
             await deleteFileFromDrive(oldFileId);
         }
 
-        console.log(`Processing ${fileType} upload...`);
         const isPdf = fileData.startsWith("JVBERi0");
         const ext = isPdf ? "pdf" : "docx";
         const fileName = `${fullName} - ${opening} - ${formatDate()}.${ext}`;
         const buffer = Buffer.from(fileData, "base64");
-        console.log(`${fileType} size (bytes):`, buffer.length);
 
         const bufferStream = new Readable();
         bufferStream.push(buffer);
@@ -70,7 +69,6 @@ export async function uploadFileToDrive(fullName, opening, fileData, fileType, o
         });
 
         const fileUrl = driveResponse.data.webContentLink;
-        console.log(`${fileType} uploaded successfully:`, fileUrl);
         return { url: fileUrl, fileId: driveResponse.data.id };
     } catch (error) {
         console.error(`${fileType} upload error:`, error.message, error.stack || "No stack trace");
@@ -80,16 +78,15 @@ export async function uploadFileToDrive(fullName, opening, fileData, fileType, o
 
 export async function deleteFileFromDrive(fileId) {
     try {
-        const serviceAccountCreds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+        const cleanedServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT.replace(/\n/g, "").replace(/\s+/g, " ").trim();
+        const serviceAccountCreds = JSON.parse(cleanedServiceAccount);
         const auth = new google.auth.GoogleAuth({
             credentials: serviceAccountCreds,
             scopes: ["https://www.googleapis.com/auth/drive.file"],
         });
         const drive = google.drive({ version: "v3", auth });
 
-        console.log(`Deleting old file with ID: ${fileId}`);
         await drive.files.delete({ fileId });
-        console.log(`Deleted file with ID: ${fileId}`);
     } catch (error) {
         console.error(`Error deleting file with ID ${fileId}:`, error.message);
     }
