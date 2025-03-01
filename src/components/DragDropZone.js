@@ -29,7 +29,10 @@ export default function DragDropZone({
             }`}
         >
             {!file ? (
-                <div className="text-center">
+                <label
+                    htmlFor={`${type}-upload`}
+                    className="text-center w-full cursor-pointer"
+                >
                     <span
                         className={`inline-flex justify-center items-center w-12 h-12 rounded-full mb-4 ${
                             mode === "dark" ? "bg-gray-600 text-[#f05d23]" : "bg-gray-100 text-[#f05d23]"
@@ -46,24 +49,23 @@ export default function DragDropZone({
                             {type === "resume" ? "Resume" : "Cover Letter"}{" "}
                             <span className="text-red-500">*</span> - Drop your file here or{" "}
                         </span>
-                        <input
-                            type="file"
-                            name={type}
-                            accept=".pdf,.docx"
-                            onChange={(e) => handleFileChange(e, type)}
-                            className="hidden"
-                            id={`${type}-upload`}
-                            required={required}
-                        />
-                        <label
-                            htmlFor={`${type}-upload`}
-                            className="font-semibold text-[#f05d23] hover:text-[#d94f1e] cursor-pointer transition"
-                        >
+                        <span className="font-semibold text-[#f05d23] hover:text-[#d94f1e] transition">
                             browse
-                        </label>
+                        </span>
                     </div>
-                    <p className={`mt-1 text-xs ${mode === "dark" ? "text-gray-500" : "text-gray-400"}`}>PDF or DOCX, max 5MB</p>
-                </div>
+                    <p className={`mt-1 text-xs ${mode === "dark" ? "text-gray-500" : "text-gray-400"}`}>
+                        PDF or DOCX, max 5MB
+                    </p>
+                    <input
+                        type="file"
+                        name={type}
+                        accept=".pdf,.docx"
+                        onChange={(e) => handleFileChange(e, type)}
+                        className="hidden"
+                        id={`${type}-upload`}
+                        required={required}
+                    />
+                </label>
             ) : (
                 <div
                     className={`w-full p-4 border rounded-xl shadow-sm ${
