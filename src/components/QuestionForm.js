@@ -81,11 +81,31 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
-            <h4
-                className={`text-lg font-semibold mb-4 ${mode === "dark" ? "text-white" : "text-[#231812]"}`}
-            >
-                {question ? "Edit Question" : "Add New Question"}
-            </h4>
+            <div className="flex justify-between items-center mb-4">
+                <h4
+                    className={`text-lg font-semibold mb-4 ${mode === "dark" ? "text-white" : "text-[#231812]"}`}
+                >
+                    {question ? "Edit Question" : "Add New Question"}
+                </h4>
+
+                <div className="relative group">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="text-[#f05d23] font-bold hover:text-gray-700 focus:outline-none p-2 transition-all duration-100 ease-in-out transform hover:scale-105"
+                    >
+                        <Icon icon="mdi:close" width={30} height={30}/>
+                    </button>
+
+                    {/* Tooltip */}
+                    <span
+                        className="absolute left-1/2 transform -translate-x-1/2 bottom-full text-xs text-white bg-black rounded px-4 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out">
+      Cancel
+    </span>
+                </div>
+            </div>
+
+
             <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div>
                     <label
@@ -232,7 +252,7 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
                         type="submit"
                         className="flex-1 py-2 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 shadow-md flex items-center justify-center gap-2"
                     >
-                        <Icon icon={question ? "mdi:pencil" : "mdi:plus"} width={20} height={20} />
+                        <Icon icon={question ? "mdi:pencil" : "mdi:plus"} width={20} height={20}/>
                         {question ? "Update Question" : "Add Question"}
                     </button>
                     <button
@@ -240,7 +260,7 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
                         onClick={onCancel}
                         className="flex-1 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 shadow-md flex items-center justify-center gap-2"
                     >
-                        <Icon icon="mdi:close" width={20} height={20} />
+                        <Icon icon="mdi:close" width={20} height={20}/>
                         Cancel
                     </button>
                 </div>
