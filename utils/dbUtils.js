@@ -1,5 +1,5 @@
 // src/utils/dbUtils.js
-import { supabaseServer } from "@/lib/supabaseServer"; // Adjusted path
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export async function upsertCandidate({ fullName, email, phone, linkedin, opening }) {
     try {
@@ -43,7 +43,18 @@ export async function upsertCandidate({ fullName, email, phone, linkedin, openin
     }
 }
 
-export async function upsertResponse({ userId, answers, score, resumeUrl, coverLetterUrl, resumeFileId, coverLetterFileId, country, device, submittedAt}) {
+export async function upsertResponse({
+                                         userId,
+                                         answers,
+                                         score,
+                                         resumeUrl,
+                                         coverLetterUrl,
+                                         resumeFileId,
+                                         coverLetterFileId,
+                                         country,
+                                         device,
+                                         submittedAt,
+                                     }) {
     try {
         console.log("Attempting to upsert response with data:", {
             user_id: userId,
@@ -69,9 +80,25 @@ export async function upsertResponse({ userId, answers, score, resumeUrl, coverL
                         cover_letter_url: coverLetterUrl,
                         resume_file_id: resumeFileId,
                         cover_letter_file_id: coverLetterFileId,
+                        country,          // Added to initial insert
+                        device,           // Added to initial insert
+                        submitted_at: submittedAt, // Added to initial insert (snake_case for DB)
                     },
                 ],
-                { onConflict: ["user_id"], update: ["answers", "score", "resume_url", "cover_letter_url", "resume_file_id", "cover_letter_file_id", "country", "device", "submitted_at"] }
+                {
+                    onConflict: ["user_id"],
+                    update: [
+                        "answers",
+                        "score",
+                        "resume_url",
+                        "cover_letter_url",
+                        "resume_file_id",
+                        "cover_letter_file_id",
+                        "country",
+                        "device",
+                        "submitted_at",
+                    ],
+                }
             );
 
         if (error) {
