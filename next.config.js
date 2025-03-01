@@ -1,14 +1,11 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    reactStrictMode: true,
-    // Add this setting to reduce chunk sizes
-    webpack: (config) => {
-        config.optimization.splitChunks = {
-            chunks: 'all',
-            maxSize: 20000000,
-        };
-        return config;
-    }
+// next.config.js
+module.exports = {
+    target: 'serverless',
+    experimental: {
+        outputStandalone: true,
+    },
+    // Optional: If you're using custom routing or other Cloudflare-specific features
+    cloudflarePages: {
+        pagesDirectory: '.next', // If needed to point to .next directory
+    },
 };
-
-module.exports = nextConfig;

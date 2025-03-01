@@ -2,6 +2,3 @@ name = "gcg-careers"
 compatibility_date = "2023-06-28"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".next"
-
-[build]
-command = "npm run build"
