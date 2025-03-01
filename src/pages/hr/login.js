@@ -58,7 +58,7 @@ export default function HRLogin() {
                         className="mx-auto"
                     />
                 </div>
-                <h2 className="text-2xl font-bold mb-6 text-center text-[#231812]">HR Login...!</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-[#231812]">HR Login..!</h2>
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1 text-[#231812]">Username</label>
