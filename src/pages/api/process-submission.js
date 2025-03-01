@@ -14,7 +14,6 @@ export default async function handler(req, res) {
         const { userId, fullName, email, phone, linkedin, opening, answers, resume, coverLetter, score, questions } = req.body;
         console.log("Processing submission for:", { fullName, email, opening });
 
-        // Fetch existing response for file IDs
         const { data: existingResponse, error: fetchError } = await supabaseServer
             .from("responses")
             .select("resume_file_id, cover_letter_file_id")

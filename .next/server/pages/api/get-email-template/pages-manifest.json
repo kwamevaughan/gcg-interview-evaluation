@@ -1,0 +1,3 @@
+{
+  "/api/get-email-template": "pages/api/get-email-template.js"
+}

@@ -2,6 +2,7 @@
 import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
+import fetch from "node-fetch";
 
 export const config = {
     api: {
@@ -50,12 +51,11 @@ export default async function handler(req, res) {
 
         const score = calculateScore(answers, questions);
 
-        // Save to Supabase first, without Drive URLs yet
         const { error: responseError } = await upsertResponse({
             userId,
             answers,
             score: score.totalScore,
-            resumeUrl: null, // Will updated later
+            resumeUrl: null,
             coverLetterUrl: null,
             resumeFileId: null,
             coverLetterFileId: null,
@@ -64,8 +64,11 @@ export default async function handler(req, res) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
         }
 
-        // Trigger background task via Supabase Edge Function
-        const { error: invokeError } = await supabaseServer.functions.invoke("process-submission", {
+        // Fire-and-forget request to process Drive uploads and emails
+        const processUrl = `${req.headers.origin || "http://localhost:3000"}/api/process-submission`;
+        fetch(processUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 userId,
                 fullName,
@@ -79,11 +82,8 @@ export default async function handler(req, res) {
                 score,
                 questions,
             }),
-        });
-        if (invokeError) {
-            console.error("Error invoking background task:", invokeError);
-            // Don’t fail the request—background task can retry
-        }
+            keepalive: true,
+        }).catch(error => console.error("Background processing request failed:", error));
 
         return res.status(200).json({ message: "Submission successful, processing in background", score: score.totalScore });
     } catch (error) {

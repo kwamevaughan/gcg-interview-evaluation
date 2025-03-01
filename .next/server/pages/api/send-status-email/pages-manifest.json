@@ -1,0 +1,3 @@
+{
+  "/api/send-status-email": "pages/api/send-status-email.js"
+}
