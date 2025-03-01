@@ -97,13 +97,16 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
 
     const handleEditSave = (updatedJob) => {
         handleCloseEditModal();
-        fetchJobs(); // Refresh job list after save
+        fetchJobs();
     };
 
     const handlePreview = (url) => {
-        const fileId = url.split("id=")[1].split("&")[0];
-        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-        setPreviewUrl(previewUrl);
+        if (!url) {
+            console.error("No URL provided for preview");
+            toast.error("Unable to preview file.");
+            return;
+        }
+        setPreviewUrl(url); // Pass the raw URL directly
         setIsPreviewModalOpen(true);
     };
 
