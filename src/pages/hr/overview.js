@@ -193,19 +193,19 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             mode={mode}
                         />
 
-                        {/* 3-Column Chart Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        {/* Section 1: Status and Country (2 Columns) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <StatusChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("status", value)} />
-                            <ScoreChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("score", value)} />
                             <CountryChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("country", value)} />
                         </div>
 
-                        {/* Full-width Score Trend */}
-                        <div className="mb-6">
+                        {/* Section 2: Score Distribution and Trend (2 Columns) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <ScoreChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("score", value)} />
                             <ScoreTrend candidates={candidates} mode={mode} onFilter={value => handleChartFilter("date", value)} />
                         </div>
 
-                        {/* 2-Column Widgets */}
+                        {/* Section 3: Widgets (2 Columns) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <TopPerformers
                                 candidates={candidates}
@@ -214,6 +214,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                                 mode={mode}
                             />
                             <RecentActivity candidates={filteredCandidates} router={router} mode={mode} />
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("device", value)} />
                         </div>
 
                         {/* Full-width Job Openings */}
