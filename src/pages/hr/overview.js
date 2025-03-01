@@ -21,7 +21,7 @@ import { Icon } from "@iconify/react";
 
 export default function HROverview({ mode = "light", toggleMode }) {
     const [candidates, setCandidates] = useState([]);
-    const [filteredCandidates, setFilteredCandidates] = useState([]); // For chart filtering
+    const [filteredCandidates, setFilteredCandidates] = useState([]);
     const [jobOpenings, setJobOpenings] = useState([]);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [emailData, setEmailData] = useState({ subject: "", body: "", email: "" });
@@ -76,7 +76,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 };
             });
             setCandidates(combinedData);
-            setFilteredCandidates(combinedData); // Initial filtered set
+            setFilteredCandidates(combinedData);
             setJobOpenings([...new Set(combinedData.map((c) => c.opening))]);
             toast.success("Data loaded successfully!", { id: loadingToast });
         } catch (error) {
@@ -92,6 +92,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
     };
 
     const handleSendEmail = async () => {
+        const sendingToast = toast.loading("Sending email...");
         try {
             const response = await fetch("/api/send-status-email", {
                 method: "POST",
@@ -108,11 +109,11 @@ export default function HROverview({ mode = "light", toggleMode }) {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Failed to send email");
 
-            toast.success("Email sent successfully!", { icon: "✅" });
+            toast.success("Email sent successfully!", { icon: "✅", id: sendingToast });
             setIsEmailModalOpen(false);
         } catch (error) {
             console.error("Error sending email:", error);
-            toast.error("Failed to send email.");
+            toast.error("Failed to send email.", { id: sendingToast });
         }
     };
 
@@ -121,26 +122,31 @@ export default function HROverview({ mode = "light", toggleMode }) {
         switch (type) {
             case "status":
                 filtered = candidates.filter(c => c.status === value);
+                toast.success(`Showing ${value} candidates`, { duration: 2000 });
                 break;
             case "score":
                 const [min, max] = value.split("-").map(Number);
                 filtered = candidates.filter(c => c.score >= min && c.score < max);
+                toast.success(`Showing scores ${value}`, { duration: 2000 });
                 break;
             case "country":
                 filtered = candidates.filter(c => c.country === value);
+                toast.success(`Showing ${value} applicants`, { duration: 2000 });
                 break;
             case "device":
                 filtered = candidates.filter(c => c.device === value);
+                toast.success(`Showing ${value} devices`, { duration: 2000 });
                 break;
             case "date":
                 const date = new Date(value).toDateString();
                 filtered = candidates.filter(c => new Date(c.submitted_at).toDateString() === date);
+                toast.success(`Showing applicants from ${date}`, { duration: 2000 });
                 break;
             default:
                 filtered = candidates;
+                toast.success("Reset filters", { duration: 2000 });
         }
         setFilteredCandidates(filtered);
-        toast.success(`Filtered by ${type}: ${value}`, { duration: 2000 });
     };
 
     return (
@@ -179,6 +185,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             HR Overview
                         </h2>
 
+                        {/* Full-width Welcome Card */}
                         <WelcomeCard
                             totalApplicants={candidates.length}
                             openPositions={jobOpenings.length}
@@ -186,26 +193,30 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             mode={mode}
                         />
 
-                        {/* 2-Column Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div className="space-y-6">
-                                <StatusChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("status", value)} />
-                                <ScoreChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("score", value)} />
-                                <ScoreTrend candidates={candidates} mode={mode} onFilter={value => handleChartFilter("date", value)} />
-                            </div>
-                            <div className="space-y-6">
-                                <CountryChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("country", value)} />
-                                <DeviceChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("device", value)} />
-                                <TopPerformers
-                                    candidates={candidates}
-                                    setEmailData={setEmailData}
-                                    setIsEmailModalOpen={setIsEmailModalOpen}
-                                    mode={mode}
-                                />
-                                <RecentActivity candidates={filteredCandidates} router={router} mode={mode} />
-                            </div>
+                        {/* 3-Column Chart Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <StatusChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("status", value)} />
+                            <ScoreChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("score", value)} />
+                            <CountryChart candidates={candidates} mode={mode} onFilter={value => handleChartFilter("country", value)} />
                         </div>
 
+                        {/* Full-width Score Trend */}
+                        <div className="mb-6">
+                            <ScoreTrend candidates={candidates} mode={mode} onFilter={value => handleChartFilter("date", value)} />
+                        </div>
+
+                        {/* 2-Column Widgets */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <TopPerformers
+                                candidates={candidates}
+                                setEmailData={setEmailData}
+                                setIsEmailModalOpen={setIsEmailModalOpen}
+                                mode={mode}
+                            />
+                            <RecentActivity candidates={filteredCandidates} router={router} mode={mode} />
+                        </div>
+
+                        {/* Full-width Job Openings */}
                         <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode} />
                     </div>
                 </div>
