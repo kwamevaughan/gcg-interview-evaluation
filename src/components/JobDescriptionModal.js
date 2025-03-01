@@ -112,7 +112,7 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                                 <Icon icon="mdi:text-box" className="w-6 h-6 text-[#f05d23] mr-2" />
                                 <strong className="text-[#231812]">Description:</strong>
                             </div>
-                            <p className="text-[#231812]" dangerouslySetInnerHTML={{ __html: description }} />
+                            <p className="text-[#231812] text-left" dangerouslySetInnerHTML={{ __html: description }} />
                         </div>
                     )}
 
