@@ -40,11 +40,11 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
             <td className="p-4 w-12">
                 <Icon icon="mdi:drag" width={20} height={20} className="text-gray-500" />
             </td>
-            <td className="p-4 text-sm">{question.order + 1}</td> {/* Ensure 1-based numbering */}
+            <td className="p-4 text-sm">{question.order + 1}</td>
             <td className="p-4 text-sm">
                 <div className="prose max-w-none line-clamp-2" dangerouslySetInnerHTML={{ __html: question.text }} />
             </td>
-            <td className="p-4 text-sm">{question.options.join(", ")}</td>
+            <td className="p-4 text-sm">{question.options.join("; ")}</td> {/* Changed to semicolon for readability */}
             <td className="p-4 text-sm">{question.points ? JSON.stringify(question.points) : "None"}</td>
             <td className="p-4 text-sm flex gap-2">
                 <button
@@ -66,7 +66,16 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
     );
 };
 
-export default function QuestionTable({ questions, mode, onEdit, moveQuestion, handleSort, sortField, sortDirection, deleteQuestion }) {
+export default function QuestionTable({
+                                          questions,
+                                          mode,
+                                          onEdit,
+                                          moveQuestion,
+                                          handleSort,
+                                          sortField,
+                                          sortDirection,
+                                          deleteQuestion,
+                                      }) {
     return (
         <div className={`rounded-lg shadow-lg overflow-hidden ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
             <div className="max-h-[500px] overflow-y-auto">

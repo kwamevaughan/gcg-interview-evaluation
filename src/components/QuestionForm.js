@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 
 export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
     const [text, setText] = useState(question?.text || "");
-    const [options, setOptions] = useState(question?.options.join(", ") || "");
+    const [options, setOptions] = useState(question?.options.join("\n") || ""); // Use newlines instead of commas
     const [optionPoints, setOptionPoints] = useState(question?.points || {});
     const [isMultiSelect, setIsMultiSelect] = useState(
         question?.points && "base" in question.points
@@ -22,10 +22,13 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
 
     const handleOptionChange = (e) => {
         setOptions(e.target.value);
-        const optionsArray = e.target.value.split(",").map((opt) => opt.trim()).filter((opt) => opt);
+        const optionsArray = e.target.value
+            .split("\n")
+            .map((opt) => opt.trim())
+            .filter((opt) => opt); // Split by newlines
         const updatedPoints = {};
         optionsArray.forEach((opt) => {
-            updatedPoints[opt] = optionPoints[opt] || 0;
+            updatedPoints[opt] = optionPoints[opt] || 0; // Preserve existing points or default to 0
         });
         setOptionPoints(updatedPoints);
     };
@@ -33,13 +36,16 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
     const handlePointChange = (option, value) => {
         setOptionPoints((prev) => ({
             ...prev,
-            [option]: value,
+            [option]: parseInt(value) || 0, // Ensure integer or 0
         }));
     };
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-        const optionsArray = options.split(",").map((opt) => opt.trim()).filter((opt) => opt);
+        const optionsArray = options
+            .split("\n")
+            .map((opt) => opt.trim())
+            .filter((opt) => opt); // Split by newlines
         let pointsData = {};
         if (isMultiSelect) {
             pointsData = { base: basePoints, extra: extraPoints, max: maxPoints };
@@ -55,15 +61,19 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
             return;
         }
 
+        // Pass options as array instead of string to match updated useQuestions.js
         const success = question
-            ? await onSubmit(question.id, text, options, JSON.stringify(pointsData))
-            : await onSubmit(text, options, JSON.stringify(pointsData));
+            ? await onSubmit(question.id, text, optionsArray, JSON.stringify(pointsData))
+            : await onSubmit(text, optionsArray, JSON.stringify(pointsData));
         if (success) {
             onCancel();
         }
     };
 
-    const optionsArray = options.split(",").map((opt) => opt.trim()).filter((opt) => opt);
+    const optionsArray = options
+        .split("\n")
+        .map((opt) => opt.trim())
+        .filter((opt) => opt); // Parse options for display
 
     return (
         <div
@@ -103,22 +113,21 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
                             mode === "dark" ? "text-gray-300" : "text-[#231812]"
                         }`}
                     >
-                        Options and Points <span className="text-red-500">*</span>
+                        Options (one per line) <span className="text-red-500">*</span>
                     </label>
-                    <input
-                        type="text"
+                    <textarea
                         value={options}
                         onChange={handleOptionChange}
-                        className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] transition duration-200 mb-4 ${
+                        className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] transition duration-200 min-h-[150px] ${
                             mode === "dark"
                                 ? "bg-gray-700 border-gray-600 text-white"
                                 : "bg-gray-50 border-gray-300 text-[#231812]"
                         }`}
-                        placeholder="e.g., Yes, No"
+                        placeholder="Enter each option on a new line...\nE.g.,\nYes\nNo, with a comma\nMaybe"
                         required
                     />
                     <label
-                        className={`inline-flex items-center gap-2 mb-4 cursor-pointer hover:text-[#f05d23] ${
+                        className={`inline-flex items-center gap-2 mt-4 mb-4 cursor-pointer hover:text-[#f05d23] ${
                             mode === "dark" ? "text-gray-300" : "text-[#231812]"
                         }`}
                     >
@@ -126,7 +135,7 @@ export default function QuestionForm({ mode, question, onSubmit, onCancel }) {
                             type="checkbox"
                             checked={isMultiSelect}
                             onChange={(e) => setIsMultiSelect(e.target.checked)}
-                            className="hidden" // Hide the checkbox
+                            className="hidden"
                         />
                         <span>Allow multiple selections</span>
                         <Icon

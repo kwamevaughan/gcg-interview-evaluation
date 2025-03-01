@@ -28,12 +28,15 @@ export const useQuestions = () => {
     };
 
     const addQuestion = async (text, options, points) => {
-        const optionsArray = options.split(",").map((opt) => opt.trim()).filter((opt) => opt);
+        const optionsArray = options
+            .split("\n")
+            .map((opt) => opt.trim())
+            .filter((opt) => opt); // Split by newlines
         let pointsObject = {};
         try {
             pointsObject = points ? JSON.parse(points) : {};
         } catch (error) {
-            toast.error("Invalid points format. Use JSON like: {\"Yes\": 10, \"No\": 0}");
+            toast.error("Invalid points format. Use JSON like: {\"Option 1\": 10, \"Option 2\": 5}");
             return false;
         }
 
@@ -59,12 +62,15 @@ export const useQuestions = () => {
     };
 
     const editQuestion = async (id, text, options, points) => {
-        const optionsArray = options.split(",").map((opt) => opt.trim()).filter((opt) => opt);
+        const optionsArray = options
+            .split("\n")
+            .map((opt) => opt.trim())
+            .filter((opt) => opt); // Split by newlines
         let pointsObject = {};
         try {
             pointsObject = points ? JSON.parse(points) : {};
         } catch (error) {
-            toast.error("Invalid points format. Use JSON like: {\"Yes\": 10, \"No\": 0}");
+            toast.error("Invalid points format. Use JSON like: {\"Option 1\": 10, \"Option 2\": 5}");
             return false;
         }
 
@@ -132,7 +138,7 @@ export const useQuestions = () => {
             fetchQuestions();
             return false;
         }
-        return true; // Return success without toast here
+        return true;
     };
 
     const handleSort = (field) => {
