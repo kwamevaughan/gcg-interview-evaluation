@@ -43,7 +43,7 @@ export async function upsertCandidate({ fullName, email, phone, linkedin, openin
     }
 }
 
-export async function upsertResponse({ userId, answers, score, resumeUrl, coverLetterUrl, resumeFileId, coverLetterFileId }) {
+export async function upsertResponse({ userId, answers, score, resumeUrl, coverLetterUrl, resumeFileId, coverLetterFileId, country, device, submittedAt}) {
     try {
         console.log("Attempting to upsert response with data:", {
             user_id: userId,
@@ -53,6 +53,9 @@ export async function upsertResponse({ userId, answers, score, resumeUrl, coverL
             cover_letter_url: coverLetterUrl,
             resume_file_id: resumeFileId,
             cover_letter_file_id: coverLetterFileId,
+            country,
+            device,
+            submitted_at: submittedAt,
         });
         const { error } = await supabaseServer
             .from("responses")
@@ -68,7 +71,7 @@ export async function upsertResponse({ userId, answers, score, resumeUrl, coverL
                         cover_letter_file_id: coverLetterFileId,
                     },
                 ],
-                { onConflict: ["user_id"], update: ["answers", "score", "resume_url", "cover_letter_url", "resume_file_id", "cover_letter_file_id"] }
+                { onConflict: ["user_id"], update: ["answers", "score", "resume_url", "cover_letter_url", "resume_file_id", "cover_letter_file_id", "country", "device", "submitted_at"] }
             );
 
         if (error) {

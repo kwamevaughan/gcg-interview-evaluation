@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
 import fetch from "node-fetch";
+import UAParser from "ua-parser-js"; // Add dependency: npm install ua-parser-js
 
 export const config = {
     api: {
@@ -19,6 +20,12 @@ export default async function handler(req, res) {
 
     try {
         const { fullName, email, phone, linkedin, answers, resume, coverLetter, opening } = req.body;
+        const country = req.headers["cf-ipcountry"] || "Unknown"; // Cloudflare header for country
+        const userAgent = req.headers["user-agent"] || "Unknown";
+        const parser = new UAParser(userAgent);
+        const device = parser.getDevice().type || "Desktop"; // e.g., "mobile", "tablet", "desktop"
+        const submittedAt = new Date().toISOString(); // Current timestamp
+
         console.log("Received data:", {
             fullName,
             email,
@@ -28,6 +35,9 @@ export default async function handler(req, res) {
             answers,
             resume: resume ? "present" : "none",
             coverLetter: coverLetter ? "present" : "none",
+            country,
+            device,
+            submittedAt,
         });
 
         if (!fullName || !email || !phone || !linkedin || !opening) {
@@ -58,12 +68,14 @@ export default async function handler(req, res) {
             coverLetterUrl: null,
             resumeFileId: null,
             coverLetterFileId: null,
+            country, // New field
+            device, // New field
+            submittedAt, // New field
         });
         if (responseError) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
         }
 
-        // Fire-and-forget request to process Drive uploads and emails
         const processUrl = `${req.headers.origin || "http://localhost:3000"}/api/process-submission`;
         console.log("Triggering background process at URL:", processUrl);
         fetch(processUrl, {
@@ -81,6 +93,9 @@ export default async function handler(req, res) {
                 coverLetter,
                 score,
                 questions,
+                country,
+                device,
+                submittedAt,
             }),
             keepalive: true,
         })
