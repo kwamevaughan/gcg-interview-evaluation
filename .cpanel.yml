@@ -1,8 +1,8 @@
 ---
 deployment:
   tasks:
-    # Set deployment path to public_html or any folder where you want to serve the app
-    - export DEPLOYPATH=/home/influenc/public_html/
+    # Set the deployment path to the subdomain's folder
+    - export DEPLOYPATH=/home/influenc/public_html/new.growthpad.co.ke
 
     # Navigate to the repository directory
     - cd /home/influenc/repositories/gcg-interview-evaluation
@@ -13,12 +13,11 @@ deployment:
     # Build the Next.js app
     - npm run build
 
-    # Copy necessary files to the public folder
+    # Copy necessary files to the subdomain folder
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/.next $DEPLOYPATH
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/public $DEPLOYPATH
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/package.json $DEPLOYPATH
     - cp -r /home/influenc/repositories/gcg-interview-evaluation/package-lock.json $DEPLOYPATH
 
-    # Optionally, run the app using PM2 (only if SSR is needed)
-    # If you're doing server-side rendering (SSR), use PM2 to keep the app running:
-    # - pm2 start /home/influenc/public_html/server.js --name nextjs
+    # Optionally, if you are using SSR, run the app with PM2 or another process manager:
+    # - pm2 start /home/influenc/public_html/new.growthpad.co.ke/server.js --name nextjs
