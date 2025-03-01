@@ -10,6 +10,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { useQuestions } from "@/hooks/useQuestions";
 import QuestionTable from "@/components/QuestionTable";
 import QuestionForm from "@/components/QuestionForm";
+import SimpleFooter from "@/layouts/simpleFooter";
 
 export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
     const { isSidebarOpen, toggleSidebar } = useSidebar();
@@ -77,8 +78,9 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                     mode={mode}
                     toggleMode={toggleMode}
                     onLogout={handleLogout}
+                    pageName="Interview Questions"
+                    pageDescription={`Manage interview questions (Total: ${totalQuestions}, Max Points: ${totalPoints})`}
                 />
-
                 <div className="flex flex-1">
                     <HRSidebar
                         isOpen={isSidebarOpen}
@@ -94,23 +96,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                         <div className="max-w-5xl mx-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2">
-                                    <Icon icon="mdi:comment-question-outline" className="w-6 h-6 text-[#f05d23]" />
-                                    <div>
-                                        <h3
-                                            className={`text-xl font-bold ${
-                                                mode === "dark" ? "text-white" : "text-[#231812]"
-                                            }`}
-                                        >
-                                            Interview Questions
-                                        </h3>
-                                        <p
-                                            className={`text-sm ${
-                                                mode === "dark" ? "text-gray-300" : "text-gray-600"
-                                            }`}
-                                        >
-                                            Total Questions: {totalQuestions} | Max Points: {totalPoints}
-                                        </p>
-                                    </div>
+                                    {/* Removed inline title and stats */}
                                 </div>
                                 <button
                                     onClick={() => setIsAdding(true)}
@@ -185,13 +171,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                         </div>
                     </div>
                 </div>
-                <footer
-                    className={`p-4 text-center text-sm shadow-inner ${
-                        mode === "dark" ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"
-                    }`}
-                >
-                    © {new Date().getFullYear()} Growthpad Consulting Group. All rights reserved.
-                </footer>
+                <SimpleFooter mode={mode} />
             </div>
         </DndProvider>
     );
