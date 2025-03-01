@@ -20,17 +20,41 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
     return (
         <div
             className={`p-6 rounded-lg shadow-lg mb-8 border-t-4 border-[#f05d23] ${
-                mode === "dark" ? "bg-gray-800" : "bg-white"
+                mode === "dark" ? "bg-gray-800 border-[#f05d23]" : "bg-white border-[#f05d23]"
             }`}
         >
             <div className="max-h-[500px] overflow-y-auto">
                 <table className="w-full">
                     <thead className="sticky top-0 z-10">
                     <tr className={`${mode === "dark" ? "bg-gray-700" : "bg-gray-100"}`}>
-                        <th className="p-4 text-left text-sm font-semibold">Title</th>
-                        <th className="p-4 text-left text-sm font-semibold">Expires On</th>
-                        <th className="p-4 text-left text-sm font-semibold">Status</th>
-                        <th className="p-4 text-left text-sm font-semibold">Actions</th>
+                        <th
+                            className={`p-4 text-left text-sm font-semibold ${
+                                mode === "dark" ? "text-gray-200" : "text-gray-600"
+                            }`}
+                        >
+                            Title
+                        </th>
+                        <th
+                            className={`p-4 text-left text-sm font-semibold ${
+                                mode === "dark" ? "text-gray-200" : "text-gray-600"
+                            }`}
+                        >
+                            Expires On
+                        </th>
+                        <th
+                            className={`p-4 text-left text-sm font-semibold ${
+                                mode === "dark" ? "text-gray-200" : "text-gray-600"
+                            }`}
+                        >
+                            Status
+                        </th>
+                        <th
+                            className={`p-4 text-left text-sm font-semibold ${
+                                mode === "dark" ? "text-gray-200" : "text-gray-600"
+                            }`}
+                        >
+                            Actions
+                        </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -43,39 +67,55 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                     : "border-gray-200 hover:bg-gray-50"
                             }`}
                         >
-                            <td className="p-4 text-sm">{job.title}</td>
-                            <td className="p-4 text-sm">
+                            <td
+                                className={`p-4 text-sm ${
+                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                }`}
+                            >
+                                {job.title}
+                            </td>
+                            <td
+                                className={`p-4 text-sm ${
+                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                }`}
+                            >
                                 {new Date(job.expires_on).toLocaleDateString()}
                             </td>
-                            <td className="p-4 text-sm">{job.is_expired ? "Expired" : "Active"}</td>
+                            <td
+                                className={`p-4 text-sm ${
+                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                }`}
+                            >
+                                {job.is_expired ? "Expired" : "Active"}
+                            </td>
                             <td className="p-4 text-sm flex gap-2">
                                 <button
                                     onClick={() =>
                                         window.dispatchEvent(
-                                            new CustomEvent("openJobModal", {detail: job.title})
+                                            new CustomEvent("openJobModal", { detail: job.title })
                                         )
                                     }
                                     className="px-3 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:eye" width={16} height={16}/>
+                                    <Icon icon="mdi:eye" width={16} height={16} />
                                     View
                                 </button>
                                 <button
                                     onClick={() =>
                                         window.dispatchEvent(
-                                            new CustomEvent("editJobModal", {detail: job})
+                                            new CustomEvent("editJobModal", { detail: job })
                                         )
                                     }
                                     className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:pencil" width={16} height={16}/>
+                                    <Icon icon="mdi:pencil" width={16} height={16} />
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => handleDelete(job.id, job.title)}
                                     className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex items-center gap-2"
                                 >
-                                    <Icon icon="mdi:trash-can" width={16} height={16}/>
+                                    <Icon icon="mdi:trash-can" width={16} height={16} />
                                     Delete
                                 </button>
                             </td>
