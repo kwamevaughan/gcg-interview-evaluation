@@ -1,8 +1,8 @@
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, LineElement, PointElement, TimeScale, LinearScale, Tooltip, Legend } from "chart.js";
-ChartJS.register(LineElement, PointElement, TimeScale, LinearScale, Tooltip, Legend);
-// Add: npm install chartjs-adapter-date-fns date-fns
 import "chartjs-adapter-date-fns";
+
+ChartJS.register(LineElement, PointElement, TimeScale, LinearScale, Tooltip, Legend);
 
 export default function ScoreTrend({ candidates, mode }) {
     const scoresByDate = candidates.map(c => ({

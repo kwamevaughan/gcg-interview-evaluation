@@ -19,7 +19,6 @@ import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
 import { Icon } from "@iconify/react";
 
-
 export default function HROverview({ mode = "light", toggleMode }) {
     const [candidates, setCandidates] = useState([]);
     const [jobOpenings, setJobOpenings] = useState([]);
@@ -50,11 +49,19 @@ export default function HROverview({ mode = "light", toggleMode }) {
 
             const combinedData = candidatesData.map((candidate) => {
                 const response = responsesData.find((r) => r.user_id === candidate.id) || {};
-                let parsedAnswers;
-                try {
-                    parsedAnswers = response.answers ? JSON.parse(response.answers) : [];
-                } catch (e) {
-                    parsedAnswers = response.answers ? response.answers.split(",").map(a => a.trim()) : [];
+                let parsedAnswers = [];
+                if (response.answers) {
+                    if (typeof response.answers === "string") {
+                        try {
+                            parsedAnswers = JSON.parse(response.answers);
+                        } catch (e) {
+                            // If not valid JSON, treat as comma-separated string
+                            parsedAnswers = response.answers.split(",").map(a => a.trim());
+                        }
+                    } else if (Array.isArray(response.answers)) {
+                        // If already an array (unlikely but possible)
+                        parsedAnswers = response.answers;
+                    }
                 }
                 return {
                     ...candidate,

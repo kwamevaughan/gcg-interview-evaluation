@@ -1,4 +1,7 @@
 import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } from "chart.js";
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
 export default function DeviceChart({ candidates, mode }) {
     const deviceCounts = candidates.reduce((acc, c) => {
