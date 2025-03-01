@@ -28,10 +28,7 @@ export const useQuestions = () => {
     };
 
     const addQuestion = async (text, options, points) => {
-        const optionsArray = options
-            .split("\n")
-            .map((opt) => opt.trim())
-            .filter((opt) => opt); // Split by newlines
+        const optionsArray = Array.isArray(options) ? options : options.split("\n").map((opt) => opt.trim()).filter((opt) => opt); // Fallback for older data
         let pointsObject = {};
         try {
             pointsObject = points ? JSON.parse(points) : {};
@@ -62,10 +59,7 @@ export const useQuestions = () => {
     };
 
     const editQuestion = async (id, text, options, points) => {
-        const optionsArray = options
-            .split("\n")
-            .map((opt) => opt.trim())
-            .filter((opt) => opt); // Split by newlines
+        const optionsArray = Array.isArray(options) ? options : options.split("\n").map((opt) => opt.trim()).filter((opt) => opt); // Fallback for older data
         let pointsObject = {};
         try {
             pointsObject = points ? JSON.parse(points) : {};
