@@ -3,7 +3,15 @@ import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
 import fetch from "node-fetch";
-import UAParser from "ua-parser-js"; // Add dependency: npm install ua-parser-js
+
+// Use try-catch to handle UAParser import/constructor issues
+let UAParser;
+try {
+    UAParser = (await import("ua-parser-js")).default;
+} catch (error) {
+    console.error("Failed to load UAParser dynamically:", error);
+    UAParser = null; // Fallback to null if import fails
+}
 
 export const config = {
     api: {
@@ -20,11 +28,24 @@ export default async function handler(req, res) {
 
     try {
         const { fullName, email, phone, linkedin, answers, resume, coverLetter, opening } = req.body;
-        const country = req.headers["cf-ipcountry"] || "Unknown"; // Cloudflare header for country
+        const country = req.headers["cf-ipcountry"] || "Unknown";
         const userAgent = req.headers["user-agent"] || "Unknown";
-        const parser = new UAParser(userAgent);
-        const device = parser.getDevice().type || "Desktop"; // e.g., "mobile", "tablet", "desktop"
-        const submittedAt = new Date().toISOString(); // Current timestamp
+        let device = "Unknown";
+
+        // Attempt to parse device if UAParser is available
+        if (UAParser) {
+            try {
+                const parser = new UAParser(userAgent);
+                device = parser.getDevice().type || "Desktop";
+            } catch (uaError) {
+                console.error("Error parsing user agent:", uaError.message);
+                device = "Unknown"; // Fallback if parsing fails
+            }
+        } else {
+            console.warn("UAParser not available; device set to 'Unknown'");
+        }
+
+        const submittedAt = new Date().toISOString();
 
         console.log("Received data:", {
             fullName,
@@ -68,9 +89,9 @@ export default async function handler(req, res) {
             coverLetterUrl: null,
             resumeFileId: null,
             coverLetterFileId: null,
-            country, // New field
-            device, // New field
-            submittedAt, // New field
+            country,
+            device,
+            submittedAt,
         });
         if (responseError) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
