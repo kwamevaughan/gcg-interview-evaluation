@@ -1,3 +1,4 @@
+// src/pages/hr/HRApplicants.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
@@ -56,12 +57,10 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
 
             const combinedData = candidatesData.map((candidate) => {
                 const response = responsesData.find((r) => r.user_id === candidate.id) || {};
-                // Parse answers if it’s a JSON string
                 let parsedAnswers = [];
                 if (response.answers) {
                     try {
                         parsedAnswers = typeof response.answers === "string" ? JSON.parse(response.answers) : response.answers;
-                        // Convert object to array if needed (e.g., {"0": [...], "1": [...]})
                         if (!Array.isArray(parsedAnswers) && typeof parsedAnswers === "object") {
                             parsedAnswers = Object.values(parsedAnswers);
                         }
@@ -89,6 +88,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             toast.error("Failed to load candidates.");
         }
     };
+
     const handleLogout = () => {
         localStorage.removeItem("hr_session");
         toast.success("Logged out successfully!");
@@ -135,8 +135,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                 return newDirection === "asc" ? aValue - bValue : bValue - aValue;
             }
             return newDirection === "asc"
-                ? aValue.localeCompare(bValue)
-                : bValue.localeCompare(aValue);
+                ? aValue.toString().localeCompare(bValue.toString())
+                : bValue.toString().localeCompare(aValue.toString());
         });
         setFilteredCandidates(sorted);
     };
@@ -173,7 +173,6 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             toast.success(`Status updated to ${newStatus}!`, { icon: "✅" });
 
             if (["Reviewed", "Shortlisted", "Rejected"].includes(newStatus)) {
-                // Prepare the email template in the background
                 const response = await fetch(
                     `/api/get-email-template?status=${newStatus}&fullName=${encodeURIComponent(candidate.full_name)}&opening=${encodeURIComponent(candidate.opening)}`
                 );
@@ -189,19 +188,16 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                     body: template,
                 });
 
-                // Show a toast with action buttons
                 toast.custom(
                     (t) => (
                         <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
                             <div className="flex-1 w-0 p-4">
                                 <div className="flex items-start">
                                     <div className="ml-3 flex-1">
-                                        {/* Increase font size for the first line */}
-                                        <p className="text-xl font-medium text-gray-900"> {/* Increased font size */}
+                                        <p className="text-xl font-medium text-gray-900">
                                             Send email notification?
                                         </p>
-                                        {/* Increase font size for the second line */}
-                                        <p className="mt-2 text-base text-gray-500"> {/* Increased font size */}
+                                        <p className="mt-2 text-base text-gray-500">
                                             Would you like to notify {candidate.full_name} about their {newStatus.toLowerCase()} status?
                                         </p>
                                     </div>
@@ -210,8 +206,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                             <div className="flex border-l border-gray-200">
                                 <button
                                     onClick={() => {
-                                        toast.dismiss(t.id);  // Dismiss the toast
-                                        setIsEmailModalOpen(true);  // Open email modal
+                                        toast.dismiss(t.id);
+                                        setIsEmailModalOpen(true);
                                     }}
                                     className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors focus:outline-none"
                                 >
@@ -219,7 +215,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        toast.dismiss(t.id);  // Dismiss the toast
+                                        toast.dismiss(t.id);
                                     }}
                                     className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors focus:outline-none"
                                 >
@@ -228,13 +224,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                             </div>
                         </div>
                     ),
-                    {
-                        duration: Infinity,  // Keeps the toast open indefinitely
-                    }
+                    { duration: Infinity }
                 );
-
-
-
             }
         } catch (error) {
             console.error("Error updating status:", error);
@@ -252,8 +243,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                     email: selectedCandidate.email,
                     opening: selectedCandidate.opening,
                     status: selectedCandidate.status,
-                    subject: emailData.subject, // Pass editor subject
-                    body: emailData.body,       // Pass editor body
+                    subject: emailData.subject,
+                    body: emailData.body,
                 }),
             });
             const result = await response.json();
@@ -274,13 +265,14 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             }`}
         >
             <Toaster position="top-center" reverseOrder={false} />
-
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}
                 mode={mode}
                 toggleMode={toggleMode}
                 onLogout={handleLogout}
+                pageName="Applicants"
+                pageDescription="Browse and manage job applicants."
             />
             <div className="flex flex-1">
                 <HRSidebar
@@ -295,13 +287,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                     }`}
                 >
                     <div className="max-w-6xl mx-auto">
-                        <h2
-                            className={`text-2xl font-bold mb-6 ${
-                                mode === "dark" ? "text-white" : "text-[#231812]"
-                            }`}
-                        >
-                            Applicants
-                        </h2>
+                        {/* Removed inline h2 */}
                         <ApplicantsFilters candidates={candidates} onFilterChange={handleFilterChange} mode={mode} />
                         <ApplicantsTable
                             candidates={filteredCandidates}
