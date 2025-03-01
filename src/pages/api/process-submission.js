@@ -68,6 +68,7 @@ export default async function handler(req, res) {
             questions,
         });
 
+
         return res.status(200).json({ message: "Background processing completed" });
     } catch (error) {
         console.error("Background processing error:", error.message);
