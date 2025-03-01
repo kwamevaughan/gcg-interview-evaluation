@@ -1,9 +1,7 @@
 name = "gcg-careers"
-main = "dist/worker.js"
+compatibility_date = "2023-06-28"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".next"
 
 [build]
 command = "npm run build"
-
-[env.production]
-name = "gcg-careers-prod"
-route = "your-worker-route-url/*"
