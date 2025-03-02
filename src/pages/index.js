@@ -57,7 +57,8 @@ export default function LandingPage() {
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black to-transparent opacity-90 z-1"></div>
             </div>
 
-            <div className="relative max-w-full sm:max-w-3xl mx-auto p-6 sm:p-10 text-center bg-white bg-opacity-90 backdrop-blur-lg shadow-full rounded-lg z-10">
+            <div
+                className="relative max-w-full sm:max-w-3xl mx-auto p-6 sm:p-10 text-center bg-white bg-opacity-90 backdrop-blur-lg shadow-full rounded-lg z-10">
                 <Image
                     src="/assets/images/gcg-arrows-black.png"
                     alt="Growthpad Consulting Group Logo"
@@ -78,11 +79,14 @@ export default function LandingPage() {
                 </div>
                 <h1 className="text-3xl font-bold text-[#231812] mb-4">Welcome to Careers at Growthpad</h1>
                 <p className="text-[#231812] mb-4 text-base">
-                    We are a Nairobi Headquartered – cross-Africa communication, technology, and digital services firm that blends strategy, creativity, and technology to bring powerful results for organizations in the African market.
+                    We are a Nairobi Headquartered – cross-Africa communication, technology, and digital services firm
+                    that blends strategy, creativity, and technology to bring powerful results for organizations in the
+                    African market.
                 </p>
-                <hr className="h-px my-8 bg-[#F05D23] border-0 dark:bg-gray-700" />
+                <hr className="h-px my-8 bg-[#F05D23] border-0 dark:bg-gray-700"/>
                 <p className="text-[#231812] mb-8 text-base">
-                    Take the first step toward joining our team. Select a current opening below to view the job description and begin the interview process.
+                    Take the first step toward joining our team. Select a current opening below to view the job
+                    description and begin the interview process.
                 </p>
                 <div className="mb-6">
                     <label htmlFor="opening" className="block text-lg font-medium text-[#231812] mb-2">
@@ -104,9 +108,9 @@ export default function LandingPage() {
                     {selectedOpening && (
                         <button
                             onClick={handleViewDescription}
-                            className="mt-4 text-[#f05d23] font-semibold hover:text-[#d94f1e] transition duration-200 flex items-center mx-auto"
+                            className="mt-4 text-[#f05d23] text-lg font-semibold hover:text-[#d94f1e] transition duration-200 flex items-center mx-auto"
                         >
-                            <Icon icon="mdi:information-outline" width={20} height={20} className="mr-2" />
+                            <Icon icon="mdi:information-outline" width={20} height={20} className="mr-2"/>
                             View Job Description
                         </button>
                     )}
@@ -119,8 +123,9 @@ export default function LandingPage() {
                 />
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full sm:w-auto">
                     <a href="https://growthpad.co.ke/career-opportunities/" target="_blank" rel="noopener noreferrer">
-                        <button className="flex items-center px-6 py-3 bg-white text-[#231812] font-semibold rounded-lg shadow-lg border border-[#fff8f7] hover:shadow-xl hover:bg-[#f4f4f4] transition transform duration-300 hover:scale-105 w-full sm:w-auto">
-                            <Icon icon="mdi:open-in-new" width={20} height={20} className="mr-2" />
+                        <button
+                            className="flex items-center px-6 py-3 bg-white text-[#231812] font-semibold rounded-lg shadow-lg border border-[#fff8f7] hover:shadow-xl hover:bg-[#f4f4f4] transition transform duration-300 hover:scale-105 w-full sm:w-auto">
+                            <Icon icon="mdi:open-in-new" width={20} height={20} className="mr-2"/>
                             Explore Life at Growthpad
                         </button>
                     </a>
@@ -132,9 +137,23 @@ export default function LandingPage() {
                     height={200}
                     className="hidden md:block absolute bottom-0 left-0 p-4 z-10"
                 />
+                <Link href="/hr/login">
+    <span className="absolute bottom-0 right-0 cursor-pointer flex items-center gap-2 font-bold p-4 z-10 transform transition-transform hover:translate-y-[-2px]">
+      Admin Login
+      <Image
+          src="/assets/images/single-arrow.png"
+          alt="GCG Arrow"
+          width={20}
+          height={20}
+          className=""
+      />
+    </span>
+                </Link>
+
             </div>
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                <div className="flex space-x-4 sm:space-x-6 p-2 bg-white bg-opacity-50 backdrop-blur-lg shadow-full rounded-lg">
+                <div
+                    className="flex space-x-4 sm:space-x-6 p-2 bg-white bg-opacity-50 backdrop-blur-lg shadow-full rounded-lg">
                     <a href="https://x.com/growthpadEA" target="_blank" rel="noopener noreferrer" className="transform transition duration-300 hover:-translate-y-2 group">
                         <Icon icon="fa6-brands:square-x-twitter" width={30} height={30} className="text-black" />
                         <span className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-sm text-white bg-black p-2 rounded-lg text-center opacity-0 group-hover:opacity-70 transition-opacity duration-300 w-36 max-w-xs">Follow us on X</span>
