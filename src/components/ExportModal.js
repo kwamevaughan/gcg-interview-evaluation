@@ -3,8 +3,12 @@ import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // Explicit import
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DateRangePicker } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 
 export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     const [selectedFields, setSelectedFields] = useState({
@@ -18,8 +22,7 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     });
     const [exportFormat, setExportFormat] = useState("csv");
     const [previewRows, setPreviewRows] = useState(3);
-
-    const fields = [
+    const [fieldsOrder, setFieldsOrder] = useState([
         { label: "Name", key: "full_name", icon: "mdi:account" },
         { label: "Email", key: "email", icon: "mdi:email" },
         { label: "Opening", key: "opening", icon: "mdi:briefcase" },
@@ -27,6 +30,53 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         { label: "Status", key: "status", icon: "mdi:tag" },
         { label: "Phone", key: "phone", icon: "mdi:phone" },
         { label: "LinkedIn", key: "linkedin", icon: "mdi:linkedin" },
+    ]);
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [dateRange, setDateRange] = useState([
+        {
+            startDate: null,
+            endDate: null,
+            key: "selection",
+        },
+    ]);
+
+    const statuses = ["all", "Pending", "Reviewed", "Shortlisted", "Rejected"];
+
+    // Fallback static ranges if defaultStaticRanges is unavailable
+    const fallbackStaticRanges = [
+        {
+            label: "All Time",
+            range: () => ({ startDate: null, endDate: null }),
+            isSelected: () => !dateRange[0].startDate,
+        },
+        {
+            label: "Today",
+            range: () => {
+                const today = new Date();
+                return { startDate: today, endDate: today };
+            },
+            isSelected: (range) =>
+                range.startDate?.toDateString() === new Date().toDateString() &&
+                range.endDate?.toDateString() === new Date().toDateString(),
+        },
+        {
+            label: "Last 7 Days",
+            range: () => {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 6);
+                return { startDate: start, endDate: end };
+            },
+            isSelected: (range) => {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 6);
+                return (
+                    range.startDate?.toDateString() === start.toDateString() &&
+                    range.endDate?.toDateString() === end.toDateString()
+                );
+            },
+        },
     ];
 
     const handleFieldToggle = (key) => {
@@ -34,32 +84,55 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     };
 
     const handleSelectAll = () => {
-        setSelectedFields(Object.fromEntries(fields.map((f) => [f.key, true])));
+        setSelectedFields(Object.fromEntries(fieldsOrder.map((f) => [f.key, true])));
         toast.success("All fields selected", { icon: "✅" });
     };
 
     const handleSelectNone = () => {
-        setSelectedFields(Object.fromEntries(fields.map((f) => [f.key, false])));
+        setSelectedFields(Object.fromEntries(fieldsOrder.map((f) => [f.key, false])));
         toast.success("All fields deselected", { icon: "✅" });
     };
 
-    const filteredCandidates = candidates.map((candidate) => {
-        const filtered = {};
-        Object.keys(selectedFields).forEach((key) => {
-            if (selectedFields[key]) {
-                filtered[key] = candidate[key] || "";
-            }
-        });
-        return filtered;
-    });
+    const onDragEnd = (result) => {
+        if (!result.destination) return;
+        const reorderedFields = Array.from(fieldsOrder);
+        const [movedField] = reorderedFields.splice(result.source.index, 1);
+        reorderedFields.splice(result.destination.index, 0, movedField);
+        setFieldsOrder(reorderedFields);
+        toast.success("Fields reordered", { icon: "✅" });
+    };
 
-    const csvHeaders = fields.filter((f) => selectedFields[f.key]).map((f) => ({
+    const filteredCandidates = candidates
+        .filter((candidate) => {
+            if (filterStatus !== "all") {
+                return (candidate.status || "Pending") === filterStatus;
+            }
+            return true;
+        })
+        .filter((candidate) => {
+            if (!dateRange[0].startDate || !dateRange[0].endDate) return true;
+            const submittedAt = new Date(candidate.submitted_at || "Invalid Date");
+            return (
+                submittedAt >= dateRange[0].startDate && submittedAt <= dateRange[0].endDate
+            );
+        })
+        .map((candidate) => {
+            const filtered = {};
+            Object.keys(selectedFields).forEach((key) => {
+                if (selectedFields[key]) {
+                    filtered[key] = candidate[key] || "";
+                }
+            });
+            return filtered;
+        });
+
+    const csvHeaders = fieldsOrder.filter((f) => selectedFields[f.key]).map((f) => ({
         label: f.label,
         key: f.key,
     }));
 
     const exportPDF = () => {
-        const selectedKeys = fields.filter((f) => selectedFields[f.key]).map((f) => f.key);
+        const selectedKeys = fieldsOrder.filter((f) => selectedFields[f.key]).map((f) => f.key);
         if (selectedKeys.length === 0) {
             toast.error("Please select at least one field to export!", { icon: "⚠️" });
             return;
@@ -71,16 +144,15 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         doc.setFontSize(11);
         doc.setTextColor(100);
 
-        // Apply autoTable to jsPDF instance
         autoTable(doc, {
-            head: [selectedKeys.map((key) => fields.find((f) => f.key === key).label)],
+            head: [selectedKeys.map((key) => fieldsOrder.find((f) => f.key === key).label)],
             body: filteredCandidates.map((candidate) =>
                 selectedKeys.map((key) => candidate[key] || "-")
             ),
             startY: 30,
             theme: "striped",
             headStyles: { fillColor: [240, 93, 35] }, // #f05d23
-            styles: { textColor: mode === "dark" ? 255 : 35 }, // Match mode
+            styles: { textColor: mode === "dark" ? 255 : 35 },
         });
 
         doc.save("applicants_export.pdf");
@@ -150,29 +222,59 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                                     </button>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                {fields.map((field) => (
-                                    <label
-                                        key={field.key}
-                                        className="flex items-center gap-2 animate-fade-in"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedFields[field.key]}
-                                            onChange={() => handleFieldToggle(field.key)}
-                                            className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                        />
-                                        <Icon icon={field.icon} className="w-4 h-4 text-[#f05d23]" />
-                                        <span
-                                            className={`text-sm ${
-                                                mode === "dark" ? "text-gray-300" : "text-[#231812]"
-                                            }`}
+                            <DragDropContext onDragEnd={onDragEnd}>
+                                <Droppable droppableId="fields">
+                                    {(provided) => (
+                                        <div
+                                            {...provided.droppableProps}
+                                            ref={provided.innerRef}
+                                            className="grid grid-cols-2 gap-4"
                                         >
-                                            {field.label}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
+                                            {fieldsOrder.map((field, index) => (
+                                                <Draggable
+                                                    key={field.key}
+                                                    draggableId={field.key}
+                                                    index={index}
+                                                >
+                                                    {(provided) => (
+                                                        <label
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                            className="flex items-center gap-2 animate-fade-in bg-gray-100 dark:bg-gray-700 p-2 rounded-lg cursor-move"
+                                                        >
+                                                            <Icon
+                                                                icon="mdi:drag"
+                                                                className="w-4 h-4 text-[#f05d23]"
+                                                            />
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedFields[field.key]}
+                                                                onChange={() => handleFieldToggle(field.key)}
+                                                                className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
+                                                            />
+                                                            <Icon
+                                                                icon={field.icon}
+                                                                className="w-4 h-4 text-[#f05d23]"
+                                                            />
+                                                            <span
+                                                                className={`text-sm ${
+                                                                    mode === "dark"
+                                                                        ? "text-gray-300"
+                                                                        : "text-[#231812]"
+                                                                }`}
+                                                            >
+                                                                {field.label}
+                                                            </span>
+                                                        </label>
+                                                    )}
+                                                </Draggable>
+                                            ))}
+                                            {provided.placeholder}
+                                        </div>
+                                    )}
+                                </Droppable>
+                            </DragDropContext>
                         </div>
                         <div>
                             <label
@@ -180,20 +282,39 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                                     mode === "dark" ? "text-gray-200" : "text-[#231812]"
                                 }`}
                             >
-                                Export Format
+                                Filter by Status
                             </label>
                             <select
-                                value={exportFormat}
-                                onChange={(e) => setExportFormat(e.target.value)}
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
                                 className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] text-sm ${
                                     mode === "dark"
                                         ? "bg-gray-700 border-gray-600 text-white"
                                         : "bg-gray-50 border-gray-300 text-[#231812]"
                                 }`}
                             >
-                                <option value="csv">CSV</option>
-                                <option value="pdf">PDF</option>
+                                {statuses.map((status) => (
+                                    <option key={status} value={status}>
+                                        {status}
+                                    </option>
+                                ))}
                             </select>
+                        </div>
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                }`}
+                            >
+                                Filter by Date Range
+                            </label>
+                            <DateRangePicker
+                                ranges={dateRange}
+                                onChange={(item) => setDateRange([item.selection])}
+                                className="w-full"
+                                inputRanges={[]}
+                                staticRanges={fallbackStaticRanges} // Use fallback
+                            />
                         </div>
                         <div>
                             <label
