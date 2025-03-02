@@ -260,19 +260,20 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             pendingReviews={candidates.filter((c) => c.status === "Pending").length}
                             mode={mode}
                         />
+
+                        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                        </div>
                         {/* Full-width CountryChart */}
                         <div className="mb-6">
                             <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
-                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                             <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <TopPerformers
                                 candidates={candidates}
                                 setEmailData={setEmailData}

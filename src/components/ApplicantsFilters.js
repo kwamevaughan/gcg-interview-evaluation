@@ -15,7 +15,7 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode }) 
     };
 
     return (
-        <div className={`mb-6 p-4 rounded-lg shadow-md ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+        <div className={`border-t-4 border-[#f05d23] mt-10 mb-6 p-4 rounded-lg shadow-md ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                     <label className={`block text-sm font-medium mb-1 ${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}>

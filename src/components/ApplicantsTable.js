@@ -28,7 +28,7 @@ export default function ApplicantsTable({ candidates, mode, onViewCandidate, onS
     };
 
     return (
-        <div className="rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg shadow-lg overflow-hidden border-t-4 border-[#f05d23]  dark:border-gray-700">
             <div className="max-h-[500px] overflow-y-auto">
                 <table className="w-full">
                     <thead className="sticky top-0 z-10">
@@ -74,7 +74,7 @@ export default function ApplicantsTable({ candidates, mode, onViewCandidate, onS
                         return (
                             <tr
                                 key={candidate.id}
-                                className={`border-b hover:bg-opacity-80 transition duration-200 ${
+                                className={`border-b hover:bg-gray-200 transition duration-200 ease-in-out ${
                                     mode === "dark"
                                         ? "border-gray-700 hover:bg-gray-700 text-white"
                                         : "border-gray-200 hover:bg-gray-50 text-[#231812]"
@@ -96,11 +96,12 @@ export default function ApplicantsTable({ candidates, mode, onViewCandidate, onS
                                                 : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
                                         }`}
                                     >
-                                        <Icon icon="mdi:eye" width={20} height={20} />
+                                        <Icon icon="mdi:eye" width={20} height={20}/>
                                         View
                                     </button>
                                 </td>
                             </tr>
+
                         );
                     })}
                     </tbody>

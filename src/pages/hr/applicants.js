@@ -286,7 +286,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     }`}
                 >
-                    <div className="max-w-6xl mx-auto">
+                    <div className="max-w-6xl mx-auto space-y-10">
                         {/* Removed inline h2 */}
                         <ApplicantsFilters candidates={candidates} onFilterChange={handleFilterChange} mode={mode} />
                         <ApplicantsTable

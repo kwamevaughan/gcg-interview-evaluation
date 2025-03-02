@@ -87,7 +87,7 @@ export default function QuestionTable({
                                           deleteQuestion,
                                       }) {
     return (
-        <div className={`rounded-lg shadow-lg overflow-hidden ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+        <div className={`border-t-4 border-[#f05d23] rounded-lg shadow-lg overflow-hidden ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
             <div className="max-h-[500px] overflow-y-auto">
                 <table className="w-full">
                     <thead className="sticky top-0 z-10">

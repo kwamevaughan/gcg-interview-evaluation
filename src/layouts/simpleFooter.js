@@ -8,12 +8,12 @@ const SimpleFooter = ({ mode, isSidebarOpen }) => { // Add isSidebarOpen as prop
     return (
         <footer
             className={`${
-                mode === "dark" ? "bg-gray-800 border-gray-700" : "bg-[#231812] border-[#231812]"
-            } mt-10 border-b shadow-lg py-4 md:py-6 px-4 flex flex-col items-center sticky top-0 z-10 transition-all duration-300 ${
-                isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]" // Match header's margin adjustment
+                mode === "dark" ? "bg-gray-800 border-gray-700" : "bg-[#231812] border-[#231812] px-8"
+            } mt-10 border-b shadow-lg py-4 md:py-6 flex flex-col items-center sticky top-0 z-10 transition-all duration-300 ${
+                isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px] px-20" // Match header's margin adjustment
             }`}
         >
-            <div className="flex w-full justify-between items-center px-4 md:px-24 mt-4 text-white">
+            <div className="flex w-full justify-between items-center  mt-4 text-white">
                 <div className="flex flex-col">
                     <span className="text-base">
                         © {currentYear} Growthpad Consulting Group. Made with ♡ in

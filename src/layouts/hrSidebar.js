@@ -120,7 +120,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 rounded-full overflow-hidden">
                                         <Image
-                                            src="/favicon.png"
+                                            src={mode === "dark" ? "/favicon-white.png" : "/favicon.png"}
                                             alt="Profile"
                                             width={48}
                                             height={48}
