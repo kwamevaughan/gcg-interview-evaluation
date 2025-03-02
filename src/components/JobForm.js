@@ -115,7 +115,7 @@ export default function JobForm({ mode, onJobAdded }) {
                                     ? "bg-gray-700 border-gray-600 text-white"
                                     : "bg-gray-50 border-gray-300 text-[#231812]"
                             }`}
-                            placeholder="e.g., Software Engineer"
+                            placeholder="e.g., Comms and Projects Specialist"
                             required
                         />
                     </div>

@@ -133,7 +133,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                             ? "bg-gray-700 text-gray-200 border-gray-600"
                                             : "bg-gray-50 text-[#231812] border-gray-300"
                                     }`}
-                                    placeholder="e.g., Software Engineer"
+                                    placeholder="e.g., Comms and Projects Specialist"
                                     required
                                 />
                             </div>

@@ -118,7 +118,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                         {isOpen ? (
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#f05d23]">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden">
                                         <Image
                                             src="/favicon.png"
                                             alt="Profile"

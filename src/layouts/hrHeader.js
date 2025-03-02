@@ -16,8 +16,10 @@ const HRHeader = ({
                   }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const headerRef = useRef(null); // Reference for the header
 
     useEffect(() => {
+        // Function to handle click outside for closing the dropdown
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setDropdownOpen(false);
@@ -27,14 +29,26 @@ const HRHeader = ({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        // Adjust padding on body based on header height
+        if (headerRef.current) {
+            const headerHeight = headerRef.current.offsetHeight;
+            document.body.style.paddingTop = `${headerHeight}px`; // Apply padding-top to the body
+        }
+    }, []); // Run once when component mounts
+
     const fullName = "HR Admin"; // Static for now; integrate user data later
 
     return (
         <header
-            className={`relative top-0 left-0 right-0 z-50 transition-all duration-300 shadow-sm border-b ${
-                mode === "dark" ? "border-[#8DC63F] bg-[#0a0c1d] text-white" : "border-gray-300 bg-[#ececec] text-black"
-            } ${isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"} backdrop-blur-md bg-opacity-30`}
+            ref={headerRef} // Reference the header to get its height
+            className={`fixed top-0 left-0 right-0 z-50 mb-6 transition-all duration-300 shadow-sm ${
+                mode === "dark"
+                    ? "border-[#f05d23] bg-[#101827] text-white bg-opacity-100" // Full opacity in dark mode
+                    : "border-gray-300 bg-[#ececec] text-black bg-opacity-50" // 50% opacity in light mode
+            } ${isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"} backdrop-blur-md`}
         >
+
             <div className="flex items-center justify-between p-2 md:p-4">
                 {/* Left Section: Sidebar Toggle, Page Info */}
                 <div className="flex items-center space-x-2">
@@ -44,9 +58,9 @@ const HRHeader = ({
                         aria-label="Toggle sidebar"
                     >
                         {isSidebarOpen ? (
-                            <XMarkIcon className="h-6 w-6" />
+                            <XMarkIcon className="h-6 w-6"/>
                         ) : (
-                            <Bars3Icon className="h-6 w-6" />
+                            <Bars3Icon className="h-6 w-6"/>
                         )}
                     </button>
                     <div className="flex flex-col">
@@ -59,7 +73,7 @@ const HRHeader = ({
                         </h1>
                         {pageDescription && (
                             <p
-                                className={`text-sm truncate max-w-[300px] md:max-w-[500px] ${
+                                className={`text-base truncate max-w-[300px] md:max-w-[500px] ${
                                     mode === "dark" ? "text-gray-400" : "text-gray-600"
                                 }`}
                             >
@@ -78,14 +92,14 @@ const HRHeader = ({
                         aria-label="Toggle dark mode"
                     >
                         {mode === "dark" ? (
-                            <SunIcon className="h-6 w-6" />
+                            <SunIcon className="h-6 w-6"/>
                         ) : (
-                            <MoonIcon className="h-6 w-6" />
+                            <MoonIcon className="h-6 w-6"/>
                         )}
                     </button>
                     {/* Dark Mode Toggle (Desktop) */}
                     <label className="hidden md:inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={mode === "dark"} onChange={toggleMode} className="hidden" />
+                        <input type="checkbox" checked={mode === "dark"} onChange={toggleMode} className="hidden"/>
                         <div
                             className={`relative w-14 h-8 rounded-full border-2 flex items-center ${
                                 mode === "dark" ? "border-blue-600 bg-blue-600" : "border-gray-300 bg-gray-300"
@@ -97,9 +111,9 @@ const HRHeader = ({
                                 }`}
                             >
                                 {mode === "dark" ? (
-                                    <Icon icon="bi:moon" className="h-4 w-4 text-gray-700" />
+                                    <Icon icon="bi:moon" className="h-4 w-4 text-gray-700"/>
                                 ) : (
-                                    <Icon icon="bi:sun" className="h-4 w-4 text-yellow-500" />
+                                    <Icon icon="bi:sun" className="h-4 w-4 text-yellow-500"/>
                                 )}
                             </div>
                         </div>
@@ -114,7 +128,7 @@ const HRHeader = ({
                         <div className="flex items-center gap-2 cursor-pointer">
                             <div className="w-10 h-10 rounded-full overflow-hidden">
                                 <Image
-                                    src="/favicon.png"
+                                    src={mode === "dark" ? "/favicon-white.png" : "/favicon.png"}
                                     alt="User Profile"
                                     width={40}
                                     height={40}
@@ -156,7 +170,7 @@ const HRHeader = ({
                                     <div className="flex items-center gap-2 border-b pb-6 w-full">
                                         <div className="rounded-full overflow-hidden flex-shrink-0">
                                             <Image
-                                                src="/favicon.png"
+                                                src={mode === "dark" ? "/favicon-white.png" : "/favicon.png"}
                                                 alt="User Profile"
                                                 width={40}
                                                 height={40}

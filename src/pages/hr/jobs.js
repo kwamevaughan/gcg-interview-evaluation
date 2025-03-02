@@ -144,7 +144,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     }`}
                 >
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-6xl mx-auto">
                         <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
                         <JobForm mode={mode} onJobAdded={fetchJobs} />
                     </div>
@@ -177,7 +177,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                 mode={mode}
             />
 
-            <SimpleFooter mode={mode} />
+            <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
 }

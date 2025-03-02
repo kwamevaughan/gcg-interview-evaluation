@@ -93,7 +93,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                             isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                         }`}
                     >
-                        <div className="max-w-5xl mx-auto">
+                        <div className="max-w-6xl mx-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2">
                                     {/* Removed inline title and stats */}
@@ -171,7 +171,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                         </div>
                     </div>
                 </div>
-                <SimpleFooter mode={mode} />
+                <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
             </div>
         </DndProvider>
     );

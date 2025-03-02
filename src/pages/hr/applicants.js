@@ -319,7 +319,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                 mode={mode}
             />
 
-            <SimpleFooter mode={mode} />
+            <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
 }

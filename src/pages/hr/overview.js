@@ -319,7 +319,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 />
             )}
 
-            <SimpleFooter mode={mode} />
+            <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
 }
