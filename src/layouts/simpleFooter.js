@@ -9,7 +9,7 @@ const SimpleFooter = ({ mode, isSidebarOpen }) => { // Add isSidebarOpen as prop
         <footer
             className={`${
                 mode === "dark" ? "bg-gray-800 border-gray-700" : "bg-[#231812] border-[#231812]"
-            } border-b shadow-lg py-4 md:py-6 px-4 flex flex-col items-center sticky top-0 z-10 transition-all duration-300 ${
+            } mt-10 border-b shadow-lg py-4 md:py-6 px-4 flex flex-col items-center sticky top-0 z-10 transition-all duration-300 ${
                 isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]" // Match header's margin adjustment
             }`}
         >
