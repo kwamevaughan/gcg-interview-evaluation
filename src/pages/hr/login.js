@@ -1,4 +1,4 @@
-// src/pages/hr/login.js
+// src/pages/hr/login.js (Fallback)
 import { useState } from "react";
 import { useRouter } from "next/router";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -8,14 +8,13 @@ import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import SimpleFooter from "@/layouts/simpleFooter";
-import Footer from "@/layouts/footer"; // Use SimpleFooter consistently
 
 export default function HRLogin() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [captchaVerified, setCaptchaVerified] = useState(false);
-    const [mode] = useState("light"); // Static mode for login; adjust if dynamic mode is needed
-    const [showPassword, setShowPassword] = useState(false); // State for password visibility
+    const [mode] = useState("light");
+    const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
 
     const handleLogin = async (e) => {
@@ -88,7 +87,7 @@ export default function HRLogin() {
                                     className="absolute left-3 text-[#231812] h-5 w-5"
                                 />
                                 <input
-                                    type={showPassword ? "text" : "password"} // Toggle visibility
+                                    type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:border-transparent transition-all duration-200 text-[#231812] placeholder-gray-400"
@@ -145,7 +144,7 @@ export default function HRLogin() {
                     </p>
                 </div>
             </div>
-            <Footer mode={mode} isSidebarOpen={false} /> {/* Corrected to SimpleFooter */}
+            <SimpleFooter mode={mode} isSidebarOpen={false} />
         </div>
     );
 }
