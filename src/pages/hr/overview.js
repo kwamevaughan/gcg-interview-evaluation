@@ -1,6 +1,7 @@
 // src/pages/hr/HROverview.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 import toast, { Toaster } from "react-hot-toast";
 import { Icon } from "@iconify/react";
 import HRSidebar from "@/layouts/hrSidebar";
@@ -15,10 +16,21 @@ import ScoreTrend from "@/components/ScoreTrend";
 import RecentActivity from "@/components/RecentActivity";
 import JobOpenings from "@/components/JobOpenings";
 import TopPerformers from "@/components/TopPerformers";
-import CountryChart from "@/components/CountryChart";
 import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
 import CandidateModal from "@/components/CandidateModal";
+
+// Dynamic import for CountryChart to disable SSR
+const CountryChart = dynamic(() => import("@/components/CountryChart"), { ssr: false });
+
+// Import country code to name mapping at the top
+import countriesGeoJson from "../../data/countries.js"; // Adjusted path from src/pages/hr/
+
+// Map country codes to full names
+const countryCodeToName = countriesGeoJson.features.reduce((acc, feature) => {
+    acc[feature.properties.iso_a2.toUpperCase()] = feature.properties.sovereignt;
+    return acc;
+}, {});
 
 export default function HROverview({ mode = "light", toggleMode }) {
     const [candidates, setCandidates] = useState([]);
@@ -28,9 +40,9 @@ export default function HROverview({ mode = "light", toggleMode }) {
     const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [selectedCandidate, setSelectedCandidate] = useState(null);
-    const [filteredCandidates, setFilteredCandidates] = useState([]); // For filter modal
-    const [filterType, setFilterType] = useState(""); // For modal title
-    const [filterValue, setFilterValue] = useState(""); // For modal title
+    const [filteredCandidates, setFilteredCandidates] = useState([]);
+    const [filterType, setFilterType] = useState("");
+    const [filterValue, setFilterValue] = useState("");
     const [emailData, setEmailData] = useState({ subject: "", body: "", email: "" });
     const { isSidebarOpen, toggleSidebar } = useSidebar();
     const router = useRouter();
@@ -70,7 +82,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                         try {
                             parsedAnswers = JSON.parse(response.answers);
                         } catch (e) {
-                            parsedAnswers = response.answers.split(",").map(a => a.trim());
+                            parsedAnswers = response.answers.split(",").map((a) => a.trim());
                         }
                     } else if (Array.isArray(response.answers)) {
                         parsedAnswers = response.answers;
@@ -83,7 +95,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                     resumeUrl: response.resume_url,
                     coverLetterUrl: response.cover_letter_url,
                     status: response.status || "Pending",
-                    country: response.country || "Unknown",
+                    country: response.country ? response.country.toUpperCase() : "Unknown", // Normalize to uppercase
                     device: response.device || "Unknown",
                     submitted_at: response.submitted_at || null,
                     questions: questionsData,
@@ -132,29 +144,34 @@ export default function HROverview({ mode = "light", toggleMode }) {
     };
 
     const handleChartFilter = (type, value) => {
-        console.log(`Opening modal for ${type}: ${value}`); // Debug log
+        console.log(`Opening modal for ${type}: ${value}`);
         let filtered;
         switch (type) {
             case "status":
-                filtered = candidates.filter(c => c.status === value);
+                filtered = candidates.filter((c) => c.status === value);
                 toast.success(`Showing ${value} candidates`, { duration: 2000 });
                 break;
             case "score":
                 const [min, max] = value.split("-").map(Number);
-                filtered = candidates.filter(c => c.score >= min && c.score < max);
+                filtered = candidates.filter((c) => c.score >= min && c.score < max);
                 toast.success(`Showing scores ${value}`, { duration: 2000 });
                 break;
             case "country":
-                filtered = candidates.filter(c => c.country === value);
+                // Match by full name (case-insensitive) or code (uppercase)
+                filtered = candidates.filter((c) => {
+                    const countryCode = (c.country || "Unknown").toUpperCase();
+                    const fullName = countryCodeToName[countryCode] || countryCode;
+                    return fullName.toLowerCase() === value.toLowerCase() || countryCode === value.toUpperCase();
+                });
                 toast.success(`Showing ${value} applicants`, { duration: 2000 });
                 break;
             case "device":
-                filtered = candidates.filter(c => c.device === value);
+                filtered = candidates.filter((c) => c.device === value);
                 toast.success(`Showing ${value} devices`, { duration: 2000 });
                 break;
             case "date":
                 const date = new Date(value).toDateString();
-                filtered = candidates.filter(c => new Date(c.submitted_at).toDateString() === date);
+                filtered = candidates.filter((c) => new Date(c.submitted_at).toDateString() === date);
                 toast.success(`Showing applicants from ${date}`, { duration: 2000 });
                 break;
             default:
@@ -187,14 +204,16 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 .eq("user_id", candidateId);
             if (error) throw error;
 
-            const updatedCandidates = candidates.map(c =>
+            const updatedCandidates = candidates.map((c) =>
                 c.id === candidateId ? { ...c, status: newStatus } : c
             );
             setCandidates(updatedCandidates);
             if (filteredCandidates.length > 0) {
-                setFilteredCandidates(filteredCandidates.map(c =>
-                    c.id === candidateId ? { ...c, status: newStatus } : c
-                ));
+                setFilteredCandidates(
+                    filteredCandidates.map((c) =>
+                        c.id === candidateId ? { ...c, status: newStatus } : c
+                    )
+                );
             }
             if (selectedCandidate && selectedCandidate.id === candidateId) {
                 setSelectedCandidate({ ...selectedCandidate, status: newStatus });
@@ -219,6 +238,8 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 mode={mode}
                 toggleMode={toggleMode}
                 onLogout={handleLogout}
+                pageName="HR Overview"
+                pageDescription="View and manage candidate applications."
             />
             <div className="flex flex-1">
                 <HRSidebar
@@ -233,36 +254,24 @@ export default function HROverview({ mode = "light", toggleMode }) {
                     }`}
                 >
                     <div className="max-w-7xl mx-auto">
-                        <h2
-                            className={`text-3xl font-bold mb-8 flex items-center gap-2 ${
-                                mode === "dark" ? "text-white" : "text-[#231812]"
-                            }`}
-                        >
-                            <Icon icon="mdi:dashboard" className="w-8 h-8 text-[#f05d23]" />
-                            HR Overview
-                        </h2>
-
-                        {/* Full-width Welcome Card */}
                         <WelcomeCard
                             totalApplicants={candidates.length}
                             openPositions={jobOpenings.length}
-                            pendingReviews={candidates.filter(c => c.status === "Pending").length}
+                            pendingReviews={candidates.filter((c) => c.status === "Pending").length}
                             mode={mode}
                         />
-
-                        {/* Section 1: Status and Country (2 Columns) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                        {/* Full-width CountryChart */}
+                        <div className="mb-6">
                             <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-
-                        {/* Section 2: Score Distribution and Trend (2 Columns) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                             <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-
-                        {/* Section 3: Widgets (2 Columns) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <TopPerformers
                                 candidates={candidates}
@@ -271,15 +280,12 @@ export default function HROverview({ mode = "light", toggleMode }) {
                                 mode={mode}
                             />
                             <RecentActivity
-                                candidates={candidates} // Show all recent, not filtered
+                                candidates={candidates}
                                 setSelectedCandidate={setSelectedCandidate}
                                 setIsModalOpen={setIsCandidateModalOpen}
                                 mode={mode}
                             />
-                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-
-                        {/* Full-width Job Openings */}
                         <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode} />
                     </div>
                 </div>
@@ -318,7 +324,15 @@ export default function HROverview({ mode = "light", toggleMode }) {
     );
 }
 
-function ChartFilterModal({ candidates, type, value, onClose, setSelectedCandidate, setIsCandidateModalOpen, mode }) {
+function ChartFilterModal({
+                              candidates,
+                              type,
+                              value,
+                              onClose,
+                              setSelectedCandidate,
+                              setIsCandidateModalOpen,
+                              mode,
+                          }) {
     const handleViewClick = (candidate) => {
         setSelectedCandidate(candidate);
         setIsCandidateModalOpen(true);
@@ -326,7 +340,11 @@ function ChartFilterModal({ candidates, type, value, onClose, setSelectedCandida
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-            <div className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"}`}>
+            <div
+                className={`rounded-xl shadow-2xl w-full max-w-4xl mx-4 flex flex-col max-h-[90vh] ${
+                    mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"
+                }`}
+            >
                 <div className="bg-gradient-to-r from-[#f05d23] to-[#d94f1e] rounded-t-xl p-4 flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-white">
                         {type === "status" && `Status: ${value}`}
@@ -343,8 +361,13 @@ function ChartFilterModal({ candidates, type, value, onClose, setSelectedCandida
                     {candidates.length > 0 ? (
                         <ul className="space-y-4">
                             {candidates.map((candidate) => (
-                                <li key={candidate.id} className="flex justify-between items-center animate-fade-in">
-                                    <span className={`${mode === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+                                <li
+                                    key={candidate.id}
+                                    className="flex justify-between items-center animate-fade-in"
+                                >
+                                    <span
+                                        className={`${mode === "dark" ? "text-gray-300" : "text-gray-600"}`}
+                                    >
                                         {candidate.full_name} - {candidate.opening} (Score: {candidate.score})
                                     </span>
                                     <button
@@ -357,10 +380,16 @@ function ChartFilterModal({ candidates, type, value, onClose, setSelectedCandida
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 italic">No candidates match this filter.</p>
+                        <p className="text-gray-500 dark:text-gray-400 italic">
+                            No candidates match this filter.
+                        </p>
                     )}
                 </div>
-                <div className={`p-4 border-t border-gray-200 dark:border-gray-700 rounded-b-xl shadow-md ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+                <div
+                    className={`p-4 border-t border-gray-200 dark:border-gray-700 rounded-b-xl shadow-md ${
+                        mode === "dark" ? "bg-gray-800" : "bg-white"
+                    }`}
+                >
                     <div className="flex justify-end gap-4">
                         <button
                             onClick={onClose}
