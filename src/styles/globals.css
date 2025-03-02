@@ -172,3 +172,16 @@ html {
     z-index: 1;
 }
 
+.swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 280px;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+    color: #f05d23 !important;
+    background: inherit;
+}
+
