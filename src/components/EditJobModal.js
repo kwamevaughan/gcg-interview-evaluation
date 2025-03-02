@@ -82,7 +82,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
         e.preventDefault();
         e.stopPropagation();
         if (url) {
-            onPreview(url); // Pass the raw file_url as stored in editJob.file_url
+            onPreview(url);
         } else {
             toast.error("No file available to preview.");
         }
@@ -184,61 +184,58 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                         }`}
                                     />
                                 </div>
-                                {editJob.file_url && !editJob.newFile && !editJob.removeFile && (
+                                {(editJob.file_url || editJob.newFile) && !editJob.removeFile && (
                                     <div
-                                        className={`mt-2 flex items-center justify-between p-2 border rounded-lg shadow-sm ${
+                                        className={`mt-4 p-4 border rounded-lg shadow-md ${
                                             mode === "dark"
-                                                ? "bg-gray-700 border-gray-600 text-gray-300"
-                                                : "bg-gray-50 border-gray-200 text-gray-600"
-                                        } hover:bg-opacity-80 transition duration-200`}
+                                                ? "bg-gray-800 border-gray-700 text-gray-300"
+                                                : "bg-gray-100 border-gray-200 text-gray-600"
+                                        }`}
                                     >
-                                        <span className="truncate flex-1">
-                                            Job Description - {editJob.title}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={(e) => handlePreviewClick(e, editJob.file_url)}
-                                                className="text-[#f05d23] hover:text-[#d94f1e] flex items-center gap-1"
-                                                title="View file"
-                                            >
-                                                <Icon icon="mdi:eye" width={16} height={16} />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditJob({ ...editJob, removeFile: true, newFile: null });
-                                                }}
-                                                className="text-red-500 hover:text-red-600 flex items-center gap-1"
-                                                title="Remove file"
-                                            >
-                                                <Icon icon="mdi:trash-can" width={16} height={16} />
-                                            </button>
+                                        <div className="flex items-center justify-between">
+                                            <span className="truncate flex-1 text-sm">
+                                                {editJob.newFile
+                                                    ? editJob.newFile.name
+                                                    : `Job Description - ${editJob.title}`}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {editJob.file_url && !editJob.newFile && (
+                                                    <button
+                                                        onClick={(e) => handlePreviewClick(e, editJob.file_url)}
+                                                        className={`p-2 rounded-full ${
+                                                            mode === "dark"
+                                                                ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
+                                                                : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
+                                                        } transition duration-200`}
+                                                        title="View file"
+                                                    >
+                                                        <Icon icon="mdi:eye" width={24} height={24} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditJob({
+                                                            ...editJob,
+                                                            removeFile: !editJob.newFile,
+                                                            newFile: null,
+                                                        });
+                                                    }}
+                                                    className={`p-2 rounded-full ${
+                                                        mode === "dark"
+                                                            ? "bg-gray-700 text-red-500 hover:bg-gray-600"
+                                                            : "bg-gray-200 text-red-500 hover:bg-gray-300"
+                                                    } transition duration-200`}
+                                                    title="Remove file"
+                                                >
+                                                    <Icon icon="mdi:trash-can" width={24} height={24} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
-                                {editJob.newFile && (
-                                    <div
-                                        className={`mt-2 flex items-center justify-between p-2 border rounded-lg shadow-sm ${
-                                            mode === "dark"
-                                                ? "bg-gray-700 border-gray-600 text-gray-300"
-                                                : "bg-gray-50 border-gray-200 text-gray-600"
-                                        } hover:bg-opacity-80 transition duration-200`}
-                                    >
-                                        <span className="truncate flex-1">{editJob.newFile.name}</span>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setEditJob({ ...editJob, newFile: null });
-                                            }}
-                                            className="text-red-500 hover:text-red-600 flex items-center gap-1"
-                                            title="Remove new file"
-                                        >
-                                            <Icon icon="mdi:trash-can" width={16} height={16} />
-                                        </button>
-                                    </div>
-                                )}
                                 {editJob.removeFile && (
-                                    <p className="mt-2 text-sm text-red-500">File will be removed on save.</p>
+                                    <p className="mt-4 text-sm text-red-500">File will be removed on save.</p>
                                 )}
                             </div>
                             <div>
