@@ -164,32 +164,44 @@ export default function JobForm({ mode, onJobAdded }) {
                                         : "bg-gray-50 border-gray-300 text-[#231812]"
                                 }`}
                             />
-                            {file && (
-                                <div className="mt-2 flex items-center gap-2">
-                                    <span
-                                        className={`text-sm ${
-                                            mode === "dark" ? "text-gray-400" : "text-gray-600"
-                                        }`}
-                                    >
-                                        {file.name}
-                                    </span>
-                                    <button
-                                        onClick={handleRemoveFile}
-                                        className="text-red-500 hover:text-red-600 flex items-center gap-1"
-                                        title="Remove file"
-                                    >
-                                        <Icon icon="mdi:trash-can" width={16} height={16} />
-                                    </button>
-                                    <button
-                                        onClick={handleReplaceFile}
-                                        className="text-[#f05d23] hover:text-[#d94f1e] flex items-center gap-1"
-                                        title="Replace file"
-                                    >
-                                        <Icon icon="mdi:refresh" width={16} height={16} />
-                                    </button>
-                                </div>
-                            )}
                         </div>
+                        {file && (
+                            <div
+                                className={`mt-4 p-4 border rounded-lg shadow-md ${
+                                    mode === "dark"
+                                        ? "bg-gray-800 border-gray-700 text-gray-300"
+                                        : "bg-gray-100 border-gray-200 text-gray-600"
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="truncate flex-1 text-sm">{file.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={handleRemoveFile}
+                                            className={`p-2 rounded-full ${
+                                                mode === "dark"
+                                                    ? "bg-gray-700 text-red-500 hover:bg-gray-600"
+                                                    : "bg-gray-200 text-red-500 hover:bg-gray-300"
+                                            } transition duration-200`}
+                                            title="Remove file"
+                                        >
+                                            <Icon icon="mdi:trash-can" width={24} height={24} />
+                                        </button>
+                                        <button
+                                            onClick={handleReplaceFile}
+                                            className={`p-2 rounded-full ${
+                                                mode === "dark"
+                                                    ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
+                                                    : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
+                                            } transition duration-200`}
+                                            title="Replace file"
+                                        >
+                                            <Icon icon="mdi:refresh" width={24} height={24} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div>
                         <label
