@@ -23,7 +23,7 @@ export default function TopPerformers({ candidates, setEmailData, setIsEmailModa
             <h3 className={`text-lg font-semibold mb-4 ${mode === "dark" ? "text-white" : "text-[#231812]"}`}>
                 Top Performers
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-4 max-h-[250px] overflow-y-scroll"> {/* Set height and add scroll */}
                 {topThree.map((candidate) => (
                     <li
                         key={candidate.id}
