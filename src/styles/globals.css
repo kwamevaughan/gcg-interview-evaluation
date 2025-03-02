@@ -1,3 +1,5 @@
+@import "leaflet/dist/leaflet.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -150,4 +152,22 @@ html {
 }
 .dark-map .leaflet-tile {
     filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.dark-map .leaflet-tile {
+    filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.country-tooltip {
+    background-color: rgba(240, 93, 35, 0.9) !important; /* Your #f05d23 orange */
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{
+    z-index: 1;
 }
