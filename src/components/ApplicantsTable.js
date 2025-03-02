@@ -110,7 +110,7 @@ export default function ApplicantsTable({
                                 : "bg-red-500 text-white hover:bg-red-600"
                         }`}
                     >
-                        <Icon icon="mdi:trash-can" width={20} height={20} />
+                        <Icon icon="mdi:trash-can" width={20} height={20}/>
                         Delete Selected ({selectedIds.length})
                     </button>
                 )}
@@ -123,14 +123,15 @@ export default function ApplicantsTable({
                                     : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
                             }`}
                         >
-                            <Icon icon="mdi:table-column" width={20} height={20} />
+                            <Icon icon="mdi:table-column" width={20} height={20}/>
                             Columns
                         </button>
-                        <div className="absolute right-0 top-full mt-0 w-48 hidden group-hover:flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                        <div
+                            className={`absolute right-0 top-full mt-0 w-48 hidden group-hover:flex flex-col ${mode === "dark" ? "bg-gray-800 text-gray-300" : "bg-white text-black"} rounded-lg shadow-lg z-50 border ${mode === "dark" ? "border-gray-700" : "border-gray-200"}`}>
                             {allColumns.map((col) => (
                                 <label
                                     key={col.key}
-                                    className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                                    className={`flex items-center gap-2 p-2 hover:${mode === "dark" ? "bg-gray-700" : "bg-gray-100"} cursor-pointer transition-colors`}
                                 >
                                     <input
                                         type="checkbox"
@@ -139,12 +140,10 @@ export default function ApplicantsTable({
                                         className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
                                     />
                                     <span
-                                        className={`text-sm ${
-                                            mode === "dark" ? "text-gray-300" : "text-[#231812]"
-                                        }`}
+                                        className={`text-sm ${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}
                                     >
-                                        {col.label}
-                                    </span>
+                        {col.label}
+                    </span>
                                 </label>
                             ))}
                         </div>
@@ -157,12 +156,14 @@ export default function ApplicantsTable({
                                 : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
                         }`}
                     >
-                        <Icon icon="mdi:export" width={20} height={20} />
+                        <Icon icon="mdi:export" width={20} height={20}/>
                         Export
                     </button>
                 </div>
+
             </div>
-            <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
+            <div
+                className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
                 <table className="w-full hidden sm:table">
                     <thead className="sticky top-0 z-10">
                     <tr
