@@ -1,11 +1,19 @@
 // src/layouts/hrHeader.js
 import { useState, useEffect, useRef } from "react";
-import { MoonIcon, SunIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
-import {Bars3Icon, XMarkIcon} from "@heroicons/react/16/solid";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/16/solid";
 
-const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) => {
+const HRHeader = ({
+                      mode,
+                      toggleSidebar,
+                      toggleMode,
+                      isSidebarOpen,
+                      onLogout,
+                      pageName = "Dashboard", // Default name
+                      pageDescription = "", // Optional description
+                  }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -24,21 +32,41 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
     return (
         <header
             className={`relative top-0 left-0 right-0 z-50 transition-all duration-300 shadow-sm border-b ${
-                mode === 'dark' ? 'border-[#8DC63F] bg-[#0a0c1d] text-white' : 'border-gray-300 bg-[#ececec] text-black'
-            } ${isSidebarOpen ? 'md:ml-[300px]' : 'md:ml-[80px]'} backdrop-blur-md bg-opacity-30`}
+                mode === "dark" ? "border-[#8DC63F] bg-[#0a0c1d] text-white" : "border-gray-300 bg-[#ececec] text-black"
+            } ${isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"} backdrop-blur-md bg-opacity-30`}
         >
             <div className="flex items-center justify-between p-2 md:p-4">
-                {/* Left Section: Logo */}
+                {/* Left Section: Sidebar Toggle, Page Info */}
                 <div className="flex items-center space-x-2">
-
                     <button
                         onClick={toggleSidebar}
                         className="p-2 focus:outline-none"
                         aria-label="Toggle sidebar"
                     >
-                        {isSidebarOpen ? <XMarkIcon className="h-6 w-6"/> : <Bars3Icon className="h-6 w-6"/>}
+                        {isSidebarOpen ? (
+                            <XMarkIcon className="h-6 w-6" />
+                        ) : (
+                            <Bars3Icon className="h-6 w-6" />
+                        )}
                     </button>
-                    <h1 className="text-2xl font-bold">Career Dashboard</h1>
+                    <div className="flex flex-col">
+                        <h1
+                            className={`text-2xl font-bold flex items-center gap-2 ${
+                                mode === "dark" ? "text-white" : "text-[#231812]"
+                            }`}
+                        >
+                            {pageName}
+                        </h1>
+                        {pageDescription && (
+                            <p
+                                className={`text-sm truncate max-w-[300px] md:max-w-[500px] ${
+                                    mode === "dark" ? "text-gray-400" : "text-gray-600"
+                                }`}
+                            >
+                                {pageDescription}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Right Section: Dark Mode, User */}
@@ -49,11 +77,15 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                         className="p-2 focus:outline-none md:hidden"
                         aria-label="Toggle dark mode"
                     >
-                        {mode === "dark" ? <SunIcon className="h-6 w-6"/> : <MoonIcon className="h-6 w-6"/>}
+                        {mode === "dark" ? (
+                            <SunIcon className="h-6 w-6" />
+                        ) : (
+                            <MoonIcon className="h-6 w-6" />
+                        )}
                     </button>
                     {/* Dark Mode Toggle (Desktop) */}
                     <label className="hidden md:inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={mode === "dark"} onChange={toggleMode} className="hidden"/>
+                        <input type="checkbox" checked={mode === "dark"} onChange={toggleMode} className="hidden" />
                         <div
                             className={`relative w-14 h-8 rounded-full border-2 flex items-center ${
                                 mode === "dark" ? "border-blue-600 bg-blue-600" : "border-gray-300 bg-gray-300"
@@ -65,9 +97,9 @@ const HRHeader = ({ mode, toggleSidebar, toggleMode, isSidebarOpen, onLogout }) 
                                 }`}
                             >
                                 {mode === "dark" ? (
-                                    <Icon icon="bi:moon" className="h-4 w-4 text-gray-700"/>
+                                    <Icon icon="bi:moon" className="h-4 w-4 text-gray-700" />
                                 ) : (
-                                    <Icon icon="bi:sun" className="h-4 w-4 text-yellow-500"/>
+                                    <Icon icon="bi:sun" className="h-4 w-4 text-yellow-500" />
                                 )}
                             </div>
                         </div>
