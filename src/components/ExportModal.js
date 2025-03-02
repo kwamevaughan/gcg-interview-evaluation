@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
-import "jspdf-autotable"; // For table formatting in PDF
+import autoTable from "jspdf-autotable"; // Explicit import
 import toast from "react-hot-toast";
 
 export default function ExportModal({ isOpen, onClose, candidates, mode }) {
@@ -71,12 +71,12 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         doc.setFontSize(11);
         doc.setTextColor(100);
 
-        const tableData = filteredCandidates.map((candidate) =>
-            selectedKeys.map((key) => candidate[key] || "-")
-        );
-        doc.autoTable({
+        // Apply autoTable to jsPDF instance
+        autoTable(doc, {
             head: [selectedKeys.map((key) => fields.find((f) => f.key === key).label)],
-            body: tableData,
+            body: filteredCandidates.map((candidate) =>
+                selectedKeys.map((key) => candidate[key] || "-")
+            ),
             startY: 30,
             theme: "striped",
             headStyles: { fillColor: [240, 93, 35] }, // #f05d23
@@ -90,7 +90,7 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     const handleExportClick = () => {
         if (Object.values(selectedFields).every((v) => !v)) {
             toast.error("Please select at least one field to export!", { icon: "⚠️" });
-            return false; // Prevent CSVLink default action
+            return false;
         }
         toast.success("CSV exported successfully!", { icon: "✅" });
     };
