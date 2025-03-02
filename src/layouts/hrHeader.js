@@ -37,7 +37,7 @@ const HRHeader = ({
         }
     }, []); // Run once when component mounts
 
-    const fullName = "HR Admin"; // Static for now; integrate user data later
+    const fullName = "GCG Admin"; // Static for now; integrate user data later
 
     return (
         <header
@@ -84,7 +84,7 @@ const HRHeader = ({
                 </div>
 
                 {/* Right Section: Dark Mode, User */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-6">
                     {/* Dark Mode Toggle (Mobile) */}
                     <button
                         onClick={toggleMode}
@@ -148,7 +148,7 @@ const HRHeader = ({
                                         mode === "dark" ? "text-[#f05d23]" : "text-[#f05d23]"
                                     }`}
                                 >
-                                    HR Team
+                                    Business Department
                                 </span>
                             </div>
                             <Icon
@@ -179,7 +179,7 @@ const HRHeader = ({
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-md font-bold">{fullName}</span>
-                                            <span className="text-sm">HR Team</span>
+                                            <span className="text-sm">Business Department</span>
                                         </div>
                                     </div>
                                     <button

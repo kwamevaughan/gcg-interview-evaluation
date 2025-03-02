@@ -43,7 +43,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
 
     if (windowWidth === null) return null;
 
-    const fullName = "HR Admin"; // Static for now
+    const fullName = "GCG Admin"; // Static for now
 
     const isActive = (pathname) =>
         router.pathname === pathname
@@ -66,12 +66,12 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
         >
             <div className="flex flex-col h-full">
                 {/* Logo */}
-                <div className={`flex items-center justify-center py-8 ${isOpen ? "px-6" : "px-0"}`}>
+                <div className={`flex justify-center py-8 ${isOpen ? "px-6" : "px-0"}`}>
                     {isOpen ? (
                         <Image
                             src={mode === "dark" ? "/assets/images/logo-white.svg" : "/assets/images/logo.svg"}
                             alt="Growthpad Logo"
-                            width={200}
+                            width={180}
                             height={75}
                             className="object-contain"
                         />
