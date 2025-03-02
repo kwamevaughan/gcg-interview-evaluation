@@ -20,7 +20,7 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode }) 
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                     <label
                         className={`block text-xs sm:text-sm font-medium mb-1 ${
