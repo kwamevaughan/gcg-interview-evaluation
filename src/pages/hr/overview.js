@@ -19,12 +19,13 @@ import TopPerformers from "@/components/TopPerformers";
 import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
 import CandidateModal from "@/components/CandidateModal";
+import useStatusChange from "@/hooks/useStatusChange"; // Import the hook
 
 // Dynamic import for CountryChart to disable SSR
 const CountryChart = dynamic(() => import("@/components/CountryChart"), { ssr: false });
 
 // Import country code to name mapping at the top
-import countriesGeoJson from "../../data/countries.js"; // Adjusted path from src/pages/hr/
+import countriesGeoJson from "../../data/countries.js";
 
 // Map country codes to full names
 const countryCodeToName = countriesGeoJson.features.reduce((acc, feature) => {
@@ -46,6 +47,15 @@ export default function HROverview({ mode = "light", toggleMode }) {
     const [emailData, setEmailData] = useState({ subject: "", body: "", email: "" });
     const { isSidebarOpen, toggleSidebar } = useSidebar();
     const router = useRouter();
+
+    const { handleStatusChange } = useStatusChange({
+        candidates,
+        setCandidates,
+        setFilteredCandidates,
+        setSelectedCandidate,
+        setEmailData,
+        setIsEmailModalOpen,
+    });
 
     useEffect(() => {
         if (!localStorage.getItem("hr_session")) {
@@ -95,7 +105,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                     resumeUrl: response.resume_url,
                     coverLetterUrl: response.cover_letter_url,
                     status: response.status || "Pending",
-                    country: response.country ? response.country.toUpperCase() : "Unknown", // Normalize to uppercase
+                    country: response.country ? response.country.toUpperCase() : "Unknown",
                     device: response.device || "Unknown",
                     submitted_at: response.submitted_at || null,
                     questions: questionsData,
@@ -157,7 +167,6 @@ export default function HROverview({ mode = "light", toggleMode }) {
                 toast.success(`Showing scores ${value}`, { duration: 2000 });
                 break;
             case "country":
-                // Match by full name (case-insensitive) or code (uppercase)
                 filtered = candidates.filter((c) => {
                     const countryCode = (c.country || "Unknown").toUpperCase();
                     const fullName = countryCodeToName[countryCode] || countryCode;
@@ -196,35 +205,6 @@ export default function HROverview({ mode = "light", toggleMode }) {
         setFilterValue("");
     };
 
-    const handleStatusChange = async (candidateId, newStatus) => {
-        try {
-            const { error } = await supabaseServer
-                .from("responses")
-                .update({ status: newStatus })
-                .eq("user_id", candidateId);
-            if (error) throw error;
-
-            const updatedCandidates = candidates.map((c) =>
-                c.id === candidateId ? { ...c, status: newStatus } : c
-            );
-            setCandidates(updatedCandidates);
-            if (filteredCandidates.length > 0) {
-                setFilteredCandidates(
-                    filteredCandidates.map((c) =>
-                        c.id === candidateId ? { ...c, status: newStatus } : c
-                    )
-                );
-            }
-            if (selectedCandidate && selectedCandidate.id === candidateId) {
-                setSelectedCandidate({ ...selectedCandidate, status: newStatus });
-            }
-            toast.success(`Status updated to ${newStatus}!`, { duration: 2000 });
-        } catch (error) {
-            console.error("Error updating status:", error);
-            toast.error("Failed to update status.");
-        }
-    };
-
     return (
         <div
             className={`min-h-screen flex flex-col ${
@@ -260,12 +240,10 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             pendingReviews={candidates.filter((c) => c.status === "Pending").length}
                             mode={mode}
                         />
-
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                             <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
-                        {/* Full-width CountryChart */}
                         <div className="mb-6">
                             <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
