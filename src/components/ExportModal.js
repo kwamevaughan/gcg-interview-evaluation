@@ -1,14 +1,25 @@
-// src/components/ExportModal.js
+"use client";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { DateRangePicker } from "react-date-range";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
+import { DragDropContext } from "@hello-pangea/dnd";
+import FieldSelector from "./FieldSelector";
+import FilterSection from "./FilterSection";
+import PreviewTable from "./PreviewTable";
+import useExportFilters from "../hooks/useExportFilters";
+
+// Utility function to format date to DD-MM-YYYY
+const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+};
 
 export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     const [selectedFields, setSelectedFields] = useState({
@@ -19,7 +30,9 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         status: true,
         phone: false,
         linkedin: false,
+        created_at: false,
     });
+
     const [exportFormat, setExportFormat] = useState("csv");
     const [previewRows, setPreviewRows] = useState(3);
     const [fieldsOrder, setFieldsOrder] = useState([
@@ -30,19 +43,21 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         { label: "Status", key: "status", icon: "mdi:tag" },
         { label: "Phone", key: "phone", icon: "mdi:phone" },
         { label: "LinkedIn", key: "linkedin", icon: "mdi:linkedin" },
+        { label: "Submitted on", key: "created_at", icon: "mdi:calendar" },
     ]);
-    const [filterStatus, setFilterStatus] = useState("all");
-    const [dateRange, setDateRange] = useState([
-        {
-            startDate: null,
-            endDate: null,
-            key: "selection",
-        },
-    ]);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const { filterStatus, setFilterStatus, dateRange, setDateRange, filteredCandidates } =
+        useExportFilters(candidates);
+
+    // Format the created_at field in filteredCandidates
+    const formattedCandidates = filteredCandidates.map(candidate => ({
+        ...candidate,
+        created_at: formatDate(candidate.created_at),
+    }));
 
     const statuses = ["all", "Pending", "Reviewed", "Shortlisted", "Rejected"];
 
-    // Fallback static ranges if defaultStaticRanges is unavailable
     const fallbackStaticRanges = [
         {
             label: "All Time",
@@ -102,30 +117,6 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
         toast.success("Fields reordered", { icon: "✅" });
     };
 
-    const filteredCandidates = candidates
-        .filter((candidate) => {
-            if (filterStatus !== "all") {
-                return (candidate.status || "Pending") === filterStatus;
-            }
-            return true;
-        })
-        .filter((candidate) => {
-            if (!dateRange[0].startDate || !dateRange[0].endDate) return true;
-            const submittedAt = new Date(candidate.submitted_at || "Invalid Date");
-            return (
-                submittedAt >= dateRange[0].startDate && submittedAt <= dateRange[0].endDate
-            );
-        })
-        .map((candidate) => {
-            const filtered = {};
-            Object.keys(selectedFields).forEach((key) => {
-                if (selectedFields[key]) {
-                    filtered[key] = candidate[key] || "";
-                }
-            });
-            return filtered;
-        });
-
     const csvHeaders = fieldsOrder.filter((f) => selectedFields[f.key]).map((f) => ({
         label: f.label,
         key: f.key,
@@ -146,12 +137,12 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
 
         autoTable(doc, {
             head: [selectedKeys.map((key) => fieldsOrder.find((f) => f.key === key).label)],
-            body: filteredCandidates.map((candidate) =>
+            body: formattedCandidates.map((candidate) =>
                 selectedKeys.map((key) => candidate[key] || "-")
             ),
             startY: 30,
             theme: "striped",
-            headStyles: { fillColor: [240, 93, 35] }, // #f05d23
+            headStyles: { fillColor: [240, 93, 35] },
             styles: { textColor: mode === "dark" ? 255 : 35 },
         });
 
@@ -172,7 +163,7 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-[100]">
             <div
-                className={`rounded-xl max-w-2xl w-full mx-4 shadow-2xl transform transition-all duration-300 animate-fade-in flex flex-col max-h-[80vh] ${
+                className={`rounded-xl max-w-2xl w-full mx-0 shadow-2xl transform transition-all duration-300 animate-fade-in flex flex-col max-h-[80vh] ${
                     mode === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#231812]"
                 }`}
             >
@@ -188,13 +179,15 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                         <Icon icon="mdi:close" width={24} height={24} />
                     </button>
                 </div>
-                <div className="flex-1 p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
-                    <div className="space-y-6">
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200 relative">
+                    <div className="p-6 space-y-6">
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <label
                                     className={`block text-sm font-medium ${
-                                        mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                        mode === "dark"
+                                            ? "text-gray-200 bg-gray-800"
+                                            : "text-[#231812] bg-white"
                                     }`}
                                 >
                                     Select Fields to Export
@@ -223,103 +216,54 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                                 </div>
                             </div>
                             <DragDropContext onDragEnd={onDragEnd}>
-                                <Droppable droppableId="fields">
-                                    {(provided) => (
-                                        <div
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                            className="grid grid-cols-2 gap-4"
-                                        >
-                                            {fieldsOrder.map((field, index) => (
-                                                <Draggable
-                                                    key={field.key}
-                                                    draggableId={field.key}
-                                                    index={index}
-                                                >
-                                                    {(provided) => (
-                                                        <label
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            className="flex items-center gap-2 animate-fade-in bg-gray-100 dark:bg-gray-700 p-2 rounded-lg cursor-move"
-                                                        >
-                                                            <Icon
-                                                                icon="mdi:drag"
-                                                                className="w-4 h-4 text-[#f05d23]"
-                                                            />
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedFields[field.key]}
-                                                                onChange={() => handleFieldToggle(field.key)}
-                                                                className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                                            />
-                                                            <Icon
-                                                                icon={field.icon}
-                                                                className="w-4 h-4 text-[#f05d23]"
-                                                            />
-                                                            <span
-                                                                className={`text-sm ${
-                                                                    mode === "dark"
-                                                                        ? "text-gray-300"
-                                                                        : "text-[#231812]"
-                                                                }`}
-                                                            >
-                                                                {field.label}
-                                                            </span>
-                                                        </label>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                        </div>
-                                    )}
-                                </Droppable>
+                                <FieldSelector
+                                    fieldsOrder={fieldsOrder}
+                                    selectedFields={selectedFields}
+                                    handleFieldToggle={handleFieldToggle}
+                                    mode={mode}
+                                />
                             </DragDropContext>
                         </div>
+                        <FilterSection
+                            filterStatus={filterStatus}
+                            setFilterStatus={setFilterStatus}
+                            dateRange={dateRange}
+                            setDateRange={setDateRange}
+                            showDatePicker={showDatePicker}
+                            setShowDatePicker={setShowDatePicker}
+                            mode={mode}
+                            statuses={statuses}
+                            fallbackStaticRanges={fallbackStaticRanges}
+                        />
                         <div>
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                    mode === "dark"
+                                        ? "text-gray-200 bg-gray-800"
+                                        : "text-[#231812] bg-white"
                                 }`}
                             >
-                                Filter by Status
+                                Export Format
                             </label>
                             <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
+                                value={exportFormat}
+                                onChange={(e) => setExportFormat(e.target.value)}
                                 className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] text-sm ${
                                     mode === "dark"
                                         ? "bg-gray-700 border-gray-600 text-white"
                                         : "bg-gray-50 border-gray-300 text-[#231812]"
                                 }`}
                             >
-                                {statuses.map((status) => (
-                                    <option key={status} value={status}>
-                                        {status}
-                                    </option>
-                                ))}
+                                <option value="csv">CSV</option>
+                                <option value="pdf">PDF</option>
                             </select>
                         </div>
                         <div>
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
-                                }`}
-                            >
-                                Filter by Date Range
-                            </label>
-                            <DateRangePicker
-                                ranges={dateRange}
-                                onChange={(item) => setDateRange([item.selection])}
-                                className="w-full"
-                                inputRanges={[]}
-                                staticRanges={fallbackStaticRanges} // Use fallback
-                            />
-                        </div>
-                        <div>
-                            <label
-                                className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                    mode === "dark"
+                                        ? "text-gray-200 bg-gray-800"
+                                        : "text-[#231812] bg-white"
                                 }`}
                             >
                                 Preview Rows
@@ -337,46 +281,12 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                                 <option value={5}>5 Rows</option>
                                 <option value={10}>10 Rows</option>
                             </select>
-                            <div
-                                className={`mt-2 p-4 rounded-lg border max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200 ${
-                                    mode === "dark" ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"
-                                }`}
-                            >
-                                <table className="w-full text-xs">
-                                    <thead>
-                                    <tr
-                                        className={
-                                            mode === "dark" ? "bg-gray-600" : "bg-gray-100"
-                                        }
-                                    >
-                                        {csvHeaders.map((header) => (
-                                            <th
-                                                key={header.key}
-                                                className="p-2 text-left font-semibold"
-                                            >
-                                                {header.label}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {filteredCandidates.slice(0, previewRows).map((candidate, index) => (
-                                        <tr
-                                            key={index}
-                                            className={`border-b ${
-                                                mode === "dark" ? "border-gray-600" : "border-gray-200"
-                                            }`}
-                                        >
-                                            {csvHeaders.map((header) => (
-                                                <td key={header.key} className="p-2">
-                                                    {candidate[header.key]}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <PreviewTable
+                                filteredCandidates={formattedCandidates}
+                                csvHeaders={csvHeaders}
+                                previewRows={previewRows}
+                                mode={mode}
+                            />
                         </div>
                     </div>
                 </div>
@@ -399,7 +309,7 @@ export default function ExportModal({ isOpen, onClose, candidates, mode }) {
                         </button>
                         {exportFormat === "csv" ? (
                             <CSVLink
-                                data={filteredCandidates}
+                                data={formattedCandidates}
                                 headers={csvHeaders}
                                 filename="applicants_export.csv"
                                 onClick={handleExportClick}
