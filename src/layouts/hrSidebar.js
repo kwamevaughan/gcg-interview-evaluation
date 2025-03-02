@@ -10,12 +10,36 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
     const router = useRouter();
     const sidebarRef = useRef(null);
 
+    // Handle window resize
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
+
+    // Handle outside click/tap to close sidebar on mobile
+    useEffect(() => {
+        const handleOutsideClick = (e) => {
+            if (
+                isOpen &&
+                windowWidth < 640 && // Mobile only
+                sidebarRef.current &&
+                !sidebarRef.current.contains(e.target)
+            ) {
+                toggleSidebar(); // Close sidebar
+            }
+        };
+
+        // Listen for both mouse and touch events
+        document.addEventListener("mousedown", handleOutsideClick);
+        document.addEventListener("touchstart", handleOutsideClick);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+            document.removeEventListener("touchstart", handleOutsideClick);
+        };
+    }, [isOpen, windowWidth, toggleSidebar]); // Dependencies
 
     if (windowWidth === null) return null;
 
@@ -76,7 +100,10 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                     ].map(({ href, icon, label }) => (
                         <li key={href} className="py-2">
                             <button
-                                onClick={() => router.push(href)}
+                                onClick={() => {
+                                    router.push(href);
+                                    if (windowWidth < 640) toggleSidebar(); // Close sidebar on mobile nav click
+                                }}
                                 className={`flex items-center font-semibold text-sm w-full ${
                                     isOpen ? "justify-start px-6" : "justify-center px-0"
                                 } py-3 rounded-lg hover:shadow-md transition-all duration-200 group relative ${isActive(
