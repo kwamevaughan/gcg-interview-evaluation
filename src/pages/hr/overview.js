@@ -229,11 +229,11 @@ export default function HROverview({ mode = "light", toggleMode }) {
                     toggleSidebar={toggleSidebar}
                 />
                 <div
-                    className={`flex-1 p-6 transition-all duration-300 ${
+                    className={`flex-1 p-6 transition-all duration-300 overflow-hidden ${
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     }`}
                 >
-                    <div className="max-w-7xl mx-auto">
+                    <div className="max-w-7xl mx-auto ">
                         <WelcomeCard
                             totalApplicants={candidates.length}
                             openPositions={jobOpenings.length}
@@ -241,15 +241,15 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             mode={mode}
                         />
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
-                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
                         </div>
                         <div className="mb-6">
-                            <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
                         </div>
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
-                            <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
+                            <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
                         </div>
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <TopPerformers
@@ -265,7 +265,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                                 mode={mode}
                             />
                         </div>
-                        <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode} />
+                        <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode}/>
                     </div>
                 </div>
             </div>
