@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { userId, fullName, email, phone, linkedin, opening, answers, resume, coverLetter, score, questions } = req.body;
+        const { userId, fullName, email, phone, linkedin, opening, answers, resume, coverLetter, score, questions, country, device, submittedAt } = req.body;
         console.log("Processing submission for:", { fullName, email, opening });
 
         const { data: existingResponse, error: fetchError } = await supabaseServer
@@ -42,6 +42,9 @@ export default async function handler(req, res) {
                 cover_letter_url: coverLetterResult.url,
                 resume_file_id: resumeResult.fileId,
                 cover_letter_file_id: coverLetterResult.fileId,
+                country,
+                device,
+                submitted_at: submittedAt
             })
             .eq("user_id", userId);
 
