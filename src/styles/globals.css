@@ -172,20 +172,3 @@ html {
     z-index: 1;
 }
 
-/* styles/globals.css */
-@keyframes gradientFlow {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-.animate-gradient {
-    background-size: 200% 200%; /* Oversize for smooth movement */
-    animation: gradientFlow 10s ease infinite; /* 10s duration, looping */
-}

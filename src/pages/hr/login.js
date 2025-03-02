@@ -8,6 +8,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import SimpleFooter from "@/layouts/simpleFooter";
+import Footer from "@/layouts/footer";
 
 export default function HRLogin() {
     const [username, setUsername] = useState("");
@@ -144,7 +145,7 @@ export default function HRLogin() {
                     </p>
                 </div>
             </div>
-            <SimpleFooter mode={mode} isSidebarOpen={false} />
+            <Footer mode={mode} isSidebarOpen={false} />
         </div>
     );
 }

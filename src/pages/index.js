@@ -130,30 +130,34 @@ export default function LandingPage() {
                         </button>
                     </a>
                 </div>
+
+                {/* Admin Login Button */}
+                <Link href="/hr/login">
+                    <span className="flex items-center gap-2 font-bold p-4 z-10 transform transition-transform hover:translate-y-[-2px] sm:absolute sm:bottom-0 sm:right-0 sm:flex sm:mt-4 w-full sm:w-auto justify-center">
+                        Admin Login
+                        <Image
+                            src="/assets/images/single-arrow.png"
+                            alt="GCG Arrow"
+                            width={20}
+                            height={20}
+                            className=""
+                        />
+                    </span>
+                </Link>
+
+                {/* Hidden Arrow Image at the Bottom Left */}
                 <Image
                     src="/assets/images/gcg-arrows-black.png"
                     alt="Growthpad Consulting Group Logo"
                     width={150}
                     height={200}
-                    className="hidden md:block absolute bottom-0 left-0 p-4 z-10"
+                    className="hidden sm:block absolute bottom-0 left-0 p-4 z-10"
                 />
-                <Link href="/hr/login">
-    <span className="absolute bottom-0 right-0 cursor-pointer flex items-center gap-2 font-bold p-4 z-10 transform transition-transform hover:translate-y-[-2px]">
-      Admin Login
-      <Image
-          src="/assets/images/single-arrow.png"
-          alt="GCG Arrow"
-          width={20}
-          height={20}
-          className=""
-      />
-    </span>
-                </Link>
-
             </div>
+
+            {/* Social Icons in Footer */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                <div
-                    className="flex space-x-4 sm:space-x-6 p-2 bg-white bg-opacity-50 backdrop-blur-lg shadow-full rounded-lg">
+                <div className="flex space-x-4 sm:space-x-6 p-2 bg-white bg-opacity-50 backdrop-blur-lg shadow-full rounded-lg">
                     <a href="https://x.com/growthpadEA" target="_blank" rel="noopener noreferrer" className="transform transition duration-300 hover:-translate-y-2 group">
                         <Icon icon="fa6-brands:square-x-twitter" width={30} height={30} className="text-black" />
                         <span className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-sm text-white bg-black p-2 rounded-lg text-center opacity-0 group-hover:opacity-70 transition-opacity duration-300 w-36 max-w-xs">Follow us on X</span>
