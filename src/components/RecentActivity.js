@@ -13,7 +13,7 @@ export default function RecentActivity({ candidates, setSelectedCandidate, setIs
             <h3 className={`text-lg font-semibold mb-4 ${mode === "dark" ? "text-white" : "text-[#231812]"}`}>
                 Recent Activity
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-4 max-h-[250px] overflow-y-scroll"> {/* Set height here and add scroll */}
                 {recent.map((candidate) => (
                     <li
                         key={candidate.id}
