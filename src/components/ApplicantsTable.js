@@ -53,7 +53,7 @@ export default function ApplicantsTable({
             case "Pending":
                 return <span className={`${baseStyle} bg-yellow-100 text-yellow-800`}>{status}</span>;
             case "Reviewed":
-                return <span className={`${baseStyle} bg-[#f05d23] text-white`}>{status}</span>; // Use brand color
+                return <span className={`${baseStyle} bg-[#f28c5e] text-white`}>{status}</span>; // Lighter orange
             case "Shortlisted":
                 return <span className={`${baseStyle} bg-green-100 text-green-800`}>{status}</span>;
             case "Rejected":
