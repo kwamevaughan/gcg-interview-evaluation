@@ -1,4 +1,3 @@
-// src/layouts/header.js
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 
@@ -30,12 +29,24 @@ const Header = ({ mode, toggleMode, step, currentPage, totalPages, uploadProgres
             <div className="flex justify-between items-center w-full">
                 <div className="flex-shrink-0">
                     <a href="/" >
+                        {/* Mobile logo - Change based on mode, only visible on mobile */}
+                        <Image
+                            src={mode === "dark"
+                                ? "/favicon-white.png"
+                                : "/favicon.png"
+                            }
+                            alt="Growthpad Logo"
+                            width={240}
+                            height={40}
+                            className="w-14 md:hidden" // Hidden on desktop
+                        />
+                        {/* Desktop logo - Always visible on desktop */}
                         <Image
                             src={mode === "dark" ? "/assets/images/logo-tagline-white.svg" : "/assets/images/logo-tagline-orange.svg"}
                             alt="Growthpad Logo"
                             width={240}
                             height={40}
-                            className="w-32 md:w-[300px]"
+                            className="hidden md:block w-[300px]" // Hidden on mobile
                         />
                     </a>
                 </div>
