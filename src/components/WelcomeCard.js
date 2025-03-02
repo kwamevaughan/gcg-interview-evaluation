@@ -9,9 +9,9 @@ export default function WelcomeCard({ totalApplicants, openPositions, pendingRev
             }`}
         >
 
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
 
-            <h3 className="text-xl font-semibold">Welcome back, HR Team!</h3>
+            <h3 className="text-xl font-semibold">Welcome back, Growthpad!</h3>
             <p className={`text-sm font-bold ${mode === "dark" ? "text-gray-400" : "text-gray-900"}`}>
                 {new Date().toLocaleDateString("en-US", {
                     weekday: "long",
@@ -21,7 +21,7 @@ export default function WelcomeCard({ totalApplicants, openPositions, pendingRev
                 })}
             </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="flex justify-evenly gap-4 mt-4">
                 <div className="text-center">
                     <CountUp end={totalApplicants} duration={2} className="text-3xl font-bold text-[#f05d23]"/>
                     <p className="text-sm">Total Applicants</p>
