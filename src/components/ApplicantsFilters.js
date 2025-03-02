@@ -1,34 +1,53 @@
-// src/components/ApplicantsFilters.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 
 export default function ApplicantsFilters({ candidates, onFilterChange, mode, initialOpening }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterOpening, setFilterOpening] = useState(initialOpening || "all");
     const [filterStatus, setFilterStatus] = useState("all");
+    const hasAppliedInitialFilter = useRef(false); // Track initial filter application
 
     const uniqueOpenings = ["all", ...new Set(candidates.map((c) => c.opening))];
     const statuses = ["all", "Pending", "Reviewed", "Shortlisted", "Rejected"];
 
     useEffect(() => {
-        // Sync with initialOpening and localStorage on load
-        if (initialOpening && initialOpening !== "all") {
-            setFilterOpening(initialOpening);
-        }
-        const savedStatus = localStorage.getItem("filterStatus") || "all";
-        setFilterStatus(savedStatus); // Set initial status from localStorage
-        handleFilter(savedStatus); // Apply filter immediately
-    }, [candidates, initialOpening]);
+        console.log(
+            "useEffect triggered - initialOpening:",
+            initialOpening,
+            "filterOpening:",
+            filterOpening,
+            "hasAppliedInitialFilter:",
+            hasAppliedInitialFilter.current
+        );
 
-    const handleFilter = (statusOverride = filterStatus) => {
-        console.log("Applying Filter - Status:", statusOverride);
-        onFilterChange({ searchQuery, filterOpening, filterStatus: statusOverride });
+        // Apply initial filter only once on mount or when candidates change
+        if (!hasAppliedInitialFilter.current && candidates.length > 0) {
+            const savedOpening =
+                initialOpening !== "all" ? initialOpening : localStorage.getItem("filterOpening") || "all";
+            const savedStatus = localStorage.getItem("filterStatus") || "all";
+
+            setFilterOpening(savedOpening);
+            setFilterStatus(savedStatus);
+            handleFilter(savedStatus, savedOpening);
+            hasAppliedInitialFilter.current = true;
+        }
+    }, [candidates]); // Only depends on candidates, not initialOpening
+
+    const handleFilter = (statusOverride = filterStatus, openingOverride = filterOpening) => {
+        console.log("Applying Filter - Opening:", openingOverride, "Status:", statusOverride);
+        onFilterChange({ searchQuery, filterOpening: openingOverride, filterStatus: statusOverride });
     };
 
     const handleStatusChange = (e) => {
         const newStatus = e.target.value;
         setFilterStatus(newStatus);
-        handleFilter(newStatus); // Apply filter with new status immediately
+        handleFilter(newStatus);
+    };
+
+    const handleOpeningChange = (e) => {
+        const newOpening = e.target.value;
+        setFilterOpening(newOpening);
+        handleFilter(filterStatus, newOpening);
     };
 
     return (
@@ -77,10 +96,7 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
                     </label>
                     <select
                         value={filterOpening}
-                        onChange={(e) => {
-                            setFilterOpening(e.target.value);
-                            handleFilter();
-                        }}
+                        onChange={handleOpeningChange}
                         className={`w-full p-1 sm:p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] text-xs sm:text-sm z-20 relative ${
                             mode === "dark"
                                 ? "bg-gray-700 border-gray-600 text-white"
@@ -104,7 +120,7 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
                     </label>
                     <select
                         value={filterStatus}
-                        onChange={handleStatusChange} // Use dedicated handler
+                        onChange={handleStatusChange}
                         className={`w-full p-1 sm:p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] text-xs sm:text-sm z-20 relative ${
                             mode === "dark"
                                 ? "bg-gray-700 border-gray-600 text-white"
