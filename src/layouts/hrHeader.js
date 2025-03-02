@@ -49,7 +49,7 @@ const HRHeader = ({
             } ${isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"} backdrop-blur-md`}
         >
 
-            <div className="flex items-center justify-between p-2 md:p-4">
+            <div className="flex items-center justify-between p-0 md:p-4">
                 {/* Left Section: Sidebar Toggle, Page Info */}
                 <div className="flex items-center space-x-2">
                     <button
@@ -73,7 +73,7 @@ const HRHeader = ({
                         </h1>
                         {pageDescription && (
                             <p
-                                className={`text-base truncate max-w-[300px] md:max-w-[500px] ${
+                                className={`text-base truncate max-w-[200px] md:max-w-[500px] ${
                                     mode === "dark" ? "text-gray-400" : "text-gray-600"
                                 }`}
                             >
