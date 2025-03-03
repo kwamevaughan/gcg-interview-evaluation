@@ -1,17 +1,59 @@
 // src/components/EditJobModal.js
+"use client";
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import TiptapToolbar from "./TiptapToolbar";
 
 export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPreview }) {
     const [editJob, setEditJob] = useState(job || {});
 
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({
+                // Ensure the initial paragraph has a minimum height
+                paragraph: {
+                    HTMLAttributes: {
+                        class: "",
+                    },
+                },
+            }),
+            Underline,
+            TextAlign.configure({ types: ["heading", "paragraph"] }),
+        ],
+        content: job?.description || "<p>Type your description here...</p>", // Placeholder for new jobs
+        onUpdate: ({ editor }) => {
+            setEditJob(prev => ({ ...prev, description: editor.getHTML() }));
+        },
+        editorProps: {
+            attributes: {
+                class: "focus:outline-none",
+            },
+        },
+    });
+
     useEffect(() => {
-        if (job) {
-            setEditJob(job);
+        if (job && editor) {
+            editor.commands.setContent(job.description || "<p>Type your description here...</p>");
+            setEditJob({ ...job });
         }
-    }, [job]);
+    }, [job, editor]);
+
+    useEffect(() => {
+        if (editor && editor.isEditable) {
+            // Delay focus slightly to ensure editor is fully rendered
+            const timer = setTimeout(() => {
+                editor.chain().focus().run();
+            }, 50);
+            return () => clearTimeout(timer); // Cleanup timeout on unmount
+        }
+    }, [editor]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,7 +84,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
 
         const updatedJobData = {
             title: editJob.title,
-            description: editJob.description || null,
+            description: editJob.description === "<p>Type your description here...</p>" ? null : editJob.description,
             file_url: fileUrl,
             file_id: fileId,
             expires_on: editJob.expires_on,
@@ -103,6 +145,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                         <h2 className="text-2xl font-bold text-white">Edit Job Opening</h2>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="text-white hover:text-gray-200 transition duration-200"
                     >
@@ -110,11 +153,11 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                     </button>
                 </div>
                 <div className="flex-1 p-6 overflow-y-auto">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 h-full flex flex-col">
                         <div>
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                    mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
                                 }`}
                             >
                                 Job Title <span className="text-red-500">*</span>
@@ -138,30 +181,30 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                 />
                             </div>
                         </div>
-                        <div>
+                        <div className="flex flex-col">
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                    mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
                                 }`}
                             >
                                 Description (Optional)
                             </label>
-                            <textarea
-                                value={editJob.description || ""}
-                                onChange={(e) => setEditJob({ ...editJob, description: e.target.value })}
-                                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] min-h-[100px] ${
+                            <TiptapToolbar editor={editor} mode={mode} />
+                            <EditorContent
+                                editor={editor}
+                                className={`border rounded-lg p-3 min-h-[300px] ${
                                     mode === "dark"
-                                        ? "bg-gray-700 text-gray-200 border-gray-600"
-                                        : "bg-gray-50 text-[#231812] border-gray-300"
+                                        ? "bg-gray-700 text-gray-200 border-gray-600 caret-white"
+                                        : "bg-white text-[#231812] border-gray-300 caret-black"
                                 }`}
-                                placeholder="Enter job description..."
+                                onClick={() => editor?.chain().focus().run()}
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label
                                     className={`block text-sm font-medium mb-2 ${
-                                        mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                        mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
                                     }`}
                                 >
                                     Job Description File (DOCX/PDF, Optional)
@@ -201,6 +244,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                             <div className="flex items-center gap-2">
                                                 {editJob.file_url && !editJob.newFile && (
                                                     <button
+                                                        type="button"
                                                         onClick={(e) => handlePreviewClick(e, editJob.file_url)}
                                                         className={`p-2 rounded-full ${
                                                             mode === "dark"
@@ -213,6 +257,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                                     </button>
                                                 )}
                                                 <button
+                                                    type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setEditJob({
@@ -241,7 +286,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                             <div>
                                 <label
                                     className={`block text-sm font-medium mb-2 ${
-                                        mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                        mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
                                     }`}
                                 >
                                     Expires On <span className="text-red-500">*</span>
@@ -270,33 +315,28 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                 </div>
                             </div>
                         </div>
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className={`flex-1 py-2 rounded-full transition duration-200 flex items-center justify-center gap-2 shadow-md ${
+                                    mode === "dark"
+                                        ? "bg-gray-600 text-white hover:bg-gray-500"
+                                        : "bg-gray-200 text-[#231812] hover:bg-gray-300"
+                                }`}
+                            >
+                                <Icon icon="mdi:close" width={20} height={20} />
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="flex-1 py-2 bg-[#f05d23] text-white rounded-full hover:bg-[#d94f1e] transition duration-200 flex items-center justify-center gap-2 shadow-md"
+                            >
+                                <Icon icon="mdi:content-save" width={20} height={20} />
+                                Save
+                            </button>
+                        </div>
                     </form>
-                </div>
-                <div
-                    className={`sticky bottom-0 p-4 border-t rounded-b-xl shadow-md ${
-                        mode === "dark" ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-                    }`}
-                >
-                    <div className="flex justify-end gap-4">
-                        <button
-                            onClick={onClose}
-                            className={`px-6 py-2 rounded-full transition duration-200 flex items-center gap-2 shadow-md ${
-                                mode === "dark"
-                                    ? "bg-gray-600 text-white hover:bg-gray-500"
-                                    : "bg-gray-200 text-[#231812] hover:bg-gray-300"
-                            }`}
-                        >
-                            <Icon icon="mdi:close" width={20} height={20} />
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            className="px-6 py-2 bg-[#f05d23] text-white rounded-full hover:bg-[#d94f1e] transition duration-200 flex items-center gap-2 shadow-md"
-                        >
-                            <Icon icon="mdi:content-save" width={20} height={20} />
-                            Save
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

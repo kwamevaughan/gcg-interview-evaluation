@@ -105,7 +105,7 @@ export default function QuestionTable({
                     >
                         <th className="p-2 sm:p-4 w-8 sm:w-12"></th>
                         <th
-                            className="p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold cursor-pointer"
+                            className="flex p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold cursor-pointer"
                             onClick={() => handleSort("order")}
                         >
                             Order{" "}

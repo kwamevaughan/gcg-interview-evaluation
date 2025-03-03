@@ -1,14 +1,55 @@
 // src/components/JobForm.js
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import TiptapToolbar from "./TiptapToolbar";
 
 export default function JobForm({ mode, onJobAdded }) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [file, setFile] = useState(null);
     const [expiresOn, setExpiresOn] = useState("");
+
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({
+                // Ensure the initial paragraph has a minimum height
+                paragraph: {
+                    HTMLAttributes: {
+                        class: "",
+                    },
+                },
+            }),
+            Underline,
+            TextAlign.configure({ types: ["heading", "paragraph"] }),
+        ],
+        // content: "<p>Type your description here...</p>", // Placeholder for new jobs
+        onUpdate: ({ editor }) => {
+            setDescription(editor.getHTML());
+        },
+        editorProps: {
+            attributes: {
+                class: "focus:outline-none",
+            },
+        },
+    });
+
+    useEffect(() => {
+        if (editor && editor.isEditable) {
+            // Delay focus slightly to ensure editor is fully rendered
+            const timer = setTimeout(() => {
+                editor.chain().focus().run();
+            }, 50);
+            return () => clearTimeout(timer); // Cleanup timeout on unmount
+        }
+    }, [editor]);
 
     const handleSubmitJob = async (e) => {
         e.preventDefault();
@@ -36,7 +77,7 @@ export default function JobForm({ mode, onJobAdded }) {
 
         const jobData = {
             title,
-            description: description || null,
+            description: description === "<p>Type your description here...</p>" ? null : description,
             file_url: fileUrl,
             file_id: fileId,
             expires_on: expiresOn,
@@ -50,7 +91,7 @@ export default function JobForm({ mode, onJobAdded }) {
         } else {
             toast.success("Job opening added successfully!", { icon: "✅", id: toastId });
             setTitle("");
-            setDescription("");
+            editor?.commands.setContent("<p>Type your description here...</p>");
             setFile(null);
             setExpiresOn("");
             onJobAdded();
@@ -120,7 +161,7 @@ export default function JobForm({ mode, onJobAdded }) {
                         />
                     </div>
                 </div>
-                <div>
+                <div className="flex flex-col">
                     <label
                         className={`block text-sm font-medium mb-2 ${
                             mode === "dark" ? "text-gray-300" : "text-[#231812]"
@@ -128,15 +169,15 @@ export default function JobForm({ mode, onJobAdded }) {
                     >
                         Description (Optional)
                     </label>
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] min-h-[100px] ${
+                    <TiptapToolbar editor={editor} mode={mode} />
+                    <EditorContent
+                        editor={editor}
+                        className={`border rounded-lg p-3 min-h-[150px] ${
                             mode === "dark"
-                                ? "bg-gray-700 border-gray-600 text-white"
-                                : "bg-gray-50 border-gray-300 text-[#231812]"
+                                ? "bg-gray-700 text-gray-200 border-gray-600 caret-white"
+                                : "bg-white text-[#231812] border-gray-300 caret-black"
                         }`}
-                        placeholder="Enter job description..."
+                        onClick={() => editor?.chain().focus().run()}
                     />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -177,6 +218,7 @@ export default function JobForm({ mode, onJobAdded }) {
                                     <span className="truncate flex-1 text-sm">{file.name}</span>
                                     <div className="flex items-center gap-2">
                                         <button
+                                            type="button"
                                             onClick={handleRemoveFile}
                                             className={`p-2 rounded-full ${
                                                 mode === "dark"
@@ -188,6 +230,7 @@ export default function JobForm({ mode, onJobAdded }) {
                                             <Icon icon="mdi:trash-can" width={24} height={24} />
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={handleReplaceFile}
                                             className={`p-2 rounded-full ${
                                                 mode === "dark"
