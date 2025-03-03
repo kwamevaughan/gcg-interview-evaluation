@@ -37,7 +37,7 @@ const HRHeader = ({
         }
     }, []); // Run once when component mounts
 
-    const fullName = "GCG Admin"; // Static for now; integrate user data later
+    const fullName = "GCG BD Team"; // Static for now; integrate user data later
 
     return (
         <header

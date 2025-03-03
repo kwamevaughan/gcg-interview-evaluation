@@ -43,7 +43,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
 
     if (windowWidth === null) return null;
 
-    const fullName = "GCG Admin"; // Static for now
+    const fullName = "GCG BD Team"; // Static for now
 
     const isActive = (pathname) =>
         router.pathname === pathname
