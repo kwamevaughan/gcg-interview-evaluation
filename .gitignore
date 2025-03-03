@@ -12,3 +12,6 @@ node_modules/
 
 # Ignore IDE or editor configurations
 .idea/
+
+# Ignore utility scripts like generateHash.js
+generateHash.js

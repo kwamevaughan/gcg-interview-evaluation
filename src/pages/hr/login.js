@@ -25,6 +25,8 @@ export default function HRLogin() {
             return;
         }
 
+        // console.log('Attempting to fetch user:', username);  // Log for username fetching
+
         const { data: user, error: fetchError } = await supabase
             .from("hr_users")
             .select("username, password")
@@ -32,20 +34,27 @@ export default function HRLogin() {
             .single();
 
         if (fetchError || !user) {
+            console.error("Fetch error:", fetchError);  // Log fetch error
             toast.error("Invalid username or password.", { icon: "❌" });
             return;
         }
+
+        // console.log('Fetched user:', user);  // Log user data retrieved
 
         const passwordMatch = await bcrypt.compare(password, user.password);
+
         if (!passwordMatch) {
+            console.error('Password mismatch');  // Log password mismatch
             toast.error("Invalid username or password.", { icon: "❌" });
             return;
         }
 
+        console.log('Password matched');  // Log password match
         localStorage.setItem("hr_session", "authenticated");
         toast.success("Login successful! Redirecting...", { icon: "✅" });
         setTimeout(() => router.push("/hr/overview"), 1000);
     };
+
 
     return (
         <div className="min-h-screen flex pt-14 flex-col bg-gradient-to-br from-gray-50 via-gray-100 to-[#f05d23] bg-opacity-50">
