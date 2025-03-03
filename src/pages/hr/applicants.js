@@ -1,4 +1,3 @@
-// src/pages/hr/HRApplicants.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
@@ -27,6 +26,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
+    const [isFetching, setIsFetching] = useState(false);
 
     const { handleStatusChange } = useStatusChange({
         candidates,
@@ -42,8 +42,9 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
     useEffect(() => {
         if (!localStorage.getItem("hr_session")) {
             router.push("/hr/login");
-        } else {
-            fetchCandidates();
+        } else if (!isFetching) {
+            setIsFetching(true);
+            fetchCandidates().finally(() => setIsFetching(false));
         }
     }, [router]);
 
@@ -52,7 +53,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
         try {
             const { data: candidatesData, error: candidatesError } = await supabaseServer
                 .from("candidates")
-                .select("id, full_name, email, phone, linkedin, opening");
+                .select("id, full_name, email, phone, linkedin, opening, created_at");
             if (candidatesError) throw candidatesError;
 
             const { data: responsesData, error: responsesError } = await supabaseServer
@@ -110,7 +111,14 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                 initialFilter = initialFilter.filter((c) => c.status === savedStatus);
             }
             setFilteredCandidates(initialFilter);
-            console.log("Initial Filter Applied - Status:", savedStatus, "Candidates:", initialFilter.length);
+            console.log(
+                "Initial Filter Applied - Opening:",
+                opening || savedOpening,
+                "Status:",
+                savedStatus,
+                "Candidates:",
+                initialFilter.length
+            );
         } catch (error) {
             console.error("Error fetching candidates:", error);
             toast.error("Failed to load candidates.");
@@ -135,8 +143,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
 
     const handleFilterChange = ({ searchQuery, filterOpening, filterStatus }) => {
         let result = [...candidates];
-        console.log("Filter Status Applied:", filterStatus);
-        console.log("All Candidate Statuses:", candidates.map((c) => c.status));
+        console.log("Filter Change - Opening:", filterOpening, "Status:", filterStatus);
 
         if (searchQuery) {
             result = result.filter(
@@ -152,19 +159,28 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             result = result.filter((c) => (c.status || "Pending") === filterStatus);
         }
         setFilteredCandidates(result);
-        console.log("Filtered Candidates:", result.map((c) => ({ id: c.id, status: c.status })));
 
-        localStorage.setItem("filterOpening", filterOpening);
-        localStorage.setItem("filterStatus", filterStatus);
+        // Update localStorage and router only if necessary
+        const currentOpening = localStorage.getItem("filterOpening") || "all";
+        const currentStatus = localStorage.getItem("filterStatus") || "all";
+        const currentQueryOpening = router.query.opening || "all";
 
-        if (filterOpening !== "all") {
-            router.push(
-                { pathname: "/hr/applicants", query: { opening: filterOpening } },
-                undefined,
-                { shallow: true }
-            );
-        } else if (router.query.opening) {
-            router.push("/hr/applicants", undefined, { shallow: true });
+        if (filterOpening !== currentOpening || filterStatus !== currentStatus) {
+            localStorage.setItem("filterOpening", filterOpening);
+            localStorage.setItem("filterStatus", filterStatus);
+
+            // Only push to router if filterOpening differs from current query
+            if (filterOpening !== currentQueryOpening) {
+                if (filterOpening !== "all") {
+                    router.push(
+                        { pathname: "/hr/applicants", query: { opening: filterOpening } },
+                        undefined,
+                        { shallow: true }
+                    );
+                } else if (router.query.opening) {
+                    router.push("/hr/applicants", undefined, { shallow: true });
+                }
+            }
         }
     };
 
@@ -223,7 +239,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                         <div className="flex-1 w-0 p-4">
                             <p className="text-xl font-medium text-gray-900">Delete Candidate?</p>
                             <p className="mt-2 text-base text-gray-500">
-                                Are you sure you want to delete this candidate? This action cannot be undone.
+                                Are you sure you want to delete this candidate? This action cannot be
+                                undone.
                             </p>
                         </div>
                         <div className="flex border-l border-gray-200">
@@ -294,7 +311,8 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                         <div className="flex-1 w-0 p-4">
                             <p className="text-xl font-medium text-gray-900">Delete Selected?</p>
                             <p className="mt-2 text-base text-gray-500">
-                                Are you sure you want to delete {selectedIds.length} candidate(s)? This action cannot be undone.
+                                Are you sure you want to delete {selectedIds.length} candidate(s)?
+                                This action cannot be undone.
                             </p>
                         </div>
                         <div className="flex border-l border-gray-200">
@@ -342,7 +360,9 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             setCandidates(updatedCandidates);
             setFilteredCandidates(updatedCandidates);
             setSelectedIds([]);
-            toast.success(`${selectedIds.length} candidate(s) deleted successfully!`, { icon: "✅" });
+            toast.success(`${selectedIds.length} candidate(s) deleted successfully!`, {
+                icon: "✅",
+            });
         } catch (error) {
             console.error("Error deleting candidates:", error);
             toast.error("Failed to delete selected candidates.");
@@ -352,7 +372,9 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
     return (
         <div
             className={`min-h-screen flex flex-col ${
-                mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
+                mode === "dark"
+                    ? "bg-gradient-to-b from-gray-900 to-gray-800"
+                    : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
             <Toaster position="top-center" reverseOrder={false} />
@@ -395,7 +417,7 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
                             selectedIds={selectedIds}
                             setSelectedIds={setSelectedIds}
                             handleBulkDelete={handleBulkDelete}
-                            setIsExportModalOpen={setIsExportModalOpen} // Pass export control
+                            setIsExportModalOpen={setIsExportModalOpen}
                         />
                     </div>
                 </div>

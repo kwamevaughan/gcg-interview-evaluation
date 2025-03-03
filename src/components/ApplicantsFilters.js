@@ -5,14 +5,14 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
     const [searchQuery, setSearchQuery] = useState("");
     const [filterOpening, setFilterOpening] = useState(initialOpening || "all");
     const [filterStatus, setFilterStatus] = useState("all");
-    const hasAppliedInitialFilter = useRef(false); // Track initial filter application
+    const hasAppliedInitialFilter = useRef(false);
 
     const uniqueOpenings = ["all", ...new Set(candidates.map((c) => c.opening))];
     const statuses = ["all", "Pending", "Reviewed", "Shortlisted", "Rejected"];
 
     useEffect(() => {
         console.log(
-            "useEffect triggered - initialOpening:",
+            "Initial useEffect triggered - initialOpening:",
             initialOpening,
             "filterOpening:",
             filterOpening,
@@ -20,7 +20,6 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
             hasAppliedInitialFilter.current
         );
 
-        // Apply initial filter only once on mount or when candidates change
         if (!hasAppliedInitialFilter.current && candidates.length > 0) {
             const savedOpening =
                 initialOpening !== "all" ? initialOpening : localStorage.getItem("filterOpening") || "all";
@@ -31,23 +30,25 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
             handleFilter(savedStatus, savedOpening);
             hasAppliedInitialFilter.current = true;
         }
-    }, [candidates]); // Only depends on candidates, not initialOpening
+    }, [candidates]);
+
+    useEffect(() => {
+        handleFilter();
+    }, [searchQuery, filterOpening, filterStatus]);
 
     const handleFilter = (statusOverride = filterStatus, openingOverride = filterOpening) => {
-        console.log("Applying Filter - Opening:", openingOverride, "Status:", statusOverride);
+        console.log("Applying Filter - SearchQuery:", searchQuery, "Opening:", openingOverride, "Status:", statusOverride);
         onFilterChange({ searchQuery, filterOpening: openingOverride, filterStatus: statusOverride });
     };
 
     const handleStatusChange = (e) => {
         const newStatus = e.target.value;
         setFilterStatus(newStatus);
-        handleFilter(newStatus);
     };
 
     const handleOpeningChange = (e) => {
         const newOpening = e.target.value;
         setFilterOpening(newOpening);
-        handleFilter(filterStatus, newOpening);
     };
 
     return (
@@ -73,10 +74,7 @@ export default function ApplicantsFilters({ candidates, onFilterChange, mode, in
                         <input
                             type="text"
                             value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                handleFilter();
-                            }}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by name or email..."
                             className={`w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] text-xs sm:text-sm ${
                                 mode === "dark"
