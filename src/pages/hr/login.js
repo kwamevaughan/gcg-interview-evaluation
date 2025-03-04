@@ -7,7 +7,6 @@ import toast, { Toaster } from "react-hot-toast";
 import ReCAPTCHA from "react-google-recaptcha";
 import { supabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
-import SimpleFooter from "@/layouts/simpleFooter";
 import Footer from "@/layouts/footer";
 
 export default function HRLogin() {
@@ -137,10 +136,6 @@ export default function HRLogin() {
         console.log(`Total time: ${Date.now() - startTime}ms`);
     };
 
-    const handleGoogleSignIn = () => {
-        toast.success("Google sign-in initiated!", { icon: "🌐" });
-    };
-
     const handleSubmit = (e) => {
         if (showPasswordField) {
             handleLogin(e);
@@ -162,7 +157,7 @@ export default function HRLogin() {
                             height={150}
                             className="mx-auto animate-fade-in"
                         />
-                        <p className="mt-6 text-sm text-gray-600">Welcome to GCG Career Management Dashboard</p>
+                        <p className="mt-6 text-base text-gray-600">Welcome to GCG Career Management Dashboard</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -178,7 +173,7 @@ export default function HRLogin() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:border-transparent transition-all duration-200 text-[#231812] placeholder-gray-400"
-                                    placeholder="analytics.growthpad@gmail.com"
+                                    placeholder="Enter GCG analytics email"
                                     required
                                 />
                             </div>
@@ -238,46 +233,43 @@ export default function HRLogin() {
                             </>
                         )}
 
-                        <button
-                            type="submit"
-                            className="w-full py-3 px-4 bg-[#f05d23] text-white font-semibold rounded-lg shadow-md hover:bg-[#d94f1e] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:ring-offset-2 transition-all duration-300 flex items-center justify-center gap-2"
-                        >
-                            <Icon
-                                icon={showPasswordField ? "mdi:login" : "mdi:email-fast"}
-                                className="h-5 w-5"
-                            />
-                            {showPasswordField ? "Sign in" : "Send me a magic link"}
-                        </button>
+                        {showPasswordField ? (
+                            <div className="flex justify-between gap-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 px-4 bg-[#f05d23] text-white font-semibold rounded-lg shadow-md hover:bg-[#d94f1e] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:ring-offset-2 transition-all duration-300 flex items-center justify-center gap-2"
+                                >
+                                    <Icon icon="mdi:login" className="h-5 w-5" />
+                                    Sign In
+                                </button>
+                                <a
+                                    href="/"
+                                    className="flex-1 py-3 px-4 bg-[#231812] text-white font-semibold rounded-lg shadow-md hover:bg-[#4a2e24] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#231812] focus:ring-offset-2 transition-all duration-300 flex items-center justify-center gap-2"
+                                >
+                                    <Icon icon="mdi:arrow-left" className="h-5 w-5" />
+                                    Return
+                                </a>
+                            </div>
+                        ) : (
+                            <button
+                                type="submit"
+                                className="w-full py-3 px-4 bg-[#f05d23] text-white font-semibold rounded-lg shadow-md hover:bg-[#d94f1e] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:ring-offset-2 transition-all duration-300 flex items-center justify-center gap-2"
+                            >
+                                <Icon icon="mdi:email-fast" className="h-5 w-5" />
+                                Send me a magic link
+                            </button>
+                        )}
 
                         <div className="text-center">
                             <button
                                 type="button"
                                 onClick={() => setShowPasswordField(!showPasswordField)}
-                                className="text-sm text-[#f05d23] hover:text-[#d94f1e] transition-colors"
+                                className="text-base text-[#f05d23] hover:text-[#d94f1e] transition-colors"
                             >
                                 {showPasswordField ? "Sign in using magic link" : "Sign in using password"}
                             </button>
                         </div>
                     </form>
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">OR</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleGoogleSignIn}
-                            className="mt-6 w-full py-3 px-4 bg-white border border-gray-300 text-[#231812] font-semibold rounded-lg shadow-md hover:bg-[#d94f1e] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:ring-offset-2 transition-all duration-300 flex items-center justify-center gap-2"
-                        >
-                            <Icon icon="mdi:google" className="h-5 w-5" />
-                            Sign in with Google
-                        </button>
-                    </div>
 
                     <p className="mt-6 text-center text-xs text-gray-500">
                         Powered by{" "}

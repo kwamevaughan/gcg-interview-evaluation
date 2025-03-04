@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     });
 
     const mailOptions = {
-        from: `"Growthpad HR" <${process.env.EMAIL_USER}>`,
+        from: `"Growthpad Career Management Dashboard" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: "Your Password Recovery Magic Link - GCG Career Management Dashboard",
         text: `Forgot your password? No worries! Click this link to log in: ${magicLink}\n\nThis link will expire in 15 minutes.`,
