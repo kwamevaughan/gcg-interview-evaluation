@@ -1,7 +1,5 @@
 /* Dark mode styles for react-date-range */
-.dark-mode-datepicker .rdrCalendarWrapper,
-.rdrDateDisplayWrapper,
-.rdrDateDisplayItem {
+.dark-mode-datepicker .rdrCalendarWrapper{
     background: #1F2937; /* Matches bg-gray-800 */
     color: #E5E7EB; /* Matches text-gray-200 */
 }

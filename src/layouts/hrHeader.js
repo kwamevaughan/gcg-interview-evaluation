@@ -84,7 +84,7 @@ const HRHeader = ({
                 </div>
 
                 {/* Right Section: Dark Mode, User */}
-                <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2 md:space-x-6">
                     {/* Dark Mode Toggle (Mobile) */}
                     <button
                         onClick={toggleMode}
