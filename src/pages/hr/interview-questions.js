@@ -1,4 +1,3 @@
-// src/pages/hr/interview-questions.js
 import { useState } from "react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
@@ -14,7 +13,7 @@ import SimpleFooter from "@/layouts/simpleFooter";
 
 export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
     const { isSidebarOpen, toggleSidebar } = useSidebar();
-    const [isAdding, setIsAdding] = useState(false);
+    const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
 
     const {
@@ -44,11 +43,18 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
     };
 
     const startEditing = (question) => {
+        console.log("Editing question:", question);
         setEditingQuestion(question);
+        setIsQuestionModalOpen(true);
+    };
+
+    const handleAddQuestion = () => {
+        setEditingQuestion(null);
+        setIsQuestionModalOpen(true);
     };
 
     const handleFormCancel = () => {
-        setIsAdding(false);
+        setIsQuestionModalOpen(false);
         setEditingQuestion(null);
     };
 
@@ -99,7 +105,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                                     {/* Removed inline title and stats */}
                                 </div>
                                 <button
-                                    onClick={() => setIsAdding(true)}
+                                    onClick={handleAddQuestion}
                                     className="px-4 py-2 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] flex items-center gap-2 transition duration-200 shadow-md"
                                 >
                                     <Icon icon="mdi:plus" width={20} height={20} />
@@ -107,14 +113,13 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                                 </button>
                             </div>
 
-                            {(isAdding || editingQuestion) && (
-                                <QuestionForm
-                                    mode={mode}
-                                    question={editingQuestion}
-                                    onSubmit={editingQuestion ? editQuestion : addQuestion}
-                                    onCancel={handleFormCancel}
-                                />
-                            )}
+                            <QuestionForm
+                                mode={mode}
+                                question={editingQuestion}
+                                onSubmit={editingQuestion ? editQuestion : addQuestion}
+                                onCancel={handleFormCancel}
+                                isOpen={isQuestionModalOpen}
+                            />
 
                             <div className="mb-6 flex flex-col md:flex-row gap-4">
                                 <div className="flex-1 relative">

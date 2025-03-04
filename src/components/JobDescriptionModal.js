@@ -1,4 +1,3 @@
-// src/components/JobDescriptionModal.js
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { supabase } from "@/lib/supabase";
@@ -49,7 +48,6 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
         }
     }, [jobDetails]);
 
-
     if (!isOpen || !selectedOpening || !jobDetails) return null;
 
     const { title, description, file_url, file_id, expires_on } = jobDetails;
@@ -82,7 +80,8 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                         <div className="flex items-center bg-gray-100 p-3 rounded-lg shadow-sm">
                             <Icon icon="mdi:calendar-clock" className="w-6 h-6 text-[#f05d23] mr-2" />
                             <p className="text-[#231812]">
-                                <strong>Expires On:</strong> {new Date(expires_on).toLocaleDateString()}
+                                <strong>{isExpired(expires_on) ? "Expired on" : "Expires on"}:</strong>{" "}
+                                {new Date(expires_on).toLocaleDateString()}
                             </p>
                         </div>
                     </div>
@@ -103,7 +102,6 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                             </div>
                         </div>
                     )}
-
 
                     {/* Description */}
                     {description && (

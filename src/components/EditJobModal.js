@@ -1,59 +1,55 @@
-// src/components/EditJobModal.js
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import TiptapToolbar from "./TiptapToolbar";
+
+// Dynamically import EditorComponent with SSR disabled
+const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
 export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPreview }) {
-    const [editJob, setEditJob] = useState(job || {});
+    const [editJob, setEditJob] = useState({});
 
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                // Ensure the initial paragraph has a minimum height
-                paragraph: {
-                    HTMLAttributes: {
-                        class: "",
-                    },
-                },
-            }),
-            Underline,
-            TextAlign.configure({ types: ["heading", "paragraph"] }),
-        ],
-        content: job?.description || "<p>Type your description here...</p>", // Placeholder for new jobs
-        onUpdate: ({ editor }) => {
-            setEditJob(prev => ({ ...prev, description: editor.getHTML() }));
-        },
-        editorProps: {
-            attributes: {
-                class: "focus:outline-none",
-            },
-        },
-    });
-
+    // Fetch job data when modal opens
     useEffect(() => {
-        if (job && editor) {
-            editor.commands.setContent(job.description || "<p>Type your description here...</p>");
-            setEditJob({ ...job });
-        }
-    }, [job, editor]);
+        const fetchJobData = async () => {
+            if (!job || !job.id) {
+                console.log("No valid job prop provided:", job);
+                return;
+            }
 
-    useEffect(() => {
-        if (editor && editor.isEditable) {
-            // Delay focus slightly to ensure editor is fully rendered
-            const timer = setTimeout(() => {
-                editor.chain().focus().run();
-            }, 50);
-            return () => clearTimeout(timer); // Cleanup timeout on unmount
+            console.log("Received job prop:", job);
+            let jobData = { ...job };
+
+            // Fetch fresh data if job prop is incomplete
+            if (!job.title || !job.expires_on) {
+                console.log("Fetching fresh job data from Supabase for ID:", job.id);
+                const { data, error } = await supabase
+                    .from("job_openings")
+                    .select("*")
+                    .eq("id", job.id)
+                    .single();
+                if (error) {
+                    console.error("Error fetching job:", error);
+                    toast.error("Failed to load job data.");
+                    return;
+                }
+                jobData = data;
+                console.log("Fetched job data:", jobData);
+            }
+
+            console.log("Setting editJob:", jobData);
+            setEditJob(jobData);
+        };
+
+        if (isOpen) {
+            fetchJobData();
+        } else {
+            setEditJob({});
         }
-    }, [editor]);
+    }, [isOpen, job]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -68,7 +64,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             const response = await fetch("/api/upload-job-file", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fileData: fileData.split(",")[1], fileType }),
+                body: JSON.stringify({ fileData: fileData.split(",")[1], fileType, opening: editJob.title }),
             });
             const result = await response.json();
             if (!response.ok || result.error) {
@@ -82,14 +78,16 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             fileId = null;
         }
 
+        const isDefaultDescription = editJob.description === "" || editJob.description === "<p><br></p>";
         const updatedJobData = {
             title: editJob.title,
-            description: editJob.description === "<p>Type your description here...</p>" ? null : editJob.description,
+            description: isDefaultDescription ? null : editJob.description,
             file_url: fileUrl,
             file_id: fileId,
             expires_on: editJob.expires_on,
             is_expired: new Date(editJob.expires_on) < new Date(),
         };
+        console.log("Updated job data:", updatedJobData);
 
         const { error } = await supabase
             .from("job_openings")
@@ -98,9 +96,19 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
 
         if (error) {
             toast.error("Failed to update job opening.", { id: toastId });
-            console.error("Update error:", error);
+            console.error("Update error details:", error);
         } else {
-            toast.success("Job opening updated successfully!", { icon: "✅", id: toastId });
+            toast.success("Job opening updated successfully!", { id: toastId });
+            setEditJob({
+                ...editJob,
+                title: "",
+                description: "",
+                file_url: null,
+                file_id: null,
+                expires_on: "",
+                newFile: null,
+                removeFile: false,
+            });
             onSave(updatedJobData);
         }
     };
@@ -130,7 +138,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
         }
     };
 
-    if (!isOpen || !editJob) return null;
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
@@ -157,7 +165,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                         <div>
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
                                 }`}
                             >
                                 Job Title <span className="text-red-500">*</span>
@@ -170,7 +178,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                 <input
                                     type="text"
                                     value={editJob.title || ""}
-                                    onChange={(e) => setEditJob({ ...editJob, title: e.target.value })}
+                                    onChange={(e) => setEditJob((prev) => ({ ...prev, title: e.target.value }))}
                                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
                                         mode === "dark"
                                             ? "bg-gray-700 text-gray-200 border-gray-600"
@@ -184,27 +192,26 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                         <div className="flex flex-col">
                             <label
                                 className={`block text-sm font-medium mb-2 ${
-                                    mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
                                 }`}
                             >
                                 Description (Optional)
                             </label>
-                            <TiptapToolbar editor={editor} mode={mode} />
-                            <EditorContent
-                                editor={editor}
-                                className={`border rounded-lg p-3 min-h-[300px] ${
-                                    mode === "dark"
-                                        ? "bg-gray-700 text-gray-200 border-gray-600 caret-white"
-                                        : "bg-white text-[#231812] border-gray-300 caret-black"
-                                }`}
-                                onClick={() => editor?.chain().focus().run()}
+                            <EditorComponent
+                                initialValue={editJob.description || ""}
+                                onBlur={(newContent) =>
+                                    setEditJob((prev) => ({ ...prev, description: newContent }))
+                                }
+                                mode={mode}
+                                holderId="jodit-editor-edit-modal"
+                                className="w-full rounded-lg shadow-inner transition-shadow duration-200 hover:shadow-md"
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label
                                     className={`block text-sm font-medium mb-2 ${
-                                        mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
+                                        mode === "dark" ? "text-gray-200" : "text-[#231812]"
                                     }`}
                                 >
                                     Job Description File (DOCX/PDF, Optional)
@@ -218,7 +225,11 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                         type="file"
                                         accept=".pdf,.docx"
                                         onChange={(e) =>
-                                            setEditJob({ ...editJob, newFile: e.target.files[0], removeFile: false })
+                                            setEditJob((prev) => ({
+                                                ...prev,
+                                                newFile: e.target.files[0],
+                                                removeFile: false,
+                                            }))
                                         }
                                         className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
                                             mode === "dark"
@@ -260,11 +271,11 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setEditJob({
-                                                            ...editJob,
-                                                            removeFile: !editJob.newFile,
+                                                        setEditJob((prev) => ({
+                                                            ...prev,
+                                                            removeFile: !prev.newFile,
                                                             newFile: null,
-                                                        });
+                                                        }));
                                                     }}
                                                     className={`p-2 rounded-full ${
                                                         mode === "dark"
@@ -286,7 +297,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                             <div>
                                 <label
                                     className={`block text-sm font-medium mb-2 ${
-                                        mode === "dark" ? "text-gray-200 bg-gray-800" : "text-[#231812] bg-white"
+                                        mode === "dark" ? "text-gray-200" : "text-[#231812]"
                                     }`}
                                 >
                                     Expires On <span className="text-red-500">*</span>
@@ -303,7 +314,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                         type="date"
                                         value={editJob.expires_on ? editJob.expires_on.split("T")[0] : ""}
                                         onChange={(e) =>
-                                            setEditJob({ ...editJob, expires_on: e.target.value })
+                                            setEditJob((prev) => ({ ...prev, expires_on: e.target.value }))
                                         }
                                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
                                             mode === "dark"

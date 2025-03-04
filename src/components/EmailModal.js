@@ -1,4 +1,5 @@
-// src/components/EmailModal.js
+"use client";
+
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import dynamic from "next/dynamic";
@@ -7,25 +8,39 @@ import toast from "react-hot-toast";
 // Client-only Editor component
 const EditorComponent = dynamic(() => import("./EditorComponent"), { ssr: false });
 
-export default function EmailModal({ isOpen, onClose, emailData, setEmailData, onSend, mode }) {
-    const [isSaving, setIsSaving] = useState(false);
+export default function EmailModal({ isOpen, onClose, emailData, onSend, mode }) {
+    const [subject, setSubject] = useState("");
+    const [body, setBody] = useState("");
+
+    // Sync initial email data when modal opens
+    useEffect(() => {
+        if (isOpen && emailData) {
+            console.log("Initializing email modal with data:", emailData);
+            setSubject(emailData.subject || "");
+            setBody(emailData.body || "");
+        } else {
+            setSubject("");
+            setBody("");
+        }
+    }, [isOpen, emailData]);
 
     const handleClose = () => {
         onClose();
     };
 
     const handleSendClick = () => {
-        if (!emailData.subject.trim()) {
+        if (!subject.trim()) {
             toast.error("Please add a subject to your email");
             return;
         }
 
-        if (!emailData.body.trim()) {
+        const isBodyEmpty = !body || body.trim() === "" || body === "<p><br></p>";
+        if (isBodyEmpty) {
             toast.error("Please add content to your email");
             return;
         }
 
-        onSend();
+        onSend({ ...emailData, subject, body });
     };
 
     if (!isOpen || !emailData) return null;
@@ -82,10 +97,8 @@ export default function EmailModal({ isOpen, onClose, emailData, setEmailData, o
                             </label>
                             <input
                                 type="text"
-                                value={emailData.subject || ""}
-                                onChange={(e) =>
-                                    setEmailData((prev) => ({ ...prev, subject: e.target.value }))
-                                }
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
                                 className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
                                     mode === "dark"
                                         ? "bg-gray-700 text-white border-gray-600"
@@ -100,15 +113,13 @@ export default function EmailModal({ isOpen, onClose, emailData, setEmailData, o
                                 }`}
                             >
                                 Body
-                                {isSaving && (
-                                    <span className="ml-2 text-xs text-gray-400">(Saving...)</span>
-                                )}
                             </label>
                             <EditorComponent
-                                emailData={emailData}
-                                setEmailData={setEmailData}
-                                setIsSaving={setIsSaving}
+                                initialValue={body}
+                                onBlur={(newContent) => setBody(newContent)}
                                 mode={mode}
+                                holderId="jodit-editor-email-modal"
+                                className="w-full"
                             />
                         </div>
                     </div>

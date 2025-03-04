@@ -1,55 +1,19 @@
-// src/components/JobForm.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import TiptapToolbar from "./TiptapToolbar";
+
+// Dynamically import EditorComponent with SSR disabled
+const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
 export default function JobForm({ mode, onJobAdded }) {
     const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
     const [file, setFile] = useState(null);
     const [expiresOn, setExpiresOn] = useState("");
-
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                // Ensure the initial paragraph has a minimum height
-                paragraph: {
-                    HTMLAttributes: {
-                        class: "",
-                    },
-                },
-            }),
-            Underline,
-            TextAlign.configure({ types: ["heading", "paragraph"] }),
-        ],
-        // content: "<p>Type your description here...</p>", // Placeholder for new jobs
-        onUpdate: ({ editor }) => {
-            setDescription(editor.getHTML());
-        },
-        editorProps: {
-            attributes: {
-                class: "focus:outline-none",
-            },
-        },
-    });
-
-    useEffect(() => {
-        if (editor && editor.isEditable) {
-            // Delay focus slightly to ensure editor is fully rendered
-            const timer = setTimeout(() => {
-                editor.chain().focus().run();
-            }, 50);
-            return () => clearTimeout(timer); // Cleanup timeout on unmount
-        }
-    }, [editor]);
+    const [description, setDescription] = useState("");
 
     const handleSubmitJob = async (e) => {
         e.preventDefault();
@@ -75,26 +39,28 @@ export default function JobForm({ mode, onJobAdded }) {
             fileId = result.fileId;
         }
 
+        const isDefaultDescription = description === "" || description === "<p><br></p>";
         const jobData = {
             title,
-            description: description === "<p>Type your description here...</p>" ? null : description,
+            description: isDefaultDescription ? null : description, // Use description directly
             file_url: fileUrl,
             file_id: fileId,
             expires_on: expiresOn,
             is_expired: false,
         };
+        console.log("Job data to insert:", jobData);
 
-        const { error } = await supabase.from("job_openings").insert([jobData]);
+        const { data, error } = await supabase.from("job_openings").insert([jobData]).select().single();
         if (error) {
             toast.error("Failed to submit job opening.", { id: toastId });
             console.error("Insert error:", error);
         } else {
             toast.success("Job opening added successfully!", { icon: "✅", id: toastId });
             setTitle("");
-            editor?.commands.setContent("<p>Type your description here...</p>");
+            setDescription(""); // Reset description
             setFile(null);
             setExpiresOn("");
-            onJobAdded();
+            onJobAdded(data); // Pass the newly inserted job directly
         }
     };
 
@@ -110,7 +76,6 @@ export default function JobForm({ mode, onJobAdded }) {
     const handleFileChange = (e) => setFile(e.target.files[0]);
     const handleRemoveFile = () => setFile(null);
     const handleReplaceFile = () => document.getElementById("file-upload").click();
-
     const handleDateClick = (e) => {
         e.preventDefault();
         const input = e.currentTarget.querySelector("input[type='date']");
@@ -120,13 +85,16 @@ export default function JobForm({ mode, onJobAdded }) {
     return (
         <div
             className={`p-6 rounded-lg shadow-lg mb-8 border-t-4 border-[#f05d23] ${
-                mode === "dark" ? "bg-gray-800" : "bg-white"
-            }`}
+                mode === "dark" ? "bg-gray-800 shadow-gray-900" : "bg-white shadow-gray-300"
+            } transition-shadow duration-300 hover:shadow-xl`}
         >
-            <div className="flex items-center mb-4">
-                <Icon icon="mdi:briefcase-plus" className="w-6 h-6 text-[#f05d23] mr-2" />
+            <div className="flex items-center mb-6">
+                <Icon
+                    icon="mdi:briefcase-plus"
+                    className="w-8 h-8 text-[#f05d23] mr-3 animate-pulse"
+                />
                 <h3
-                    className={`text-xl font-bold ${
+                    className={`text-2xl font-bold ${
                         mode === "dark" ? "text-white" : "text-[#231812]"
                     }`}
                 >
@@ -151,138 +119,140 @@ export default function JobForm({ mode, onJobAdded }) {
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
+                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] transition-all duration-200 ${
                                 mode === "dark"
-                                    ? "bg-gray-700 border-gray-600 text-white"
-                                    : "bg-gray-50 border-gray-300 text-[#231812]"
+                                    ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                                    : "bg-gray-50 border-gray-300 text-[#231812] hover:bg-gray-100"
                             }`}
                             placeholder="e.g., Comms and Projects Specialist"
                             required
                         />
                     </div>
                 </div>
-                <div className="flex flex-col">
-                    <label
-                        className={`block text-sm font-medium mb-2 ${
-                            mode === "dark" ? "text-gray-300" : "text-[#231812]"
-                        }`}
-                    >
-                        Description (Optional)
-                    </label>
-                    <TiptapToolbar editor={editor} mode={mode} />
-                    <EditorContent
-                        editor={editor}
-                        className={`border rounded-lg p-3 min-h-[150px] ${
-                            mode === "dark"
-                                ? "bg-gray-700 text-gray-200 border-gray-600 caret-white"
-                                : "bg-white text-[#231812] border-gray-300 caret-black"
-                        }`}
-                        onClick={() => editor?.chain().focus().run()}
-                    />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Description (3/4 width) */}
+                    <div className="lg:col-span-3 flex flex-col">
                         <label
                             className={`block text-sm font-medium mb-2 ${
                                 mode === "dark" ? "text-gray-300" : "text-[#231812]"
                             }`}
                         >
-                            Upload Job Description (DOCX/PDF, Optional)
+                            Description (Optional)
                         </label>
-                        <div className="relative">
-                            <Icon
-                                icon="mdi:file-upload"
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
-                            />
-                            <input
-                                id="file-upload"
-                                type="file"
-                                accept=".pdf,.docx"
-                                onChange={handleFileChange}
-                                className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                                    mode === "dark"
-                                        ? "bg-gray-700 border-gray-600 text-gray-300"
-                                        : "bg-gray-50 border-gray-300 text-[#231812]"
-                                }`}
-                            />
-                        </div>
-                        {file && (
-                            <div
-                                className={`mt-4 p-4 border rounded-lg shadow-md ${
-                                    mode === "dark"
-                                        ? "bg-gray-800 border-gray-700 text-gray-300"
-                                        : "bg-gray-100 border-gray-200 text-gray-600"
+                        <EditorComponent
+                            initialValue={description}
+                            onBlur={(newContent) => setDescription(newContent)}
+                            mode={mode}
+                            holderId="jodit-editor-job-form"
+                            className="w-full"
+                        />
+                    </div>
+                    {/* Right Column (1/4 width) */}
+                    <div className="lg:col-span-1 flex flex-col gap-6">
+                        {/* Upload */}
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-300" : "text-[#231812]"
                                 }`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="truncate flex-1 text-sm">{file.name}</span>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleRemoveFile}
-                                            className={`p-2 rounded-full ${
-                                                mode === "dark"
-                                                    ? "bg-gray-700 text-red-500 hover:bg-gray-600"
-                                                    : "bg-gray-200 text-red-500 hover:bg-gray-300"
-                                            } transition duration-200`}
-                                            title="Remove file"
-                                        >
-                                            <Icon icon="mdi:trash-can" width={24} height={24} />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleReplaceFile}
-                                            className={`p-2 rounded-full ${
-                                                mode === "dark"
-                                                    ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
-                                                    : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
-                                            } transition duration-200`}
-                                            title="Replace file"
-                                        >
-                                            <Icon icon="mdi:refresh" width={24} height={24} />
-                                        </button>
+                                Upload Job Description (Optional)
+                            </label>
+                            <div className="relative">
+                                <Icon
+                                    icon="mdi:file-upload"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                />
+                                <input
+                                    id="file-upload"
+                                    type="file"
+                                    accept=".pdf,.docx"
+                                    onChange={handleFileChange}
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg transition-all duration-200 ${
+                                        mode === "dark"
+                                            ? "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
+                                            : "bg-gray-50 border-gray-300 text-[#231812] hover:bg-gray-100"
+                                    }`}
+                                />
+                            </div>
+                            {file && (
+                                <div
+                                    className={`mt-4 p-4 border rounded-lg shadow-md animate-fade-in ${
+                                        mode === "dark"
+                                            ? "bg-gray-800 border-gray-700 text-gray-300"
+                                            : "bg-gray-100 border-gray-200 text-gray-600"
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="truncate flex-1 text-sm">{file.name}</span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveFile}
+                                                className={`p-2 rounded-full transition-transform duration-200 hover:scale-110 ${
+                                                    mode === "dark"
+                                                        ? "bg-gray-700 text-red-500 hover:bg-gray-600"
+                                                        : "bg-gray-200 text-red-500 hover:bg-gray-300"
+                                                }`}
+                                            >
+                                                <Icon icon="mdi:trash-can" width={24} height={24} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleReplaceFile}
+                                                className={`p-2 rounded-full transition-transform duration-200 hover:scale-110 ${
+                                                    mode === "dark"
+                                                        ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
+                                                        : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
+                                                }`}
+                                            >
+                                                <Icon icon="mdi:refresh" width={24} height={24} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                    <div>
-                        <label
-                            className={`block text-sm font-medium mb-2 ${
-                                mode === "dark" ? "text-gray-300" : "text-[#231812]"
-                            }`}
-                        >
-                            Expires On <span className="text-red-500">*</span>
-                        </label>
-                        <div
-                            className="relative flex items-center cursor-pointer"
-                            onClick={handleDateClick}
-                        >
-                            <Icon
-                                icon="mdi:calendar"
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
-                            />
-                            <input
-                                type="date"
-                                value={expiresOn}
-                                onChange={(e) => setExpiresOn(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
-                                    mode === "dark"
-                                        ? "bg-gray-700 border-gray-600 text-white"
-                                        : "bg-gray-50 border-gray-300 text-[#231812]"
-                                }`}
-                                required
-                            />
+                            )}
                         </div>
+                        {/* Date */}
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-300" : "text-[#231812]"
+                                }`}
+                            >
+                                Expires On <span className="text-red-500">*</span>
+                            </label>
+                            <div
+                                className="relative flex items-center cursor-pointer"
+                                onClick={handleDateClick}
+                            >
+                                <Icon
+                                    icon="mdi:calendar"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                />
+                                <input
+                                    type="date"
+                                    value={expiresOn}
+                                    onChange={(e) => setExpiresOn(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] transition-all duration-200 ${
+                                        mode === "dark"
+                                            ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                                            : "bg-gray-50 border-gray-300 text-[#231812] hover:bg-gray-100"
+                                    }`}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className={`w-full py-3 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform hover:scale-105`}
+                        >
+                            <Icon icon="mdi:plus" width={20} height={20} />
+                            Add Job Opening
+                        </button>
                     </div>
                 </div>
-                <button
-                    type="submit"
-                    className="w-full py-3 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 shadow-md flex items-center justify-center gap-2"
-                >
-                    <Icon icon="mdi:plus" width={20} height={20} />
-                    Add Job Opening
-                </button>
             </form>
         </div>
     );

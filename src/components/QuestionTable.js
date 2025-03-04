@@ -1,9 +1,16 @@
-// src/components/QuestionTable.js
 import { Icon } from "@iconify/react";
 import { useDrag, useDrop } from "react-dnd";
+import toast from "react-hot-toast";
 
 const ItemType = {
     QUESTION: "question",
+};
+
+// Helper function to strip HTML tags
+const stripHtmlTags = (html) => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || "";
 };
 
 const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, deleteQuestion }) => {
@@ -23,9 +30,46 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
     });
 
     const handleDelete = () => {
-        if (window.confirm(`Are you sure you want to delete the question: "${question.text}"?`)) {
-            deleteQuestion(question.id, question.text);
-        }
+        const cleanText = stripHtmlTags(question.text); // Strip HTML tags
+        toast.custom(
+            (t) => (
+                <div
+                    className={`${
+                        t.visible ? "animate-enter" : "animate-leave"
+                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                >
+                    <div className="flex-1 w-0 p-4">
+                        <div className="flex items-start">
+                            <div className="ml-3 flex-1">
+                                <p className="text-xl font-medium text-gray-900">Delete Question?</p>
+                                <p className="mt-2 text-base text-gray-500">
+                                    Are you sure you want to delete the question "{cleanText}"?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex border-l border-gray-200">
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                deleteQuestion(question.id, question.text);
+                                toast.success("Question deleted successfully!", { icon: "🗑️" });
+                            }}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors focus:outline-none"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors focus:outline-none"
+                        >
+                            No
+                        </button>
+                    </div>
+                </div>
+            ),
+            { duration: Infinity }
+        );
     };
 
     return (
@@ -88,6 +132,49 @@ export default function QuestionTable({
                                           sortDirection,
                                           deleteQuestion,
                                       }) {
+    const handleMobileDelete = (question) => {
+        const cleanText = stripHtmlTags(question.text); // Strip HTML tags
+        toast.custom(
+            (t) => (
+                <div
+                    className={`${
+                        t.visible ? "animate-enter" : "animate-leave"
+                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                >
+                    <div className="flex-1 w-0 p-4">
+                        <div className="flex items-start">
+                            <div className="ml-3 flex-1">
+                                <p className="text-xl font-medium text-gray-900">Delete Question?</p>
+                                <p className="mt-2 text-base text-gray-500">
+                                    Are you sure you want to delete the question "{cleanText}"?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex border-l border-gray-200">
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                deleteQuestion(question.id, question.text);
+                                toast.success("Question deleted successfully!", { icon: "🗑️" });
+                            }}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors focus:outline-none"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors focus:outline-none"
+                        >
+                            No
+                        </button>
+                    </div>
+                </div>
+            ),
+            { duration: Infinity }
+        );
+    };
+
     return (
         <div
             className={`border-t-4 border-[#f05d23] rounded-lg shadow-lg overflow-hidden ${
@@ -199,15 +286,7 @@ export default function QuestionTable({
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        if (
-                                            window.confirm(
-                                                `Are you sure you want to delete the question: "${question.text}"?`
-                                            )
-                                        ) {
-                                            deleteQuestion(question.id, question.text);
-                                        }
-                                    }}
+                                    onClick={() => handleMobileDelete(question)}
                                     className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex items-center gap-1 text-xs"
                                 >
                                     <Icon icon="mdi:trash-can" width={14} height={14} className="text-white" />

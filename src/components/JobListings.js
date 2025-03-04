@@ -1,20 +1,54 @@
-// src/components/JobListings.js
 import { Icon } from "@iconify/react";
 import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
 export default function JobListings({ mode, jobs, onJobDeleted }) {
-    const handleDelete = async (id, title) => {
-        if (window.confirm(`Are you sure you want to delete the job opening: "${title}"?`)) {
-            const { error } = await supabase.from("job_openings").delete().eq("id", id);
-            if (error) {
-                toast.error("Failed to delete job opening.");
-                console.error("Delete error:", error);
-            } else {
-                toast.success("Job opening deleted successfully!", { icon: "🗑️" });
-                onJobDeleted();
-            }
-        }
+    const handleDelete = (id, title) => {
+        toast.custom(
+            (t) => (
+                <div
+                    className={`${
+                        t.visible ? "animate-enter" : "animate-leave"
+                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                >
+                    <div className="flex-1 w-0 p-4">
+                        <div className="flex items-start">
+                            <div className="ml-3 flex-1">
+                                <p className="text-xl font-medium text-gray-900">Delete Job Opening?</p>
+                                <p className="mt-2 text-base text-gray-500">
+                                    Are you sure you want to delete the job opening "{title}"?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex border-l border-gray-200">
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                const { error } = await supabase.from("job_openings").delete().eq("id", id);
+                                if (error) {
+                                    toast.error("Failed to delete job opening.");
+                                    console.error("Delete error:", error);
+                                } else {
+                                    toast.success("Job opening deleted successfully!", { icon: "🗑️" });
+                                    onJobDeleted();
+                                }
+                            }}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors focus:outline-none"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors focus:outline-none"
+                        >
+                            No
+                        </button>
+                    </div>
+                </div>
+            ),
+            { duration: Infinity }
+        );
     };
 
     return (

@@ -1,4 +1,3 @@
-// src/pages/hr/jobs.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
@@ -39,6 +38,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
         };
 
         const handleEditModal = (e) => {
+            console.log("Opening EditJobModal with job:", e.detail);
             setEditJob(e.detail);
             setIsEditModalOpen(true);
         };
@@ -64,6 +64,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                 ...job,
                 is_expired: new Date(job.expires_on) < new Date(),
             }));
+            console.log("Fetched jobs:", updatedJobs);
             setJobs(updatedJobs);
             toast.success("Data loaded successfully!", { id: loadingToast });
         } catch (error) {
@@ -95,9 +96,21 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
         setIsPreviewModalOpen(false);
     };
 
-    const handleEditSave = (updatedJob) => {
+    const handleEditSave = async (updatedJob) => {
+        console.log("Saved job:", updatedJob);
+        // Update local state immediately
+        setJobs((prevJobs) =>
+            prevJobs.map((j) => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j))
+        );
+        // Fetch latest from Supabase to ensure consistency
+        await fetchJobs();
         handleCloseEditModal();
-        fetchJobs();
+    };
+
+    const handleJobAdded = (newJob) => {
+        console.log("New job added:", newJob);
+        setJobs((prevJobs) => [newJob, ...prevJobs]); // Add new job to state immediately
+        // Removed setEditJob and setIsEditModalOpen to prevent auto-opening
     };
 
     const handlePreview = (url) => {
@@ -106,7 +119,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
             toast.error("Unable to preview file.");
             return;
         }
-        setPreviewUrl(url); // Pass the raw URL directly
+        setPreviewUrl(url);
         setIsPreviewModalOpen(true);
     };
 
@@ -146,7 +159,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                 >
                     <div className="max-w-6xl mx-auto">
                         <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
-                        <JobForm mode={mode} onJobAdded={fetchJobs} />
+                        <JobForm mode={mode} onJobAdded={handleJobAdded} />
                     </div>
                 </div>
             </div>
