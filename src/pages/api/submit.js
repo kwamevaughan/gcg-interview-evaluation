@@ -1,22 +1,10 @@
-// src/pages/api/submit.js
 import { supabaseServer } from "@/lib/supabaseServer";
 import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
 import fetch from "node-fetch";
 
-// Try ESM import first, fall back to require
-let UAParser;
-try {
-    UAParser = (await import("ua-parser-js")).default; // ESM dynamic import
-} catch (esmError) {
-    console.error("ESM import of ua-parser-js failed:", esmError.message);
-    try {
-        UAParser = require("ua-parser-js"); // Fallback to CommonJS
-    } catch (requireError) {
-        console.error("Require of ua-parser-js failed:", requireError.message);
-        UAParser = null;
-    }
-}
+// Static CommonJS require for ua-parser-js
+const UAParser = require("ua-parser-js");
 
 export const config = {
     api: {
@@ -37,25 +25,29 @@ export default async function handler(req, res) {
         const userAgent = req.headers["user-agent"] || "Unknown";
         let device = "Unknown";
 
+        // Log the raw User-Agent for debugging
+        console.log("Raw User-Agent Header:", userAgent);
+
         // Parse device information
-        if (UAParser) {
-            try {
-                const parser = new UAParser(userAgent);
-                const result = parser.getResult();
-                const deviceType = result.device.type;
-                const deviceModel = result.device.model || result.os.name || "Unknown";
-                if (deviceType) {
-                    device = `${deviceType.charAt(0).toUpperCase() + deviceType.slice(1)} (${deviceModel})`;
-                } else {
-                    device = deviceModel;
-                }
-                console.log("User-Agent:", userAgent, "Parsed Result:", result, "Device:", device);
-            } catch (uaError) {
-                console.error("Error parsing user agent with UAParser:", uaError.message);
-                device = "Unknown";
+        try {
+            const parser = new UAParser(userAgent);
+            const result = parser.getResult();
+            const deviceType = result.device.type;
+            const deviceModel = result.device.model || result.os.name || "Unknown";
+            if (deviceType) {
+                device = `${deviceType.charAt(0).toUpperCase() + deviceType.slice(1)} (${deviceModel})`;
+            } else {
+                device = deviceModel;
             }
-        } else {
-            console.warn("UAParser not available; falling back to 'Unknown'");
+            console.log("Parsed Device Result:", result, "Device:", device);
+        } catch (uaError) {
+            console.error("Error parsing user agent:", uaError.message);
+            device = "Unknown";
+        }
+
+        // Warn if no User-Agent is provided
+        if (userAgent === "Unknown") {
+            console.warn("No User-Agent header provided by client");
         }
 
         // Fetch country from IP if Cloudflare header is "Unknown"
