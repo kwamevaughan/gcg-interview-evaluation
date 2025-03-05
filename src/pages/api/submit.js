@@ -4,13 +4,18 @@ import { upsertCandidate, upsertResponse } from "../../../utils/dbUtils";
 import { calculateScore } from "../../../utils/scoreUtils";
 import fetch from "node-fetch";
 
-// Use try-catch to handle UAParser import/constructor issues.
+// Try ESM import first, fall back to require
 let UAParser;
 try {
-    UAParser = (await import("ua-parser-js")).default;
-} catch (error) {
-    console.error("Failed to load UAParser dynamically:", error);
-    UAParser = null; // Fallback to null if import fails
+    UAParser = (await import("ua-parser-js")).default; // ESM dynamic import
+} catch (esmError) {
+    console.error("ESM import of ua-parser-js failed:", esmError.message);
+    try {
+        UAParser = require("ua-parser-js"); // Fallback to CommonJS
+    } catch (requireError) {
+        console.error("Require of ua-parser-js failed:", requireError.message);
+        UAParser = null;
+    }
 }
 
 export const config = {
@@ -28,21 +33,47 @@ export default async function handler(req, res) {
 
     try {
         const { fullName, email, phone, linkedin, answers, resume, coverLetter, opening } = req.body;
-        const country = req.headers["cf-ipcountry"] || "Unknown";
+        let country = req.headers["cf-ipcountry"] || "Unknown";
         const userAgent = req.headers["user-agent"] || "Unknown";
         let device = "Unknown";
 
-        // Attempt to parse device if UAParser is available
+        // Parse device information
         if (UAParser) {
             try {
                 const parser = new UAParser(userAgent);
-                device = parser.getDevice().type || "Desktop";
+                const result = parser.getResult();
+                const deviceType = result.device.type;
+                const deviceModel = result.device.model || result.os.name || "Unknown";
+                if (deviceType) {
+                    device = `${deviceType.charAt(0).toUpperCase() + deviceType.slice(1)} (${deviceModel})`;
+                } else {
+                    device = deviceModel;
+                }
+                console.log("User-Agent:", userAgent, "Parsed Result:", result, "Device:", device);
             } catch (uaError) {
-                console.error("Error parsing user agent:", uaError.message);
-                device = "Unknown"; // Fallback if parsing fails
+                console.error("Error parsing user agent with UAParser:", uaError.message);
+                device = "Unknown";
             }
         } else {
-            console.warn("UAParser not available; device set to 'Unknown'");
+            console.warn("UAParser not available; falling back to 'Unknown'");
+        }
+
+        // Fetch country from IP if Cloudflare header is "Unknown"
+        if (country === "Unknown") {
+            try {
+                const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
+                console.log("Fetching country for IP:", ip);
+                const geoResponse = await fetch(`http://ip-api.com/json/${ip}`);
+                const geoData = await geoResponse.json();
+                if (geoData.status === "success") {
+                    country = geoData.country || "Unknown";
+                } else {
+                    console.warn("IP geolocation failed:", geoData.message);
+                }
+            } catch (geoError) {
+                console.error("Error fetching country from IP:", geoError.message);
+                country = "Unknown";
+            }
         }
 
         const submittedAt = new Date().toISOString();
@@ -97,8 +128,10 @@ export default async function handler(req, res) {
             return res.status(responseError.status).json({ error: responseError.message, details: responseError.details });
         }
 
-        const processUrl = `${req.headers.origin || "http://localhost:3000"}/api/process-submission`;
+        const baseUrl = process.env.BASE_URL || `https://${req.headers.host || "localhost:3000"}`;
+        const processUrl = `${baseUrl}/api/process-submission`;
         console.log("Triggering background process at URL:", processUrl);
+
         fetch(processUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
