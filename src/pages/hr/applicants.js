@@ -1,4 +1,3 @@
-// src/pages/hr/applicants.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
@@ -141,7 +140,8 @@ export default function HRApplicants({
         setFilteredCandidates(sorted);
     };
 
-    const handleSendEmail = async () => {
+    const handleSendEmail = async (emailDataWithToast) => {
+        const { toastId, subject, body, ...restEmailData } = emailDataWithToast; // Extract toastId and email fields
         try {
             const response = await fetch("/api/send-status-email", {
                 method: "POST",
@@ -151,17 +151,19 @@ export default function HRApplicants({
                     email: selectedCandidate.email,
                     opening: selectedCandidate.opening,
                     status: selectedCandidate.status,
-                    subject: emailData.subject,
-                    body: emailData.body,
+                    subject,
+                    body,
                 }),
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Failed to send email");
 
+            toast.dismiss(toastId); // Dismiss "Please wait..."
             toast.success("Email sent successfully!", { icon: "✅" });
             setIsEmailModalOpen(false);
         } catch (error) {
             console.error("Error sending email:", error);
+            toast.dismiss(toastId); // Dismiss "Please wait..." on error
             toast.error("Failed to send email.");
         }
     };

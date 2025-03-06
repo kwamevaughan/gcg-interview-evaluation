@@ -40,7 +40,11 @@ export default function EmailModal({ isOpen, onClose, emailData, onSend, mode })
             return;
         }
 
-        onSend({ ...emailData, subject, body });
+        // Show "Please wait..." toast before sending
+        const loadingToastId = toast.loading("Please wait...");
+
+        // Call onSend with the toast ID so the parent can dismiss it
+        onSend({ ...emailData, subject, body, toastId: loadingToastId });
     };
 
     if (!isOpen || !emailData) return null;
