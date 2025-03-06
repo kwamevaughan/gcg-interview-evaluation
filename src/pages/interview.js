@@ -13,43 +13,28 @@ import Footer from "@/layouts/footer";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabase";
 
-export default function InterviewPage({ mode, toggleMode }) {
+export default function InterviewPage({ mode, toggleMode, initialQuestions }) {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [currentPage, setCurrentPage] = useState(0);
     const [uploadProgress, setUploadProgress] = useState({ resume: 0, coverLetter: 0 });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isClient, setIsClient] = useState(false);
-    const [questions, setQuestions] = useState([]);
+    const [questions] = useState(initialQuestions);
     const { formData, setFormData, submissionStatus, setSubmissionStatus, handleChange, handleOptionToggle, fileToBase64 } =
         useFormData();
 
     useEffect(() => {
         setIsClient(true);
-        const fetchQuestions = async () => {
-            const { data, error } = await supabase
-                .from("interview_questions")
-                .select("*")
-                .order("id", { ascending: true });
-            if (error) {
-                console.error("Error fetching questions:", error);
-                toast.error("Failed to load questions.");
-            } else {
-                setQuestions(data);
-                // Initialize answers array with empty sub-arrays for each question
-                setFormData((prev) => ({
-                    ...prev,
-                    answers: Array(data.length).fill([]),
-                }));
-            }
-        };
-        fetchQuestions();
-
         const opening = router.query.opening;
         if (opening && !formData.opening) {
             setFormData((prev) => ({ ...prev, opening: decodeURIComponent(opening) }));
         }
-    }, [router.query.opening, formData.opening, setFormData]);
+        setFormData((prev) => ({
+            ...prev,
+            answers: Array(initialQuestions.length).fill([]),
+        }));
+    }, [router.query.opening, formData.opening, setFormData, initialQuestions]);
 
     const fileUploadProps = useFileUpload(formData, setFormData);
 
@@ -112,7 +97,7 @@ export default function InterviewPage({ mode, toggleMode }) {
                 phone: formData.phone,
                 linkedin: formData.linkedin,
                 opening: formData.opening,
-                answers: formData.answers, // Now an array of arrays
+                answers: formData.answers,
                 resume: formData.resume ? await fileToBase64(formData.resume) : null,
                 coverLetter: formData.coverLetter ? await fileToBase64(formData.coverLetter) : null,
             };
@@ -278,4 +263,32 @@ export default function InterviewPage({ mode, toggleMode }) {
             <Footer mode={mode} />
         </>
     );
+}
+
+export async function getStaticProps() {
+    try {
+        console.time("fetchInterviewQuestions");
+        const { data: questions, error } = await supabase
+            .from("interview_questions")
+            .select("*")
+            .order("id", { ascending: true });
+        console.timeEnd("fetchInterviewQuestions");
+
+        if (error) throw error;
+
+        return {
+            props: {
+                initialQuestions: questions,
+            },
+            revalidate: 60, // Revalidate every 60 seconds
+        };
+    } catch (error) {
+        console.error("Error fetching questions in getStaticProps:", error);
+        return {
+            props: {
+                initialQuestions: [],
+            },
+            revalidate: 60,
+        };
+    }
 }

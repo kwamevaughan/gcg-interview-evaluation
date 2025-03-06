@@ -61,101 +61,101 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                 {/* Table for larger screens */}
                 <table className="w-full hidden sm:table">
                     <thead className="sticky top-0 z-10">
-                    <tr className={`${mode === "dark" ? "bg-gray-700" : "bg-gray-100"}`}>
-                        <th
-                            className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
-                                mode === "dark" ? "text-gray-200" : "text-gray-600"
-                            }`}
-                        >
-                            Title
-                        </th>
-                        <th
-                            className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
-                                mode === "dark" ? "text-gray-200" : "text-gray-600"
-                            }`}
-                        >
-                            Expires On
-                        </th>
-                        <th
-                            className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
-                                mode === "dark" ? "text-gray-200" : "text-gray-600"
-                            }`}
-                        >
-                            Status
-                        </th>
-                        <th
-                            className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
-                                mode === "dark" ? "text-gray-200" : "text-gray-600"
-                            }`}
-                        >
-                            Actions
-                        </th>
-                    </tr>
+                        <tr className={`${mode === "dark" ? "bg-gray-700" : "bg-gray-100"}`}>
+                            <th
+                                className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
+                                    mode === "dark" ? "text-gray-200" : "text-gray-600"
+                                }`}
+                            >
+                                Title
+                            </th>
+                            <th
+                                className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
+                                    mode === "dark" ? "text-gray-200" : "text-gray-600"
+                                }`}
+                            >
+                                Expires On
+                            </th>
+                            <th
+                                className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
+                                    mode === "dark" ? "text-gray-200" : "text-gray-600"
+                                }`}
+                            >
+                                Status
+                            </th>
+                            <th
+                                className={`p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold ${
+                                    mode === "dark" ? "text-gray-200" : "text-gray-600"
+                                }`}
+                            >
+                                Actions
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {jobs.map((job) => (
-                        <tr
-                            key={job.id}
-                            className={`border-b hover:bg-opacity-80 transition duration-200 ${
-                                mode === "dark"
-                                    ? "border-gray-700 hover:bg-gray-700"
-                                    : "border-gray-200 hover:bg-gray-50"
-                            }`}
-                        >
-                            <td
-                                className={`p-2 sm:p-4 text-xs sm:text-sm ${
-                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
+                        {jobs.map((job) => (
+                            <tr
+                                key={job.id}
+                                className={`border-b hover:bg-opacity-80 transition duration-200 ${
+                                    mode === "dark"
+                                        ? "border-gray-700 hover:bg-gray-700"
+                                        : "border-gray-200 hover:bg-gray-50"
                                 }`}
                             >
-                                {job.title}
-                            </td>
-                            <td
-                                className={`p-2 sm:p-4 text-xs sm:text-sm ${
-                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
-                                }`}
-                            >
-                                {new Date(job.expires_on).toLocaleDateString()}
-                            </td>
-                            <td
-                                className={`p-2 sm:p-4 text-xs sm:text-sm ${
-                                    mode === "dark" ? "text-gray-300" : "text-gray-800"
-                                }`}
-                            >
-                                {job.is_expired ? "Expired" : "Active"}
-                            </td>
-                            <td className="p-2 sm:p-4 text-xs sm:text-sm flex flex-col sm:flex-row gap-2">
-                                <button
-                                    onClick={() =>
-                                        window.dispatchEvent(
-                                            new CustomEvent("openJobModal", { detail: job.title })
-                                        )
-                                    }
-                                    className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                <td
+                                    className={`p-2 sm:p-4 text-xs sm:text-sm ${
+                                        mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                    }`}
                                 >
-                                    <Icon icon="mdi:eye" width={14} height={14} />
-                                    View
-                                </button>
-                                <button
-                                    onClick={() =>
-                                        window.dispatchEvent(
-                                            new CustomEvent("editJobModal", { detail: job })
-                                        )
-                                    }
-                                    className="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    {job.title}
+                                </td>
+                                <td
+                                    className={`p-2 sm:p-4 text-xs sm:text-sm ${
+                                        mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                    }`}
                                 >
-                                    <Icon icon="mdi:pencil" width={14} height={14} />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(job.id, job.title)}
-                                    className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    {job.expires_on} {/* Use pre-formatted string directly */}
+                                </td>
+                                <td
+                                    className={`p-2 sm:p-4 text-xs sm:text-sm ${
+                                        mode === "dark" ? "text-gray-300" : "text-gray-800"
+                                    }`}
                                 >
-                                    <Icon icon="mdi:trash-can" width={14} height={14} />
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                                    {job.is_expired ? "Expired" : "Active"}
+                                </td>
+                                <td className="p-2 sm:p-4 text-xs sm:text-sm flex flex-col sm:flex-row gap-2">
+                                    <button
+                                        onClick={() =>
+                                            window.dispatchEvent(
+                                                new CustomEvent("openJobModal", { detail: job.title })
+                                            )
+                                        }
+                                        className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    >
+                                        <Icon icon="mdi:eye" width={14} height={14} />
+                                        View
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            window.dispatchEvent(
+                                                new CustomEvent("editJobModal", { detail: job })
+                                            )
+                                        }
+                                        className="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    >
+                                        <Icon icon="mdi:pencil" width={14} height={14} />
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(job.id, job.title)}
+                                        className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    >
+                                        <Icon icon="mdi:trash-can" width={14} height={14} />
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
 
@@ -172,12 +172,10 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                         >
                             <div className="text-sm font-semibold mb-2">{job.title}</div>
                             <div className="text-xs mb-1">
-                                <span className="font-medium">Expires:</span>{" "}
-                                {new Date(job.expires_on).toLocaleDateString()}
+                                <span className="font-medium">Expires:</span> {job.expires_on} {/* Use pre-formatted string */}
                             </div>
                             <div className="text-xs mb-2">
-                                <span className="font-medium">Status:</span>{" "}
-                                {job.is_expired ? "Expired" : "Active"}
+                                <span className="font-medium">Status:</span> {job.is_expired ? "Expired" : "Active"}
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <button

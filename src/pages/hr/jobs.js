@@ -14,8 +14,8 @@ import SimpleFooter from "@/layouts/simpleFooter";
 
 const JobDescriptionModal = dynamic(() => import("@/components/JobDescriptionModal"), { ssr: false });
 
-export default function HRJobBoard({ mode = "light", toggleMode }) {
-    const [jobs, setJobs] = useState([]);
+export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [] }) {
+    const [jobs, setJobs] = useState(initialJobs || []);
     const { isSidebarOpen, toggleSidebar } = useSidebar();
     const router = useRouter();
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -26,10 +26,9 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
     const [editJob, setEditJob] = useState(null);
 
     useEffect(() => {
+        console.log("Initial jobs on mount:", initialJobs); // Debug log
         if (!localStorage.getItem("hr_session")) {
             router.push("/hr/login");
-        } else {
-            fetchJobs();
         }
 
         const handleOpenModal = (e) => {
@@ -70,6 +69,7 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
         } catch (error) {
             console.error("Error fetching jobs:", error);
             toast.error("Failed to load job openings.", { id: loadingToast });
+            setJobs([]); // Fallback to empty array on error
         }
     };
 
@@ -98,19 +98,16 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
 
     const handleEditSave = async (updatedJob) => {
         console.log("Saved job:", updatedJob);
-        // Update local state immediately
         setJobs((prevJobs) =>
             prevJobs.map((j) => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j))
         );
-        // Fetch latest from Supabase to ensure consistency
         await fetchJobs();
         handleCloseEditModal();
     };
 
     const handleJobAdded = (newJob) => {
         console.log("New job added:", newJob);
-        setJobs((prevJobs) => [newJob, ...prevJobs]); // Add new job to state immediately
-        // Removed setEditJob and setIsEditModalOpen to prevent auto-opening
+        setJobs((prevJobs) => [newJob, ...prevJobs]);
     };
 
     const handlePreview = (url) => {
@@ -128,6 +125,8 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
         setIsPreviewModalOpen(false);
         setPreviewUrl(null);
     };
+
+    console.log("Rendering with jobs:", jobs); // Debug log before render
 
     return (
         <div
@@ -158,21 +157,22 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                     }`}
                 >
                     <div className="max-w-6xl mx-auto">
-                        <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
+                        {jobs ? (
+                            <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
+                        ) : (
+                            <p>Loading jobs...</p> // Fallback UI
+                        )}
                         <JobForm mode={mode} onJobAdded={handleJobAdded} />
                     </div>
                 </div>
             </div>
 
-            {/* View Modal */}
             <JobDescriptionModal
                 isOpen={isViewModalOpen}
                 onClose={handleCloseViewModal}
                 onProceed={handleProceed}
                 selectedOpening={selectedOpening}
             />
-
-            {/* Edit Modal */}
             <EditJobModal
                 isOpen={isEditModalOpen}
                 job={editJob}
@@ -181,16 +181,56 @@ export default function HRJobBoard({ mode = "light", toggleMode }) {
                 mode={mode}
                 onPreview={handlePreview}
             />
-
-            {/* Preview Modal */}
             <PreviewModal
                 isOpen={isPreviewModalOpen}
                 url={previewUrl}
                 onClose={handleClosePreviewModal}
                 mode={mode}
             />
-
             <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
+}
+
+export async function getServerSideProps(context) {
+    const { req } = context;
+
+    if (!req.cookies.hr_session) {
+        return {
+            redirect: {
+                destination: "/hr/login",
+                permanent: false,
+            },
+        };
+    }
+
+    try {
+        console.time("fetchJobs");
+        const { data, error } = await supabase
+            .from("job_openings")
+            .select("*")
+            .order("created_at", { ascending: false });
+        console.timeEnd("fetchJobs");
+
+        if (error) throw error;
+
+        const initialJobs = data.map((job) => ({
+            ...job,
+            is_expired: new Date(job.expires_on) < new Date(),
+        }));
+
+        console.log("getServerSideProps returning:", initialJobs); // Debug log
+        return {
+            props: {
+                initialJobs,
+            },
+        };
+    } catch (error) {
+        console.error("Error fetching jobs in getServerSideProps:", error);
+        return {
+            props: {
+                initialJobs: [],
+            },
+        };
+    }
 }

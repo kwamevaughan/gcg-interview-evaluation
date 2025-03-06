@@ -1,3 +1,4 @@
+// src/pages/hr/interview-questions.js
 import { useState } from "react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
@@ -10,8 +11,9 @@ import { useQuestions } from "@/hooks/useQuestions";
 import QuestionTable from "@/components/QuestionTable";
 import QuestionForm from "@/components/QuestionForm";
 import SimpleFooter from "@/layouts/simpleFooter";
+import { supabase } from "@/lib/supabase";
 
-export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
+export default function HRInterviewQuestions({ mode = "light", toggleMode, initialQuestions }) {
     const { isSidebarOpen, toggleSidebar } = useSidebar();
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -29,7 +31,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
         editQuestion,
         deleteQuestion,
         moveQuestion,
-    } = useQuestions();
+    } = useQuestions(initialQuestions);
 
     const handleMoveQuestion = async (fromIndex, toIndex) => {
         const success = await moveQuestion(fromIndex, toIndex);
@@ -101,9 +103,7 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
                     >
                         <div className="max-w-6xl mx-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <div className="flex items-center gap-2">
-                                    {/* Removed inline title and stats */}
-                                </div>
+                                <div className="flex items-center gap-2"></div>
                                 <button
                                     onClick={handleAddQuestion}
                                     className="px-4 py-2 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] flex items-center gap-2 transition duration-200 shadow-md"
@@ -180,4 +180,41 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode }) {
             </div>
         </DndProvider>
     );
+}
+
+export async function getServerSideProps(context) {
+    const { req } = context;
+
+    if (!req.cookies.hr_session) {
+        return {
+            redirect: {
+                destination: "/hr/login",
+                permanent: false,
+            },
+        };
+    }
+
+    try {
+        console.time("fetchInterviewQuestions");
+        const { data: questions, error } = await supabase
+            .from("interview_questions")
+            .select("*")
+            .order("order", { ascending: true });
+        console.timeEnd("fetchInterviewQuestions");
+
+        if (error) throw error;
+
+        return {
+            props: {
+                initialQuestions: questions,
+            },
+        };
+    } catch (error) {
+        console.error("Error fetching interview questions:", error);
+        return {
+            props: {
+                initialQuestions: [],
+            },
+        };
+    }
 }
