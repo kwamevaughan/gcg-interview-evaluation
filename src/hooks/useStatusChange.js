@@ -1,16 +1,15 @@
-// src/hooks/useStatusChange.js
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { supabase } from "@/lib/supabase"; // Use client-side Supabase instance
 
 const useStatusChange = ({
-                             candidates,
-                             setCandidates,
-                             setFilteredCandidates,
-                             setSelectedCandidate,
-                             setEmailData,
-                             setIsEmailModalOpen,
-                         }) => {
+    candidates,
+    setCandidates,
+    setFilteredCandidates,
+    setSelectedCandidate,
+    setEmailData,
+    setIsEmailModalOpen,
+}) => {
     const handleStatusChange = async (candidateId, newStatus) => {
         try {
             const statusToastId = toast.loading(`Updating status to ${newStatus}...`);
@@ -18,7 +17,7 @@ const useStatusChange = ({
             const candidate = candidates.find((c) => c.id === candidateId);
             const answers = candidate.answers.length > 0 ? candidate.answers : [];
 
-            const { error } = await supabaseServer
+            const { error } = await supabase
                 .from("responses")
                 .upsert(
                     {
