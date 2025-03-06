@@ -15,3 +15,4 @@ node_modules/
 
 # Ignore utility scripts like generateHash.js
 generateHash.js
+.env.local
