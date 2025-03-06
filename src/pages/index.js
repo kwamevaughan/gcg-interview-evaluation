@@ -2,28 +2,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 
 const JobDescriptionModal = dynamic(() => import("../components/JobDescriptionModal"), { ssr: false });
 
-export default function LandingPage() {
+export default function LandingPage({ initialOpenings }) {
     const [selectedOpening, setSelectedOpening] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [openings, setOpenings] = useState([]);
-
-    useEffect(() => {
-        const fetchOpenings = async () => {
-            const { data, error } = await supabase
-                .from("job_openings")
-                .select("title")
-                .gt("expires_on", new Date().toISOString());
-            if (error) console.error("Error fetching openings:", error);
-            else setOpenings(data.map((job) => job.title));
-        };
-        fetchOpenings();
-    }, []);
+    const [openings] = useState(initialOpenings);
 
     const handleOpeningChange = (e) => {
         setSelectedOpening(e.target.value);
@@ -57,8 +45,7 @@ export default function LandingPage() {
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black to-transparent opacity-90 z-1"></div>
             </div>
 
-            <div
-                className="relative max-w-full sm:max-w-3xl mx-auto p-6 sm:p-10 text-center bg-white bg-opacity-90 backdrop-blur-lg shadow-full rounded-lg z-10">
+            <div className="relative max-w-full sm:max-w-3xl mx-auto p-6 sm:p-10 text-center bg-white bg-opacity-90 backdrop-blur-lg shadow-full rounded-lg z-10">
                 <Image
                     src="/assets/images/gcg-arrows-black.png"
                     alt="Growthpad Consulting Group Logo"
@@ -131,7 +118,6 @@ export default function LandingPage() {
                     </a>
                 </div>
 
-                {/* Admin Login Button */}
                 <Link href="/hr/login">
                     <span className="flex items-center gap-2 font-bold p-4 z-10 transform transition-transform hover:translate-y-[-2px] sm:absolute sm:bottom-0 sm:right-0 sm:flex sm:mt-4 w-full sm:w-auto justify-center">
                         Admin Login
@@ -145,7 +131,6 @@ export default function LandingPage() {
                     </span>
                 </Link>
 
-                {/* Hidden Arrow Image at the Bottom Left */}
                 <Image
                     src="/assets/images/gcg-arrows-black.png"
                     alt="Growthpad Consulting Group Logo"
@@ -155,7 +140,6 @@ export default function LandingPage() {
                 />
             </div>
 
-            {/* Social Icons in Footer */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                 <div className="flex space-x-4 sm:space-x-6 p-2 bg-white bg-opacity-50 backdrop-blur-lg shadow-full rounded-lg">
                     <a href="https://x.com/growthpadEA" target="_blank" rel="noopener noreferrer" className="transform transition duration-300 hover:-translate-y-2 group">
@@ -178,4 +162,23 @@ export default function LandingPage() {
             </div>
         </div>
     );
+}
+
+export async function getStaticProps() {
+    const { data, error } = await supabase
+        .from("job_openings")
+        .select("title")
+        .gt("expires_on", new Date().toISOString());
+
+    if (error) {
+        console.error("Error fetching openings in getStaticProps:", error);
+        return { props: { initialOpenings: [] }, revalidate: 60 };
+    }
+
+    return {
+        props: {
+            initialOpenings: data.map((job) => job.title),
+        },
+        revalidate: 60, // Revalidate every 60 seconds
+    };
 }

@@ -1,3 +1,4 @@
+// src/pages/hr/overview.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
@@ -18,16 +19,12 @@ import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
 import CandidateModal from "@/components/CandidateModal";
 import useStatusChange from "@/hooks/useStatusChange";
-import { fetchHRData } from "../../../utils/hrData"; // Import the utility function
+import { fetchHRData } from "../../../utils/hrData";
 
-
-// Dynamic import for CountryChart to disable SSR
 const CountryChart = dynamic(() => import("@/components/CountryChart"), { ssr: false });
 
-// Import country code to name mapping
 import countriesGeoJson from "../../data/countries.js";
 
-// Map country codes to full names
 const countryCodeToName = countriesGeoJson.features.reduce((acc, feature) => {
     acc[feature.properties.iso_a2.toUpperCase()] = feature.properties.sovereignt;
     return acc;
@@ -65,7 +62,7 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
 
     const handleLogout = () => {
         localStorage.removeItem("hr_session");
-        document.cookie = "hr_session=; path=/; max-age=0"; // Clear cookie
+        document.cookie = "hr_session=; path=/; max-age=0";
         toast.success("Logged out successfully!");
         setTimeout(() => router.push("/hr/login"), 1000);
     };
@@ -176,7 +173,7 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     }`}
                 >
-                    <div className="max-w-7xl mx-auto ">
+                    <div className="max-w-7xl mx-auto">
                         <WelcomeCard
                             totalApplicants={candidates.length}
                             openPositions={jobOpenings.length}
@@ -259,7 +256,9 @@ export async function getServerSideProps(context) {
     }
 
     try {
+        console.time("fetchHRData");
         const data = await fetchHRData();
+        console.timeEnd("fetchHRData");
         if (!data.initialCandidates || data.initialCandidates.length === 0) {
             console.error("No data returned from fetchHRData, redirecting to login");
             return {

@@ -1,3 +1,4 @@
+// src/pages/hr/applicants.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
@@ -202,7 +203,6 @@ export default function HRApplicants({
 
         const loadingToast = toast.loading("Please wait...");
         try {
-            // Fetch file IDs before deletion
             const { data: responseData, error: fetchError } = await supabase
                 .from("responses")
                 .select("resume_file_id, cover_letter_file_id")
@@ -218,7 +218,6 @@ export default function HRApplicants({
             const resumeFileId = responseData?.resume_file_id;
             const coverLetterFileId = responseData?.cover_letter_file_id;
 
-            // Delete from Supabase
             const { error: candidateError } = await supabase
                 .from("candidates")
                 .delete()
@@ -231,7 +230,6 @@ export default function HRApplicants({
                 .eq("user_id", candidateId);
             if (responseError) throw responseError;
 
-            // Delete files via API route
             const fileIds = [resumeFileId, coverLetterFileId].filter(id => id);
             console.log("Sending file IDs to delete:", fileIds);
             if (fileIds.length > 0) {
@@ -301,7 +299,6 @@ export default function HRApplicants({
 
         const loadingToast = toast.loading("Please wait...");
         try {
-            // Fetch file IDs for all selected candidates
             const { data: responsesData, error: fetchError } = await supabase
                 .from("responses")
                 .select("user_id, resume_file_id, cover_letter_file_id")
@@ -318,7 +315,6 @@ export default function HRApplicants({
 
             console.log("File IDs to delete:", fileIdsToDelete);
 
-            // Delete from Supabase
             const { error: candidateError } = await supabase
                 .from("candidates")
                 .delete()
@@ -331,7 +327,6 @@ export default function HRApplicants({
                 .in("user_id", selectedIds);
             if (responseError) throw responseError;
 
-            // Delete files via API route
             if (fileIdsToDelete.length > 0) {
                 const deleteResponse = await fetch("/api/delete-files", {
                     method: "POST",
@@ -451,7 +446,7 @@ export async function getServerSideProps(context) {
         };
     }
 
-    const { initialCandidates, initialQuestions } = await fetchHRData();
+    const { initialCandidates, initialQuestions } = await fetchHRData({ fetchCandidates: true, fetchQuestions: true });
     return {
         props: {
             initialCandidates,
