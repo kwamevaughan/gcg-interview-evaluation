@@ -4,7 +4,6 @@ import toast, { Toaster } from "react-hot-toast";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
 import useSidebar from "@/hooks/useSidebar";
-import { supabaseServer } from "@/lib/supabaseServer";
 import SimpleFooter from "@/layouts/simpleFooter";
 import ApplicantsTable from "@/components/ApplicantsTable";
 import ApplicantsFilters from "@/components/ApplicantsFilters";
@@ -13,10 +12,17 @@ import EmailModal from "@/components/EmailModal";
 import ExportModal from "@/components/ExportModal";
 import useStatusChange from "@/hooks/useStatusChange";
 import { Icon } from "@iconify/react";
+import { fetchHRData } from "../../../utils/hrData";
+import { supabase } from "@/lib/supabase";
 
-export default function HRApplicants({ mode = "light", toggleMode }) {
-    const [candidates, setCandidates] = useState([]);
-    const [filteredCandidates, setFilteredCandidates] = useState([]);
+export default function HRApplicants({
+    mode = "light",
+    toggleMode,
+    initialCandidates,
+    initialQuestions,
+}) {
+    const [candidates, setCandidates] = useState(initialCandidates || []);
+    const [filteredCandidates, setFilteredCandidates] = useState(initialCandidates || []);
     const [sortField, setSortField] = useState("full_name");
     const [sortDirection, setSortDirection] = useState("asc");
     const { isSidebarOpen, toggleSidebar } = useSidebar();
@@ -26,107 +32,41 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
-    const [isFetching, setIsFetching] = useState(false);
+    const [emailData, setEmailData] = useState({ subject: "", body: "" });
 
     const { handleStatusChange } = useStatusChange({
         candidates,
         setCandidates,
         setFilteredCandidates,
         setSelectedCandidate,
-        setEmailData: (data) => setEmailData(data),
+        setEmailData,
         setIsEmailModalOpen,
     });
-
-    const [emailData, setEmailData] = useState({ subject: "", body: "" });
 
     useEffect(() => {
         if (!localStorage.getItem("hr_session")) {
             router.push("/hr/login");
-        } else if (!isFetching) {
-            setIsFetching(true);
-            fetchCandidates().finally(() => setIsFetching(false));
-        }
-    }, [router]);
-
-    const fetchCandidates = async () => {
-        console.log("Fetching candidates with supabaseServer...");
-        try {
-            const { data: candidatesData, error: candidatesError } = await supabaseServer
-                .from("candidates")
-                .select("id, full_name, email, phone, linkedin, opening, created_at");
-            if (candidatesError) throw candidatesError;
-
-            const { data: responsesData, error: responsesError } = await supabaseServer
-                .from("responses")
-                .select("user_id, answers, score, resume_url, cover_letter_url, status");
-            if (responsesError) throw responsesError;
-
-            const { data: questionsData, error: questionsError } = await supabaseServer
-                .from("interview_questions")
-                .select("id, text")
-                .order("order", { ascending: true });
-            if (questionsError) throw questionsError;
-
-            const combinedData = candidatesData.map((candidate) => {
-                const response = responsesData.find((r) => r.user_id === candidate.id) || {};
-                let parsedAnswers = [];
-                if (response.answers) {
-                    try {
-                        parsedAnswers =
-                            typeof response.answers === "string"
-                                ? JSON.parse(response.answers)
-                                : response.answers;
-                        if (!Array.isArray(parsedAnswers) && typeof parsedAnswers === "object") {
-                            parsedAnswers = Object.values(parsedAnswers);
-                        }
-                    } catch (e) {
-                        console.error(`Error parsing answers for ${candidate.full_name}:`, e);
-                        parsedAnswers = [];
-                    }
-                }
-                const normalizedStatus = response.status ? response.status.trim() : "Pending";
-                return {
-                    ...candidate,
-                    answers: Array.isArray(parsedAnswers) ? parsedAnswers : [],
-                    score: response.score || 0,
-                    resumeUrl: response.resume_url,
-                    coverLetterUrl: response.cover_letter_url,
-                    status: normalizedStatus,
-                    questions: questionsData,
-                };
-            });
-            setCandidates(combinedData);
-
+        } else {
             const { opening } = router.query;
             const savedOpening = localStorage.getItem("filterOpening") || "all";
             const savedStatus = localStorage.getItem("filterStatus") || "all";
 
-            let initialFilter = combinedData;
-            if (opening && combinedData.some((c) => c.opening === opening)) {
-                initialFilter = combinedData.filter((c) => c.opening === opening);
+            let initialFilter = [...candidates];
+            if (opening && initialFilter.some((c) => c.opening === opening)) {
+                initialFilter = initialFilter.filter((c) => c.opening === opening);
             } else if (savedOpening !== "all") {
-                initialFilter = combinedData.filter((c) => c.opening === savedOpening);
+                initialFilter = initialFilter.filter((c) => c.opening === savedOpening);
             }
             if (savedStatus !== "all") {
                 initialFilter = initialFilter.filter((c) => c.status === savedStatus);
             }
             setFilteredCandidates(initialFilter);
-            console.log(
-                "Initial Filter Applied - Opening:",
-                opening || savedOpening,
-                "Status:",
-                savedStatus,
-                "Candidates:",
-                initialFilter.length
-            );
-        } catch (error) {
-            console.error("Error fetching candidates:", error);
-            toast.error("Failed to load candidates.");
         }
-    };
+    }, [router, candidates]);
 
     const handleLogout = () => {
         localStorage.removeItem("hr_session");
+        document.cookie = "hr_session=; path=/; max-age=0";
         toast.success("Logged out successfully!");
         setTimeout(() => router.push("/hr/login"), 1000);
     };
@@ -160,7 +100,6 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
         }
         setFilteredCandidates(result);
 
-        // Update localStorage and router only if necessary
         const currentOpening = localStorage.getItem("filterOpening") || "all";
         const currentStatus = localStorage.getItem("filterStatus") || "all";
         const currentQueryOpening = router.query.opening || "all";
@@ -169,7 +108,6 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             localStorage.setItem("filterOpening", filterOpening);
             localStorage.setItem("filterStatus", filterStatus);
 
-            // Only push to router if filterOpening differs from current query
             if (filterOpening !== currentQueryOpening) {
                 if (filterOpening !== "all") {
                     router.push(
@@ -232,32 +170,23 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             toast.custom(
                 (t) => (
                     <div
-                        className={`${
-                            t.visible ? "animate-enter" : "animate-leave"
-                        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                        className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
                     >
                         <div className="flex-1 w-0 p-4">
                             <p className="text-xl font-medium text-gray-900">Delete Candidate?</p>
                             <p className="mt-2 text-base text-gray-500">
-                                Are you sure you want to delete this candidate? This action cannot be
-                                undone.
+                                Are you sure you want to delete this candidate? This action cannot be undone.
                             </p>
                         </div>
                         <div className="flex border-l border-gray-200">
                             <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    resolve(true);
-                                }}
+                                onClick={() => { toast.dismiss(t.id); resolve(true); }}
                                 className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors"
                             >
                                 Yes
                             </button>
                             <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    resolve(false);
-                                }}
+                                onClick={() => { toast.dismiss(t.id); resolve(false); }}
                                 className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors"
                             >
                                 No
@@ -271,26 +200,62 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
 
         if (!confirmed) return;
 
+        const loadingToast = toast.loading("Please wait...");
         try {
-            const { error: candidateError } = await supabaseServer
+            // Fetch file IDs before deletion
+            const { data: responseData, error: fetchError } = await supabase
+                .from("responses")
+                .select("resume_file_id, cover_letter_file_id")
+                .eq("user_id", candidateId)
+                .single();
+            if (fetchError) throw fetchError;
+
+            console.log("File IDs for candidate", candidateId, ":", {
+                resumeFileId: responseData?.resume_file_id,
+                coverLetterFileId: responseData?.cover_letter_file_id,
+            });
+
+            const resumeFileId = responseData?.resume_file_id;
+            const coverLetterFileId = responseData?.cover_letter_file_id;
+
+            // Delete from Supabase
+            const { error: candidateError } = await supabase
                 .from("candidates")
                 .delete()
                 .eq("id", candidateId);
             if (candidateError) throw candidateError;
 
-            const { error: responseError } = await supabaseServer
+            const { error: responseError } = await supabase
                 .from("responses")
                 .delete()
                 .eq("user_id", candidateId);
             if (responseError) throw responseError;
 
+            // Delete files via API route
+            const fileIds = [resumeFileId, coverLetterFileId].filter(id => id);
+            console.log("Sending file IDs to delete:", fileIds);
+            if (fileIds.length > 0) {
+                const deleteResponse = await fetch("/api/delete-files", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fileIds }),
+                });
+                const deleteResult = await deleteResponse.json();
+                console.log("Delete files response:", deleteResult);
+                if (!deleteResponse.ok) {
+                    throw new Error(deleteResult.error || "Failed to delete files from Google Drive");
+                }
+            } else {
+                console.log("No file IDs found to delete for candidate", candidateId);
+            }
+
             const updatedCandidates = candidates.filter((c) => c.id !== candidateId);
             setCandidates(updatedCandidates);
             setFilteredCandidates(updatedCandidates);
-            toast.success("Candidate deleted successfully!", { icon: "✅" });
+            toast.success("Candidate and associated files deleted successfully!", { id: loadingToast, icon: "✅" });
         } catch (error) {
             console.error("Error deleting candidate:", error);
-            toast.error("Failed to delete candidate.");
+            toast.error("Failed to delete candidate or files.", { id: loadingToast });
         }
     };
 
@@ -304,32 +269,23 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             toast.custom(
                 (t) => (
                     <div
-                        className={`${
-                            t.visible ? "animate-enter" : "animate-leave"
-                        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                        className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
                     >
                         <div className="flex-1 w-0 p-4">
                             <p className="text-xl font-medium text-gray-900">Delete Selected?</p>
                             <p className="mt-2 text-base text-gray-500">
-                                Are you sure you want to delete {selectedIds.length} candidate(s)?
-                                This action cannot be undone.
+                                Are you sure you want to delete {selectedIds.length} candidate(s)? This action cannot be undone.
                             </p>
                         </div>
                         <div className="flex border-l border-gray-200">
                             <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    resolve(true);
-                                }}
+                                onClick={() => { toast.dismiss(t.id); resolve(true); }}
                                 className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#f05d23] hover:text-[#d94f1e] hover:bg-[#ffe0b3] transition-colors"
                             >
                                 Yes
                             </button>
                             <button
-                                onClick={() => {
-                                    toast.dismiss(t.id);
-                                    resolve(false);
-                                }}
+                                onClick={() => { toast.dismiss(t.id); resolve(false); }}
                                 className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-500 hover:bg-[#f3f4f6] transition-colors"
                             >
                                 No
@@ -343,29 +299,62 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
 
         if (!confirmed) return;
 
+        const loadingToast = toast.loading("Please wait...");
         try {
-            const { error: candidateError } = await supabaseServer
+            // Fetch file IDs for all selected candidates
+            const { data: responsesData, error: fetchError } = await supabase
+                .from("responses")
+                .select("user_id, resume_file_id, cover_letter_file_id")
+                .in("user_id", selectedIds);
+            if (fetchError) throw fetchError;
+
+            console.log("Responses data for bulk delete:", responsesData);
+
+            const fileIdsToDelete = responsesData.reduce((acc, response) => {
+                if (response.resume_file_id) acc.push(response.resume_file_id);
+                if (response.cover_letter_file_id) acc.push(response.cover_letter_file_id);
+                return acc;
+            }, []);
+
+            console.log("File IDs to delete:", fileIdsToDelete);
+
+            // Delete from Supabase
+            const { error: candidateError } = await supabase
                 .from("candidates")
                 .delete()
                 .in("id", selectedIds);
             if (candidateError) throw candidateError;
 
-            const { error: responseError } = await supabaseServer
+            const { error: responseError } = await supabase
                 .from("responses")
                 .delete()
                 .in("user_id", selectedIds);
             if (responseError) throw responseError;
 
+            // Delete files via API route
+            if (fileIdsToDelete.length > 0) {
+                const deleteResponse = await fetch("/api/delete-files", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fileIds: fileIdsToDelete }),
+                });
+                const deleteResult = await deleteResponse.json();
+                console.log("Bulk delete files response:", deleteResult);
+                if (!deleteResponse.ok) {
+                    throw new Error(deleteResult.error || "Failed to delete files from Google Drive");
+                }
+            } else {
+                console.log("No file IDs found to delete for selected candidates");
+            }
+
             const updatedCandidates = candidates.filter((c) => !selectedIds.includes(c.id));
             setCandidates(updatedCandidates);
             setFilteredCandidates(updatedCandidates);
             setSelectedIds([]);
-            toast.success(`${selectedIds.length} candidate(s) deleted successfully!`, {
-                icon: "✅",
-            });
+            toast.success(`${selectedIds.length} candidate(s) and associated files deleted successfully!`, { id: loadingToast, icon: "✅" });
         } catch (error) {
             console.error("Error deleting candidates:", error);
-            toast.error("Failed to delete selected candidates.");
+            toast.error("Failed to delete selected candidates or files.", { id: loadingToast });
         }
     };
 
@@ -448,4 +437,25 @@ export default function HRApplicants({ mode = "light", toggleMode }) {
             <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
+}
+
+export async function getServerSideProps(context) {
+    const { req } = context;
+
+    if (!req.cookies.hr_session) {
+        return {
+            redirect: {
+                destination: "/hr/login",
+                permanent: false,
+            },
+        };
+    }
+
+    const { initialCandidates, initialQuestions } = await fetchHRData();
+    return {
+        props: {
+            initialCandidates,
+            initialQuestions,
+        },
+    };
 }

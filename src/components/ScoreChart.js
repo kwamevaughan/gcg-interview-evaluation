@@ -1,7 +1,7 @@
-// src/components/ScoreChart.js
-import { Radar } from "react-chartjs-2"; // Changed from Bar to Radar
+import { Radar } from "react-chartjs-2";
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Tooltip, Legend } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels"; // For counts
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Icon } from "@iconify/react";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Tooltip, Legend, ChartDataLabels);
 
@@ -13,14 +13,8 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
         return acc;
     }, {});
 
-    // Brand-based color palette with gradients
     const labels = Object.keys(scoreDistribution).map((k) => `${k}-${parseInt(k) + 20}`);
-    const baseColors = [
-        "#f05d23", // Main orange
-        "#231812", // Secondary brown
-        "#f28c5e", // Lighter orange
-        "#4a2e24", // Darker brown
-    ];
+    const baseColors = ["#f05d23", "#231812", "#f28c5e", "#4a2e24"];
 
     const data = {
         labels: labels,
@@ -28,11 +22,11 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
             {
                 label: "Candidates",
                 data: Object.values(scoreDistribution),
-                backgroundColor: "rgba(240, 93, 35, 0.3)", // Semi-transparent #f05d23 fill
-                borderColor: "#f05d23", // Solid #f05d23 line
-                pointBackgroundColor: labels.map((_, index) => baseColors[index % baseColors.length]), // Points use brand colors
+                backgroundColor: "rgba(240, 93, 35, 0.3)",
+                borderColor: "#f05d23",
+                pointBackgroundColor: labels.map((_, index) => baseColors[index % baseColors.length]),
                 pointBorderColor: mode === "dark" ? "#fff" : "#231812",
-                pointHoverBackgroundColor: "#d94f1e", // Darker orange on hover
+                pointHoverBackgroundColor: "#d94f1e",
                 borderWidth: 2,
                 pointRadius: 5,
                 pointHoverRadius: 7,
@@ -46,14 +40,14 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
         scales: {
             r: {
                 angleLines: {
-                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)", // Subtle angle lines
+                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)",
                 },
                 grid: {
-                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)", // Subtle grid
+                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)",
                 },
                 ticks: {
                     color: mode === "dark" ? "#fff" : "#231812",
-                    backdropColor: "transparent", // Remove tick background
+                    backdropColor: "transparent",
                 },
                 pointLabels: {
                     color: mode === "dark" ? "#fff" : "#231812",
@@ -62,11 +56,9 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
             },
         },
         plugins: {
-            legend: {
-                display: false, // Hide legend since it's a single dataset
-            },
+            legend: { display: false },
             tooltip: {
-                backgroundColor: "rgba(240, 93, 35, 0.9)", // #f05d23 with opacity
+                backgroundColor: "rgba(240, 93, 35, 0.9)",
                 titleColor: "#fff",
                 bodyColor: "#fff",
                 borderColor: "#231812",
@@ -74,24 +66,21 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
                 cornerRadius: 8,
             },
             datalabels: {
-                color: mode === "dark" ? "#fff" : "#231812", // White in dark mode, brown in light
-                font: {
-                    size: 14,
-                    weight: "bold",
-                },
-                formatter: (value) => value, // Display count
-                anchor: "end", // Position outside the point
+                color: mode === "dark" ? "#fff" : "#231812",
+                font: { size: 14, weight: "bold" },
+                formatter: (value) => value,
+                anchor: "end",
                 align: "end",
-                offset: 10, // Distance from point
+                offset: 10,
                 textShadowBlur: 4,
                 textShadowColor: mode === "dark" ? "#000" : "#ccc",
             },
         },
         animation: {
-            animateScale: true, // Scale in from center
-            animateRotate: true, // Rotate in
-            duration: 2000, // 2-second animation
-            easing: "easeOutBounce", // Bouncy effect
+            animateScale: true,
+            animateRotate: true,
+            duration: 2000,
+            easing: "easeOutBounce",
         },
         onClick: (event, elements) => {
             if (elements.length > 0) {
@@ -108,14 +97,27 @@ export default function ScoreChart({ candidates, mode, onFilter }) {
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
-            <h3
-                className={`text-lg font-semibold mb-6 ${
-                    mode === "dark" ? "text-white" : "text-[#231812]"
-                }`}
-            >
-                Score Distribution
-            </h3>
-            <div className="h-72"> {/* Increased height for better visuals */}
+            <div className="flex justify-between items-center mb-6">
+                <h3
+                    className={`text-lg font-semibold ${
+                        mode === "dark" ? "text-white" : "text-[#231812]"
+                    }`}
+                >
+                    Score Distribution
+                </h3>
+                <button
+                    className={`p-1 rounded-full ${
+                        mode === "dark"
+                            ? "text-gray-300 hover:text-white hover:bg-gray-700"
+                            : "text-gray-600 hover:text-[#231812] hover:bg-gray-200"
+                    } transition-colors`}
+                    title="More details"
+                    onClick={() => console.log("Ellipsis clicked - future expansion possible")} // Placeholder for future action
+                >
+                    <Icon icon="mdi:ellipsis-vertical" width={20} height={20} />
+                </button>
+            </div>
+            <div className="h-72">
                 <Radar data={data} options={options} />
             </div>
         </div>

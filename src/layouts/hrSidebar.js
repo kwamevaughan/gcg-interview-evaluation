@@ -97,6 +97,11 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                             icon: "mdi:account-question",
                             label: "Interview Questions",
                         },
+                        {
+                            href: "/hr/email-templates",
+                            icon: "lsicon:email-send-outline",
+                            label: "Email Templates",
+                        },
                     ].map(({ href, icon, label }) => (
                         <li key={href} className="py-2">
                             <button

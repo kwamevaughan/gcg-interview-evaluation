@@ -22,15 +22,11 @@ export default function useExportFilters(candidates) {
             return true;
         })
         .filter((candidate) => {
-            // Log initial conditions
-            console.log('--- Date Filter Start ---');
-            console.log(`Candidate created_at: ${candidate.created_at}`);
-            console.log(`Date range: start=${dateRange[0].startDate}, end=${dateRange[0].endDate}`);
 
             // If no date range selected, show all candidates
             if (!dateRange[0].startDate || !dateRange[0].endDate) {
-                console.log('No date range selected - returning true');
-                console.log('--- Date Filter End ---');
+                // console.log('No date range selected - returning true');
+                // console.log('--- Date Filter End ---');
                 return true;
             }
 

@@ -1,9 +1,6 @@
-// src/pages/api/process-submission.js
 import { supabaseServer } from "@/lib/supabaseServer";
-import { uploadFileToDrive, deleteFileFromDrive } from "../../../utils/driveUtils";
+import { uploadFileToDrive } from "../../../utils/driveUtils";
 import { sendEmails } from "../../../utils/emailUtils";
-import fs from "fs";
-import path from "path";
 
 export default async function handler(req, res) {
     if (req.method !== "POST") {
@@ -53,8 +50,18 @@ export default async function handler(req, res) {
             throw new Error("Failed to update response with Drive URLs");
         }
 
-        const candidateEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/candidateEmail.html"), "utf8");
-        const adminEmailTemplate = fs.readFileSync(path.join(process.cwd(), "src/templates/adminEmail.html"), "utf8");
+        // Fetch templates from database
+        const { data: templates, error: templateError } = await supabaseServer
+            .from("email_templates")
+            .select("name, subject, body")
+            .in("name", ["candidateEmail", "adminEmail"]);
+
+        if (templateError) throw templateError;
+
+        const candidateTemplate = templates.find(t => t.name === "candidateEmail")?.body || "";
+        const adminTemplate = templates.find(t => t.name === "adminEmail")?.body || "";
+        const candidateSubject = templates.find(t => t.name === "candidateEmail")?.subject || "Application Received";
+        const adminSubject = templates.find(t => t.name === "adminEmail")?.subject || "New Submission Received";
 
         await sendEmails({
             fullName,
@@ -66,8 +73,10 @@ export default async function handler(req, res) {
             resumeUrl: resumeResult.url,
             coverLetterUrl: coverLetterResult.url,
             answers,
-            candidateTemplate: candidateEmailTemplate,
-            adminTemplate: adminEmailTemplate,
+            candidateTemplate,
+            adminTemplate,
+            candidateSubject,
+            adminSubject,
             questions,
         });
 

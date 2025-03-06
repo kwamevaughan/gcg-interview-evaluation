@@ -1,4 +1,3 @@
-// src/pages/hr/login.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Icon } from "@iconify/react";
@@ -33,30 +32,31 @@ export default function HRLogin() {
             toast.error("Please verify the CAPTCHA.", { icon: "⚠️" });
             return;
         }
-
+    
         const { data: user, error: fetchError } = await supabase
             .from("hr_users")
             .select("username, password")
             .eq("username", email)
             .single();
-
+    
         if (fetchError || !user) {
             console.error("Fetch error:", fetchError);
             toast.error("Invalid email or password.", { icon: "❌" });
             return;
         }
-
+    
         const passwordMatch = await bcrypt.compare(password, user.password);
-
+    
         if (!passwordMatch) {
             console.error('Password mismatch');
             toast.error("Invalid email or password.", { icon: "❌" });
             return;
         }
-
+    
         console.log('Password matched');
         localStorage.setItem("hr_session", "authenticated");
-
+        document.cookie = "hr_session=authenticated; path=/; max-age=2592000";
+    
         if (rememberMe) {
             localStorage.setItem("hr_remembered_email", email);
             localStorage.setItem("hr_session_expiry", Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -64,9 +64,10 @@ export default function HRLogin() {
             localStorage.removeItem("hr_remembered_email");
             localStorage.removeItem("hr_session_expiry");
         }
-
+    
         toast.success("Login successful! Redirecting...", { icon: "✅" });
-        setTimeout(() => router.push("/hr/overview"), 1000);
+        console.log("Redirecting to /hr/overview");
+        await router.push("/hr/overview"); // Remove setTimeout for immediate redirect
     };
 
     const handleMagicLink = async (e) => {

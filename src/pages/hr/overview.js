@@ -1,4 +1,3 @@
-// src/pages/hr/HROverview.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
@@ -7,7 +6,6 @@ import { Icon } from "@iconify/react";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
 import useSidebar from "@/hooks/useSidebar";
-import { supabaseServer } from "@/lib/supabaseServer";
 import SimpleFooter from "@/layouts/simpleFooter";
 import WelcomeCard from "@/components/WelcomeCard";
 import StatusChart from "@/components/StatusChart";
@@ -19,12 +17,14 @@ import TopPerformers from "@/components/TopPerformers";
 import DeviceChart from "@/components/DeviceChart";
 import EmailModal from "@/components/EmailModal";
 import CandidateModal from "@/components/CandidateModal";
-import useStatusChange from "@/hooks/useStatusChange"; // Import the hook
+import useStatusChange from "@/hooks/useStatusChange";
+import { fetchHRData } from "../../../utils/hrData"; // Import the utility function
+
 
 // Dynamic import for CountryChart to disable SSR
 const CountryChart = dynamic(() => import("@/components/CountryChart"), { ssr: false });
 
-// Import country code to name mapping at the top
+// Import country code to name mapping
 import countriesGeoJson from "../../data/countries.js";
 
 // Map country codes to full names
@@ -33,10 +33,10 @@ const countryCodeToName = countriesGeoJson.features.reduce((acc, feature) => {
     return acc;
 }, {});
 
-export default function HROverview({ mode = "light", toggleMode }) {
-    const [candidates, setCandidates] = useState([]);
-    const [jobOpenings, setJobOpenings] = useState([]);
-    const [questions, setQuestions] = useState([]);
+export default function HROverview({ mode = "light", toggleMode, initialCandidates, initialJobOpenings, initialQuestions }) {
+    const [candidates, setCandidates] = useState(initialCandidates || []);
+    const [jobOpenings, setJobOpenings] = useState(initialJobOpenings || []);
+    const [questions, setQuestions] = useState(initialQuestions || []);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -60,69 +60,12 @@ export default function HROverview({ mode = "light", toggleMode }) {
     useEffect(() => {
         if (!localStorage.getItem("hr_session")) {
             router.push("/hr/login");
-        } else {
-            fetchData();
         }
     }, [router]);
 
-    const fetchData = async () => {
-        const loadingToast = toast.loading("Loading data...");
-        try {
-            const { data: candidatesData, error: candidatesError } = await supabaseServer
-                .from("candidates")
-                .select("id, full_name, email, phone, linkedin, opening");
-            if (candidatesError) throw candidatesError;
-
-            const { data: responsesData, error: responsesError } = await supabaseServer
-                .from("responses")
-                .select("user_id, answers, score, resume_url, cover_letter_url, status, country, device, submitted_at");
-            if (responsesError) throw responsesError;
-
-            const { data: questionsData, error: questionsError } = await supabaseServer
-                .from("interview_questions")
-                .select("*")
-                .order("order", { ascending: true });
-            if (questionsError) throw questionsError;
-
-            const combinedData = candidatesData.map((candidate) => {
-                const response = responsesData.find((r) => r.user_id === candidate.id) || {};
-                let parsedAnswers = [];
-                if (response.answers) {
-                    if (typeof response.answers === "string") {
-                        try {
-                            parsedAnswers = JSON.parse(response.answers);
-                        } catch (e) {
-                            parsedAnswers = response.answers.split(",").map((a) => a.trim());
-                        }
-                    } else if (Array.isArray(response.answers)) {
-                        parsedAnswers = response.answers;
-                    }
-                }
-                return {
-                    ...candidate,
-                    answers: Array.isArray(parsedAnswers) ? parsedAnswers : [],
-                    score: response.score || 0,
-                    resumeUrl: response.resume_url,
-                    coverLetterUrl: response.cover_letter_url,
-                    status: response.status || "Pending",
-                    country: response.country ? response.country.toUpperCase() : "Unknown",
-                    device: response.device || "Unknown",
-                    submitted_at: response.submitted_at || null,
-                    questions: questionsData,
-                };
-            });
-            setCandidates(combinedData);
-            setQuestions(questionsData);
-            setJobOpenings([...new Set(combinedData.map((c) => c.opening))]);
-            toast.success("Data loaded successfully!", { id: loadingToast });
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            toast.error("Failed to load overview data.", { id: loadingToast });
-        }
-    };
-
     const handleLogout = () => {
         localStorage.removeItem("hr_session");
+        document.cookie = "hr_session=; path=/; max-age=0"; // Clear cookie
         toast.success("Logged out successfully!");
         setTimeout(() => router.push("/hr/login"), 1000);
     };
@@ -241,15 +184,15 @@ export default function HROverview({ mode = "light", toggleMode }) {
                             mode={mode}
                         />
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
-                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
+                            <StatusChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <DeviceChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
                         <div className="mb-6">
-                            <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
+                            <CountryChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
-                            <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter}/>
+                            <ScoreChart candidates={candidates} mode={mode} onFilter={handleChartFilter} />
+                            <ScoreTrend candidates={candidates} mode={mode} onFilter={handleChartFilter} />
                         </div>
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <TopPerformers
@@ -265,7 +208,7 @@ export default function HROverview({ mode = "light", toggleMode }) {
                                 mode={mode}
                             />
                         </div>
-                        <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode}/>
+                        <JobOpenings candidates={candidates} jobOpenings={jobOpenings} router={router} mode={mode} />
                     </div>
                 </div>
             </div>
@@ -303,15 +246,50 @@ export default function HROverview({ mode = "light", toggleMode }) {
     );
 }
 
+export async function getServerSideProps(context) {
+    const { req } = context;
+
+    if (!req.cookies.hr_session) {
+        return {
+            redirect: {
+                destination: "/hr/login",
+                permanent: false,
+            },
+        };
+    }
+
+    try {
+        const data = await fetchHRData();
+        if (!data.initialCandidates || data.initialCandidates.length === 0) {
+            console.error("No data returned from fetchHRData, redirecting to login");
+            return {
+                redirect: {
+                    destination: "/hr/login",
+                    permanent: false,
+                },
+            };
+        }
+        return { props: data };
+    } catch (error) {
+        console.error("Error in getServerSideProps:", error);
+        return {
+            redirect: {
+                destination: "/hr/login",
+                permanent: false,
+            },
+        };
+    }
+}
+
 function ChartFilterModal({
-                              candidates,
-                              type,
-                              value,
-                              onClose,
-                              setSelectedCandidate,
-                              setIsCandidateModalOpen,
-                              mode,
-                          }) {
+    candidates,
+    type,
+    value,
+    onClose,
+    setSelectedCandidate,
+    setIsCandidateModalOpen,
+    mode,
+}) {
     const handleViewClick = (candidate) => {
         setSelectedCandidate(candidate);
         setIsCandidateModalOpen(true);
