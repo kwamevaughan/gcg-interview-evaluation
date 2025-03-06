@@ -12,6 +12,15 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import SimpleFooter from "@/layouts/simpleFooter";
 
+// Helper function to format ISO date as DD/MM/YYYY
+const formatDate = (isoDateString) => {
+    const date = new Date(isoDateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+};
+
 const JobDescriptionModal = dynamic(() => import("@/components/JobDescriptionModal"), { ssr: false });
 
 export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [] }) {
@@ -26,7 +35,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const [editJob, setEditJob] = useState(null);
 
     useEffect(() => {
-        console.log("Initial jobs on mount:", initialJobs); // Debug log
+        console.log("Initial jobs on mount:", initialJobs);
         if (!localStorage.getItem("hr_session")) {
             router.push("/hr/login");
         }
@@ -61,6 +70,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
 
             const updatedJobs = data.map((job) => ({
                 ...job,
+                expires_on: formatDate(job.expires_on), // Format as DD/MM/YYYY
                 is_expired: new Date(job.expires_on) < new Date(),
             }));
             console.log("Fetched jobs:", updatedJobs);
@@ -69,7 +79,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
         } catch (error) {
             console.error("Error fetching jobs:", error);
             toast.error("Failed to load job openings.", { id: loadingToast });
-            setJobs([]); // Fallback to empty array on error
+            setJobs([]);
         }
     };
 
@@ -99,7 +109,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const handleEditSave = async (updatedJob) => {
         console.log("Saved job:", updatedJob);
         setJobs((prevJobs) =>
-            prevJobs.map((j) => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j))
+            prevJobs.map((j) => (j.id === updatedJob.id ? { ...j, ...updatedJob, expires_on: formatDate(updatedJob.expires_on) } : j))
         );
         await fetchJobs();
         handleCloseEditModal();
@@ -107,7 +117,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
 
     const handleJobAdded = (newJob) => {
         console.log("New job added:", newJob);
-        setJobs((prevJobs) => [newJob, ...prevJobs]);
+        setJobs((prevJobs) => [{ ...newJob, expires_on: formatDate(newJob.expires_on) }, ...prevJobs]);
     };
 
     const handlePreview = (url) => {
@@ -126,7 +136,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
         setPreviewUrl(null);
     };
 
-    console.log("Rendering with jobs:", jobs); // Debug log before render
+    console.log("Rendering with jobs:", jobs);
 
     return (
         <div
@@ -160,7 +170,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
                         {jobs ? (
                             <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
                         ) : (
-                            <p>Loading jobs...</p> // Fallback UI
+                            <p>Loading jobs...</p>
                         )}
                         <JobForm mode={mode} onJobAdded={handleJobAdded} />
                     </div>
@@ -216,10 +226,11 @@ export async function getServerSideProps(context) {
 
         const initialJobs = data.map((job) => ({
             ...job,
+            expires_on: formatDate(job.expires_on), // Convert ISO to DD/MM/YYYY
             is_expired: new Date(job.expires_on) < new Date(),
         }));
 
-        console.log("getServerSideProps returning:", initialJobs); // Debug log
+        console.log("getServerSideProps returning:", initialJobs);
         return {
             props: {
                 initialJobs,
