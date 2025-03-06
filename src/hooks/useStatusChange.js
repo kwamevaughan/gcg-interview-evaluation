@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { supabase } from "@/lib/supabase"; // Use client-side Supabase instance
+import { supabase } from "@/lib/supabase"; // Client-side Supabase instance
 
 const useStatusChange = ({
     candidates,
@@ -17,6 +17,7 @@ const useStatusChange = ({
             const candidate = candidates.find((c) => c.id === candidateId);
             const answers = candidate.answers.length > 0 ? candidate.answers : [];
 
+            // Update status in Supabase
             const { error } = await supabase
                 .from("responses")
                 .upsert(
@@ -36,6 +37,7 @@ const useStatusChange = ({
                 .eq("user_id", candidateId);
             if (error) throw error;
 
+            // Update local state
             const updatedCandidates = candidates.map((c) =>
                 c.id === candidateId ? { ...c, status: newStatus } : c
             );
@@ -56,29 +58,33 @@ const useStatusChange = ({
             toast.dismiss(statusToastId);
             toast.success(`Status updated to ${newStatus}!`, { duration: 2000 });
 
+            // Handle email notification for specific statuses
             if (["Reviewed", "Shortlisted", "Rejected"].includes(newStatus)) {
-                const response = await fetch(
-                    `/api/get-email-template?status=${newStatus}&fullName=${encodeURIComponent(
-                        candidate.full_name
-                    )}&opening=${encodeURIComponent(candidate.opening)}`
-                );
-                const { template } = await response.json();
-                if (!response.ok) throw new Error("Failed to fetch email template");
+                // Fetch email template from Supabase
+                const { data: templateData, error: templateError } = await supabase
+                    .from("email_templates")
+                    .select("subject, body")
+                    .eq("name", newStatus.toLowerCase() + "Email") // e.g., "reviewedEmail"
+                    .single();
 
+                if (templateError || !templateData) {
+                    throw new Error(`Failed to fetch email template for ${newStatus}: ${templateError?.message || "No template found"}`);
+                }
+
+                const { subject, body } = templateData;
+
+                // Replace placeholders in the template
                 const emailPayload = {
                     fullName: candidate.full_name,
                     email: candidate.email,
                     opening: candidate.opening,
                     status: newStatus,
-                    subject: {
-                        Reviewed: `Application Reviewed for ${candidate.opening} - Growthpad Consulting Group`,
-                        Shortlisted: `Congratulations! You've Been Shortlisted for ${candidate.opening} - Growthpad Consulting Group`,
-                        Rejected: `Application Update for ${candidate.opening} - Growthpad Consulting Group`,
-                    }[newStatus],
-                    body: template,
+                    subject: subject.replace("{{opening}}", candidate.opening).replace("{{fullName}}", candidate.full_name),
+                    body: body.replace("{{fullName}}", candidate.full_name).replace("{{opening}}", candidate.opening),
                 };
                 setEmailData(emailPayload);
 
+                // Prompt to send email
                 toast.custom(
                     (t) => (
                         <div
