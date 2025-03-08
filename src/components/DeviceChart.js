@@ -16,7 +16,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
         return "Desktop"; // Windows, Ubuntu, Linux, Macintosh, etc.
     };
 
-    // Detailed device count (original)
+    // Detailed device count
     const deviceCount = candidates.reduce((acc, c) => {
         const device = c.device || "Unknown";
         acc[device] = (acc[device] || 0) + 1;
@@ -59,6 +59,20 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
         ],
     };
 
+    // Handle filter clicks with grouped logic
+    const handleFilter = (label) => {
+        if (showDetails) {
+            // Detailed view: filter by exact device name
+            onFilter("device", label);
+        } else {
+            // Grouped view: filter by all devices in the group
+            const deviceList = candidates
+                .map((c) => c.device)
+                .filter((d) => groupDevice(d) === label);
+            onFilter("device", deviceList);
+        }
+    };
+
     const options = {
         responsive: true,
         maintainAspectRatio: false,
@@ -72,7 +86,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                 },
                 onClick: (e, legendItem) => {
                     const label = data.labels[legendItem.index];
-                    onFilter("device", label);
+                    handleFilter(label);
                 },
             },
             tooltip: {
@@ -116,7 +130,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
             if (elements.length > 0) {
                 const index = elements[0].index;
                 const label = data.labels[index];
-                onFilter("device", label);
+                handleFilter(label);
             }
         },
     };
