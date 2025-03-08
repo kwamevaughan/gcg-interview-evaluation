@@ -52,7 +52,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                 },
                 onClick: (e, legendItem) => {
                     const category = data.labels[legendItem.index];
-                    onFilter("device", category);
+                    onFilter("category", category);
                 },
             },
             tooltip: {
@@ -96,7 +96,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
             if (elements.length > 0) {
                 const index = elements[0].index;
                 const category = data.labels[index];
-                onFilter("device", category);
+                onFilter("category", category);
             }
         },
     };
