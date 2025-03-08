@@ -1,31 +1,32 @@
 // src/components/DeviceChart.js
-import { PolarArea } from "react-chartjs-2"; 
+import { PolarArea } from "react-chartjs-2";
 import { Chart as ChartJS, RadialLinearScale, ArcElement, Tooltip, Legend } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels"; 
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 ChartJS.register(RadialLinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export default function DeviceChart({ candidates, mode, onFilter }) {
-    // Aggregate device counts into 'Desktop' and 'Mobile'
-    const deviceCategories = candidates.reduce((acc, c) => {
+    const deviceCount = candidates.reduce((acc, c) => {
         const device = c.device || "Unknown";
-        const category = /Windows|Ubuntu|Linux|Macintosh/i.test(device) ? "Desktop" : "Mobile";
-        acc[category] = (acc[category] || 0) + 1;
+        acc[device] = (acc[device] || 0) + 1;
         return acc;
     }, {});
 
-    // Brand-based color palette with gradients
-    const labels = Object.keys(deviceCategories);
+    const labels = Object.keys(deviceCount);
     const baseColors = [
         "#f05d23", // Main orange
         "#231812", // Secondary brown
+        "#ff9f1c", // Secondary yellow
+        "#85ff9e", // Secondary green
+        "#1c78ff", // Secondary blue
+        "#ff1c78", // Secondary pink
     ];
 
     const data = {
         labels: labels,
         datasets: [
             {
-                data: Object.values(deviceCategories),
+                data: Object.values(deviceCount),
                 backgroundColor: labels.map((_, index) =>
                     `rgba(${parseInt(baseColors[index % baseColors.length].slice(1, 3), 16)}, ${parseInt(
                         baseColors[index % baseColors.length].slice(3, 5),
@@ -51,15 +52,12 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                     font: { size: 14 },
                 },
                 onClick: (e, legendItem) => {
-                    const category = data.labels[legendItem.index];
-                    const filteredCandidates = candidates.filter(c => 
-                        /Windows|Ubuntu|Linux|Macintosh/i.test(c.device || "Unknown") ? category === "Desktop" : category === "Mobile"
-                    );
-                    onFilter("category", filteredCandidates);
+                    const device = data.labels[legendItem.index];
+                    onFilter("device", device);
                 },
             },
             tooltip: {
-                backgroundColor: "rgba(240, 93, 35, 0.9)", 
+                backgroundColor: "rgba(240, 93, 35, 0.9)",
                 titleColor: "#fff",
                 bodyColor: "#fff",
                 borderColor: "#231812",
@@ -98,11 +96,8 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
         onClick: (event, elements) => {
             if (elements.length > 0) {
                 const index = elements[0].index;
-                const category = data.labels[index];
-                const filteredCandidates = candidates.filter(c => 
-                    /Windows|Ubuntu|Linux|Macintosh/i.test(c.device || "Unknown") ? category === "Desktop" : category === "Mobile"
-                );
-                onFilter("category", filteredCandidates);
+                const device = data.labels[index];
+                onFilter("device", device);
             }
         },
     };
