@@ -94,7 +94,7 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
     };
 
     const handleChartFilter = (type, value) => {
-        console.log(`Opening modal for ${type}: ${value}`);
+        console.log(`Filtering ${type}:`, value);
         let filtered;
         switch (type) {
             case "status":
@@ -115,8 +115,15 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
                 toast.success(`Showing ${value} applicants`, { duration: 2000 });
                 break;
             case "device":
-                filtered = candidates.filter((c) => c.device === value);
-                toast.success(`Showing ${value} devices`, { duration: 2000 });
+                if (Array.isArray(value)) {
+                    // Grouped filter (e.g., all Mobile devices)
+                    filtered = candidates.filter((c) => value.includes(c.device));
+                    toast.success(`Showing ${value.length} device types`, { duration: 2000 });
+                } else {
+                    // Detailed filter (e.g., "Mobile (KH6)")
+                    filtered = candidates.filter((c) => c.device === value);
+                    toast.success(`Showing ${value} devices`, { duration: 2000 });
+                }
                 break;
             case "date":
                 const date = new Date(value).toDateString();
@@ -306,7 +313,7 @@ function ChartFilterModal({
                         {type === "status" && `Status: ${value}`}
                         {type === "country" && `Country: ${value}`}
                         {type === "score" && `Score Range: ${value}`}
-                        {type === "device" && `Device: ${value}`}
+                        {type === "device" && `Device: ${Array.isArray(value) ? "Multiple Devices" : value}`}
                         {type === "date" && `Date: ${new Date(value).toLocaleDateString()}`}
                     </h2>
                     <button onClick={onClose} className="text-white hover:text-gray-200 transition duration-200">
