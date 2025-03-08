@@ -52,7 +52,10 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                 },
                 onClick: (e, legendItem) => {
                     const category = data.labels[legendItem.index];
-                    onFilter("category", category);
+                    const filteredCandidates = candidates.filter(c => 
+                        /Windows|Ubuntu|Linux|Macintosh/i.test(c.device || "Unknown") ? category === "Desktop" : category === "Mobile"
+                    );
+                    onFilter("category", filteredCandidates);
                 },
             },
             tooltip: {
@@ -96,7 +99,10 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
             if (elements.length > 0) {
                 const index = elements[0].index;
                 const category = data.labels[index];
-                onFilter("category", category);
+                const filteredCandidates = candidates.filter(c => 
+                    /Windows|Ubuntu|Linux|Macintosh/i.test(c.device || "Unknown") ? category === "Desktop" : category === "Mobile"
+                );
+                onFilter("category", filteredCandidates);
             }
         },
     };
