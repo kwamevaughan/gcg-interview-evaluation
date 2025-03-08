@@ -2,17 +2,36 @@
 import { PolarArea } from "react-chartjs-2";
 import { Chart as ChartJS, RadialLinearScale, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { useState } from "react";
 
 ChartJS.register(RadialLinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
 
 export default function DeviceChart({ candidates, mode, onFilter }) {
+    const [showDetails, setShowDetails] = useState(false);
+
+    // Function to group devices into high-level categories
+    const groupDevice = (device) => {
+        if (!device || device === "Unknown") return "Other";
+        if (device.toLowerCase().includes("mobile")) return "Mobile";
+        return "Desktop"; // Windows, Ubuntu, Linux, Macintosh, etc.
+    };
+
+    // Detailed device count (original)
     const deviceCount = candidates.reduce((acc, c) => {
         const device = c.device || "Unknown";
         acc[device] = (acc[device] || 0) + 1;
         return acc;
     }, {});
 
-    const labels = Object.keys(deviceCount);
+    // Grouped device count
+    const groupedCount = candidates.reduce((acc, c) => {
+        const group = groupDevice(c.device);
+        acc[group] = (acc[group] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Determine which data to display based on toggle
+    const labels = showDetails ? Object.keys(deviceCount) : Object.keys(groupedCount);
     const baseColors = [
         "#f05d23", // Main orange
         "#231812", // Secondary brown
@@ -26,7 +45,7 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
         labels: labels,
         datasets: [
             {
-                data: Object.values(deviceCount),
+                data: showDetails ? Object.values(deviceCount) : Object.values(groupedCount),
                 backgroundColor: labels.map((_, index) =>
                     `rgba(${parseInt(baseColors[index % baseColors.length].slice(1, 3), 16)}, ${parseInt(
                         baseColors[index % baseColors.length].slice(3, 5),
@@ -52,8 +71,8 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
                     font: { size: 14 },
                 },
                 onClick: (e, legendItem) => {
-                    const device = data.labels[legendItem.index];
-                    onFilter("device", device);
+                    const label = data.labels[legendItem.index];
+                    onFilter("device", label);
                 },
             },
             tooltip: {
@@ -96,25 +115,35 @@ export default function DeviceChart({ candidates, mode, onFilter }) {
         onClick: (event, elements) => {
             if (elements.length > 0) {
                 const index = elements[0].index;
-                const device = data.labels[index];
-                onFilter("device", device);
+                const label = data.labels[index];
+                onFilter("device", label);
             }
         },
     };
 
     return (
         <div
-            className={`border-t-4 border-[#f05d23] p-6 rounded-xl shadow-lg hover:shadow-xl animate-fade-in transition-shadow duration-500 animate-scale-up ${
+            className={`border-t-4 border-[#f05d23] p-6 rounded-xl shadow-lg hover:shadow-xl animate-fade-in transition-shadow duration-500 ${
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
             <h3
-                className={`text-lg font-semibold mb-6 ${
+                className={`text-lg font-semibold mb-4 ${
                     mode === "dark" ? "text-white" : "text-[#231812]"
                 }`}
             >
                 Device Usage
             </h3>
+            <button
+                onClick={() => setShowDetails(!showDetails)}
+                className={`mb-4 px-4 py-2 rounded-lg transition-colors duration-300 ${
+                    mode === "dark"
+                        ? "bg-[#f05d23] text-white hover:bg-[#ff9f1c]"
+                        : "bg-[#f05d23] text-white hover:bg-[#ff9f1c]"
+                }`}
+            >
+                {showDetails ? "Show Grouped View" : "Show Detailed View"}
+            </button>
             <div className="h-72">
                 <PolarArea data={data} options={options} />
             </div>
