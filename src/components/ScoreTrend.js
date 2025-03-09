@@ -11,7 +11,7 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import "chartjs-adapter-date-fns";
-import "chartjs-plugin-zoom"; // Added for zoom/pan
+import "chartjs-plugin-zoom";
 import { Icon } from "@iconify/react";
 
 ChartJS.register(
@@ -22,15 +22,15 @@ ChartJS.register(
     Tooltip,
     Legend,
     ChartDataLabels,
-    "zoom" // Register zoom plugin
+    "zoom"
 );
 
 export default function ScoreTrend({ candidates, mode, onFilter }) {
     const [timeFilter, setTimeFilter] = useState("current");
-    const [showLabels, setShowLabels] = useState(false); // Toggle for data labels
+    const [showLabels, setShowLabels] = useState(false);
     const currentYear = new Date().getFullYear();
 
-    // Aggregate scores by day (average)
+    // Aggregate scores by day
     const scoresByDateRaw = candidates
         .map((c) => ({
             x: new Date(c.submitted_at).getTime(),
@@ -41,7 +41,7 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
             const year = new Date(entry.x).getFullYear();
             if (timeFilter === "current") return year === currentYear && !isNaN(entry.x);
             if (timeFilter === "last") return year === currentYear - 1 && !isNaN(entry.x);
-            return !isNaN(entry.x); // "all"
+            return !isNaN(entry.x);
         });
 
     const aggregateByDay = scoresByDateRaw.reduce((acc, curr) => {
@@ -60,22 +60,24 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
         }))
         .sort((a, b) => a.x - b.x);
 
+    // Log to verify aggregation
+    console.log("Aggregated scoresByDate:", scoresByDate);
+
     const createGradient = (ctx, chartArea) => {
         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
         gradient.addColorStop(0, "rgba(240, 93, 35, 0)");
-        gradient.addColorStop(1, "rgba(240, 93, 35, 0.5)");
+        gradient.addColorStop(1, "rgba(240, 93, 35, 0.8)"); // More opaque for visibility
         return gradient;
     };
 
     const data = {
         datasets: [
             {
-                label: "Scores Over Time",
+                label: "Daily Average Scores",
                 data: scoresByDate,
                 borderColor: "#f05d23",
                 backgroundColor: (context) => {
-                    const chart = context.chart;
-                    const { ctx, chartArea } = chart;
+                    const { ctx, chartArea } = context.chart;
                     if (!chartArea) return null;
                     return createGradient(ctx, chartArea);
                 },
@@ -84,9 +86,9 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                 pointHoverBackgroundColor: "#d94f1e",
                 fill: true,
                 tension: 0.4,
-                borderWidth: 3,
-                pointRadius: scoresByDate.length > 50 ? 2 : 5, // Dynamic point size
-                pointHoverRadius: scoresByDate.length > 50 ? 4 : 8,
+                borderWidth: 4, // Thicker line
+                pointRadius: scoresByDate.length > 30 ? 3 : 6, // Adjusted threshold
+                pointHoverRadius: scoresByDate.length > 30 ? 6 : 10,
                 pointStyle: "circle",
                 pointBorderWidth: 2,
             },
@@ -106,10 +108,10 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                 },
                 ticks: {
                     color: mode === "dark" ? "#fff" : "#231812",
-                    maxTicksLimit: 10,
+                    maxTicksLimit: 8, // Fewer ticks for clarity
                 },
                 grid: {
-                    color: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(35, 24, 18, 0.1)",
+                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)",
                 },
             },
             y: {
@@ -119,12 +121,12 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                     stepSize: 20,
                 },
                 grid: {
-                    color: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(35, 24, 18, 0.1)",
+                    color: mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(35, 24, 18, 0.2)",
                 },
             },
         },
         plugins: {
-            legend: { display: false },
+            legend: { display: true, position: "top" }, // Show legend for clarity
             tooltip: {
                 backgroundColor: "rgba(240, 93, 35, 0.9)",
                 titleColor: "#fff",
@@ -132,16 +134,16 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                 borderColor: "#231812",
                 borderWidth: 1,
                 cornerRadius: 8,
-                callbacks: { label: (context) => `Score: ${context.raw.y.toFixed(1)}` },
+                callbacks: { label: (context) => `Avg Score: ${context.raw.y.toFixed(1)}` },
             },
             datalabels: {
-                display: showLabels, // Toggleable
+                display: showLabels,
                 color: mode === "dark" ? "#fff" : "#231812",
-                font: { size: 12, weight: "bold" },
+                font: { size: 14, weight: "bold" }, // Larger labels
                 formatter: (value) => value.y.toFixed(1),
                 anchor: "end",
                 align: "top",
-                offset: 5,
+                offset: 8,
                 textShadowBlur: 4,
                 textShadowColor: mode === "dark" ? "#000" : "#ccc",
             },
@@ -155,10 +157,8 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
             },
         },
         animation: {
-            animateScale: true,
-            animateRotate: true,
-            duration: 2000,
-            easing: "easeOutBounce",
+            duration: 1500, // Faster animation
+            easing: "easeOutQuad",
         },
         onClick: (event, elements) => {
             if (elements.length > 0) {
@@ -175,23 +175,23 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
 
     return (
         <div
-            className={`border-t-4 border-[#f05d23] p-6 rounded-xl shadow-lg hover:shadow-xl animate-fade-in transition-shadow duration-500 ${
+            className={`border-t-4 border-[#f05d23] p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-500 ${
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                 <h3
-                    className={`text-lg font-semibold ${
+                    className={`text-xl font-semibold ${
                         mode === "dark" ? "text-white" : "text-[#231812]"
                     }`}
                 >
-                    Score Trend Over Time
+                    Daily Score Trend
                 </h3>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                     <select
                         value={timeFilter}
                         onChange={(e) => handleFilterChange(e.target.value)}
-                        className={`text-sm p-1 rounded border ${
+                        className={`text-sm p-2 rounded border ${
                             mode === "dark"
                                 ? "bg-gray-700 text-white border-gray-600 hover:bg-gray-600"
                                 : "bg-gray-200 text-[#231812] border-gray-300 hover:bg-gray-300"
@@ -203,7 +203,7 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                     </select>
                     <button
                         onClick={() => setShowLabels(!showLabels)}
-                        className={`p-1 rounded-full ${
+                        className={`p-2 rounded-full ${
                             mode === "dark"
                                 ? "text-gray-300 hover:text-white hover:bg-gray-700"
                                 : "text-gray-600 hover:text-[#231812] hover:bg-gray-200"
@@ -212,28 +212,35 @@ export default function ScoreTrend({ candidates, mode, onFilter }) {
                     >
                         <Icon
                             icon={showLabels ? "mdi:label-off" : "mdi:label"}
-                            width={20}
-                            height={20}
+                            width={24}
+                            height={24}
                         />
                     </button>
                     {timeFilter !== "all" && (
                         <button
                             onClick={() => handleFilterChange("all")}
-                            className={`p-1 rounded-full ${
+                            className={`p-2 rounded-full ${
                                 mode === "dark"
                                     ? "text-gray-300 hover:text-white hover:bg-gray-700"
                                     : "text-gray-600 hover:text-[#231812] hover:bg-gray-200"
                             } transition-colors`}
                             title="Show all time"
                         >
-                            <Icon icon="mdi:ellipsis-vertical" width={20} height={20} />
+                            <Icon icon="mdi:ellipsis-vertical" width={24} height={24} />
                         </button>
                     )}
                 </div>
             </div>
-            <div className="h-72">
+            <div className="h-80"> {/* Increased height */}
                 <Line data={data} options={options} />
             </div>
+            <p
+                className={`text-sm mt-2 ${
+                    mode === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
+            >
+                Tip: Scroll to zoom, drag to pan
+            </p>
         </div>
     );
 }
