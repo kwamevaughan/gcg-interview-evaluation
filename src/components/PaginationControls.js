@@ -22,7 +22,7 @@ export default function PaginationControls({
 
     return (
         <div
-            className={`p-4 flex flex-col sm:flex-row justify-between items-center gap-4 ${
+            className={`p-4 flex flex-col sm:flex-row justify-center items-center gap-4 ${
                 mode === "dark" ? "bg-gray-800" : "bg-white"
             }`}
         >
