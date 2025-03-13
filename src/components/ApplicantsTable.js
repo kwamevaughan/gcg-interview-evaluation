@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import TableHeader from "./TableHeader";
+import TableRow from "./TableRow";
+import MobileCard from "./MobileCard";
+import ColumnSelector from "./ColumnSelector";
+import PaginationControls from "./PaginationControls";
 
 export default function ApplicantsTable({
     candidates,
@@ -24,8 +28,8 @@ export default function ApplicantsTable({
         phone: false,
         linkedin: false,
     });
-    const [currentPage, setCurrentPage] = useState(1); // Pagination state
-    const [itemsPerPage, setItemsPerPage] = useState(10); // Default items per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const allColumns = [
         { key: "full_name", label: "Name" },
@@ -44,48 +48,6 @@ export default function ApplicantsTable({
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     const paginatedCandidates = candidates.slice(startIndex, endIndex);
 
-    const getSortIcon = (field) => {
-        if (sortField !== field)
-            return <Icon icon="mdi:sort" className="w-4 sm:w-5 h-4 sm:h-5 ml-1 opacity-50" />;
-        return sortDirection === "asc" ? (
-            <Icon icon="mdi:sort-ascending" className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
-        ) : (
-            <Icon icon="mdi:sort-descending" className="w-4 sm:w-5 h-4 sm:h-5 ml-1" />
-        );
-    };
-
-    const getStatusBadge = (status) => {
-        const baseStyle =
-            "inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold shadow-sm";
-        switch (status) {
-            case "Pending":
-                return <span className={`${baseStyle} bg-yellow-100 text-yellow-800`}>{status}</span>;
-            case "Reviewed":
-                return <span className={`${baseStyle} bg-[#f28c5e] text-white`}>{status}</span>;
-            case "Shortlisted":
-                return <span className={`${baseStyle} bg-green-100 text-green-800`}>{status}</span>;
-            case "Rejected":
-                return <span className={`${baseStyle} bg-red-100 text-red-800`}>{status}</span>;
-            default:
-                return <span className={`${baseStyle} bg-gray-100 text-gray-800`}>{status || "Pending"}</span>;
-        }
-    };
-
-    const handleToggleColumn = (key) => {
-        setVisibleColumns((prev) => {
-            const newState = { ...prev, [key]: !prev[key] };
-            const visibleCount = Object.values(newState).filter(Boolean).length;
-            if (visibleCount === 0) {
-                toast.error("At least one column must be visible!", { icon: "⚠️" });
-                return prev;
-            }
-            toast.success(`${newState[key] ? "Show" : "Hide"} ${allColumns.find((c) => c.key === key).label}`, {
-                icon: "✅",
-            });
-            return newState;
-        });
-    };
-
     const handleSelectAll = (e) => {
         if (e.target.checked) {
             setSelectedIds(candidates.map((c) => c.id));
@@ -100,15 +62,6 @@ export default function ApplicantsTable({
         setSelectedIds((prev) =>
             prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
         );
-    };
-
-    const handlePageChange = (newPage) => {
-        setCurrentPage(newPage);
-    };
-
-    const handleItemsPerPageChange = (e) => {
-        setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1); // Reset to first page when changing items per page
     };
 
     return (
@@ -132,42 +85,12 @@ export default function ApplicantsTable({
                     </button>
                 )}
                 <div className="flex items-center gap-4 ml-auto">
-                    <div className="relative group">
-                        <button
-                            className={`px-4 py-2 rounded-full flex items-center gap-2 transition duration-200 shadow-md ${
-                                mode === "dark"
-                                    ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
-                                    : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
-                            }`}
-                        >
-                            <Icon icon="mdi:table-column" width={20} height={20} />
-                            Columns
-                        </button>
-                        <div
-                            className={`absolute right-0 top-full mt-0 w-48 hidden group-hover:flex flex-col ${
-                                mode === "dark" ? "bg-gray-800 text-gray-300" : "bg-white text-black"
-                            } rounded-lg shadow-lg z-50 border ${mode === "dark" ? "border-gray-700" : "border-gray-200"}`}
-                        >
-                            {allColumns.map((col) => (
-                                <label
-                                    key={col.key}
-                                    className={`flex items-center gap-2 p-2 hover:${
-                                        mode === "dark" ? "bg-gray-700" : "bg-gray-100"
-                                    } cursor-pointer transition-colors`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={visibleColumns[col.key]}
-                                        onChange={() => handleToggleColumn(col.key)}
-                                        className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                    />
-                                    <span className={`text-sm ${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}>
-                                        {col.label}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                    <ColumnSelector
+                        allColumns={allColumns}
+                        visibleColumns={visibleColumns}
+                        setVisibleColumns={setVisibleColumns}
+                        mode={mode}
+                    />
                     <button
                         onClick={() => setIsExportModalOpen(true)}
                         className={`px-4 py-2 rounded-full flex items-center gap-2 transition duration-200 shadow-md ${
@@ -183,202 +106,47 @@ export default function ApplicantsTable({
             </div>
             <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
                 <table className="w-full hidden sm:table">
-                    <thead className="sticky top-0 z-10">
-                        <tr className={`${mode === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-[#231812]"}`}>
-                            <th className="p-2 sm:p-5">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedIds.length === candidates.length && candidates.length > 0}
-                                    onChange={handleSelectAll}
-                                    className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                />
-                            </th>
-                            {allColumns.map(
-                                (col) =>
-                                    visibleColumns[col.key] && (
-                                        <th
-                                            key={col.key}
-                                            className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold cursor-pointer"
-                                            onClick={() => onSort(col.key)}
-                                        >
-                                            <span className="inline-flex items-center">
-                                                {col.label} {getSortIcon(col.key)}
-                                            </span>
-                                        </th>
-                                    )
-                            )}
-                            <th className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold">Actions</th>
-                        </tr>
-                    </thead>
+                    <TableHeader
+                        allColumns={allColumns}
+                        visibleColumns={visibleColumns}
+                        sortField={sortField}
+                        sortDirection={sortDirection}
+                        onSort={onSort}
+                        selectedIds={selectedIds}
+                        candidates={candidates}
+                        handleSelectAll={handleSelectAll}
+                        mode={mode}
+                    />
                     <tbody>
-                        {paginatedCandidates.map((candidate, index) => {
-                            const percentage = candidate.questions.length
-                                ? Math.round((candidate.score / (candidate.questions.length * 10)) * 100)
-                                : 0;
-                            return (
-                                <tr
-                                    key={candidate.id}
-                                    className={`border-b hover:bg-opacity-80 transition duration-200 animate-fade-in ${
-                                        index % 2 === 0
-                                            ? mode === "dark"
-                                                ? "bg-gray-900"
-                                                : "bg-gray-50"
-                                            : mode === "dark"
-                                                ? "bg-gray-800"
-                                                : "bg-white"
-                                    } ${
-                                        mode === "dark"
-                                            ? "border-gray-700 hover:bg-gray-700 text-white"
-                                            : "border-gray-200 hover:bg-gray-100 text-[#231812]"
-                                    }`}
-                                >
-                                    <td className="p-2 sm:p-5">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.includes(candidate.id)}
-                                            onChange={() => handleSelectRow(candidate.id)}
-                                            className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                        />
-                                    </td>
-                                    {visibleColumns.full_name && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.full_name}</td>
-                                    )}
-                                    {visibleColumns.email && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.email}</td>
-                                    )}
-                                    {visibleColumns.opening && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.opening}</td>
-                                    )}
-                                    {visibleColumns.score && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                            {candidate.score}/{candidate.questions.length * 10} ({percentage}%)
-                                        </td>
-                                    )}
-                                    {visibleColumns.status && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                            {getStatusBadge(candidate.status)}
-                                        </td>
-                                    )}
-                                    {visibleColumns.phone && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.phone || "-"}</td>
-                                    )}
-                                    {visibleColumns.linkedin && (
-                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                            {candidate.linkedin || "-"}
-                                        </td>
-                                    )}
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base flex flex-col sm:flex-row gap-2">
-                                        <button
-                                            onClick={() => onViewCandidate(candidate)}
-                                            className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
-                                                mode === "dark"
-                                                    ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
-                                                    : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
-                                            }`}
-                                        >
-                                            <Icon icon="mdi:eye" width={16} height={16} />
-                                            View
-                                        </button>
-                                        <button
-                                            onClick={() => onDeleteCandidate(candidate.id)}
-                                            className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
-                                                mode === "dark"
-                                                    ? "bg-red-700 text-white hover:bg-red-600"
-                                                    : "bg-red-500 text-white hover:bg-red-600"
-                                            }`}
-                                        >
-                                            <Icon icon="mdi:trash-can" width={16} height={16} />
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                        {paginatedCandidates.map((candidate, index) => (
+                            <TableRow
+                                key={candidate.id}
+                                candidate={candidate}
+                                index={index}
+                                visibleColumns={visibleColumns}
+                                selectedIds={selectedIds}
+                                handleSelectRow={handleSelectRow}
+                                onViewCandidate={onViewCandidate}
+                                onDeleteCandidate={onDeleteCandidate}
+                                mode={mode}
+                            />
+                        ))}
                     </tbody>
                 </table>
 
-                {/* Card layout for mobile */}
                 <div className="sm:hidden space-y-4 p-2">
-                    {paginatedCandidates.map((candidate) => {
-                        const percentage = candidate.questions.length
-                            ? Math.round((candidate.score / (candidate.questions.length * 10)) * 100)
-                            : 0;
-                        return (
-                            <div
-                                key={candidate.id}
-                                className={`p-3 rounded-lg border animate-fade-in ${
-                                    mode === "dark"
-                                        ? "bg-gray-700 border-gray-600 text-gray-300"
-                                        : "bg-gray-50 border-gray-200 text-gray-800"
-                                }`}
-                            >
-                                <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.includes(candidate.id)}
-                                        onChange={() => handleSelectRow(candidate.id)}
-                                        className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                    />
-                                    {visibleColumns.full_name && (
-                                        <div className="text-sm font-semibold">{candidate.full_name}</div>
-                                    )}
-                                </div>
-                                {visibleColumns.email && (
-                                    <div className="text-xs mb-1">
-                                        <span className="font-medium">Email:</span> {candidate.email}
-                                    </div>
-                                )}
-                                {visibleColumns.opening && (
-                                    <div className="text-xs mb-1">
-                                        <span className="font-medium">Opening:</span> {candidate.opening}
-                                    </div>
-                                )}
-                                {visibleColumns.score && (
-                                    <div className="text-xs mb-1">
-                                        <span className="font-medium">Score:</span>{" "}
-                                        {candidate.score}/{candidate.questions.length * 10} ({percentage}%)
-                                    </div>
-                                )}
-                                {visibleColumns.status && (
-                                    <div className="text-xs mb-2">{getStatusBadge(candidate.status)}</div>
-                                )}
-                                {visibleColumns.phone && (
-                                    <div className="text-xs mb-1">
-                                        <span className="font-medium">Phone:</span> {candidate.phone || "-"}
-                                    </div>
-                                )}
-                                {visibleColumns.linkedin && (
-                                    <div className="text-xs mb-1">
-                                        <span className="font-medium">LinkedIn:</span> {candidate.linkedin || "-"}
-                                    </div>
-                                )}
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() => onViewCandidate(candidate)}
-                                        className={`px-2 py-1 rounded-full flex items-center gap-1 transition duration-200 shadow-md text-xs ${
-                                            mode === "dark"
-                                                ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
-                                                : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
-                                        }`}
-                                    >
-                                        <Icon icon="mdi:eye" width={14} height={14} />
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={() => onDeleteCandidate(candidate.id)}
-                                        className={`px-2 py-1 rounded-full flex items-center gap-1 transition duration-200 shadow-md text-xs ${
-                                            mode === "dark"
-                                                ? "bg-red-700 text-white hover:bg-red-600"
-                                                : "bg-red-500 text-white hover:bg-red-600"
-                                        }`}
-                                    >
-                                        <Icon icon="mdi:trash-can" width={14} height={14} />
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {paginatedCandidates.map((candidate) => (
+                        <MobileCard
+                            key={candidate.id}
+                            candidate={candidate}
+                            visibleColumns={visibleColumns}
+                            selectedIds={selectedIds}
+                            handleSelectRow={handleSelectRow}
+                            onViewCandidate={onViewCandidate}
+                            onDeleteCandidate={onDeleteCandidate}
+                            mode={mode}
+                        />
+                    ))}
                 </div>
 
                 {paginatedCandidates.length === 0 && (
@@ -390,62 +158,18 @@ export default function ApplicantsTable({
                 )}
             </div>
 
-            {/* Pagination Controls */}
             {totalItems > 0 && (
-                <div className={`p-4 flex flex-col sm:flex-row justify-between items-center gap-4 ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
-                    <div className="flex items-center gap-2">
-                        <label className={`${mode === "dark" ? "text-gray-300" : "text-[#231812]"} text-sm`}>
-                            Items per page:
-                        </label>
-                        <select
-                            value={itemsPerPage}
-                            onChange={handleItemsPerPageChange}
-                            className={`p-1 border rounded-lg ${
-                                mode === "dark"
-                                    ? "bg-gray-700 text-white border-gray-600"
-                                    : "bg-white text-[#231812] border-gray-300"
-                            }`}
-                        >
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                                currentPage === 1
-                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                    : mode === "dark"
-                                    ? "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
-                                    : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
-                            } transition duration-200`}
-                        >
-                            <Icon icon="mdi:chevron-left" width={20} height={20} />
-                            Previous
-                        </button>
-                        <span className={`${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}>
-                            Page {currentPage} of {totalPages} ({startIndex + 1}-{endIndex} of {totalItems})
-                        </span>
-                        <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                                currentPage === totalPages
-                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                    : mode === "dark"
-                                    ? "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
-                                    : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
-                            } transition duration-200`}
-                        >
-                            Next
-                            <Icon icon="mdi:chevron-right" width={20} height={20} />
-                        </button>
-                    </div>
-                </div>
+                <PaginationControls
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                    setItemsPerPage={setItemsPerPage}
+                    totalItems={totalItems}
+                    totalPages={totalPages}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    mode={mode}
+                />
             )}
         </div>
     );
