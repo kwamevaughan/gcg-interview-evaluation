@@ -89,8 +89,8 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
                     className={mode === "dark" ? "text-gray-400" : "text-gray-500"}
                 />
             </td>
-            <td className="p-2 sm:p-4 text-xs sm:text-sm">{question.order + 1}</td>
-            <td className="p-2 sm:p-4 text-xs sm:text-sm">
+            <td className="p-2 sm:p-4 text-xs sm:text-base">{question.order + 1}</td>
+            <td className="p-2 sm:p-4 text-xs sm:text-base">
                 <div
                     className={`prose max-w-none line-clamp-2 ${
                         mode === "dark" ? "text-gray-200" : "text-gray-800"
@@ -98,11 +98,11 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
                     dangerouslySetInnerHTML={{ __html: question.text }}
                 />
             </td>
-            <td className="p-2 sm:p-4 text-xs sm:text-sm">{question.options.join("; ")}</td>
-            <td className="p-2 sm:p-4 text-xs sm:text-sm">
+            <td className="p-2 sm:p-4 text-xs sm:text-base">{question.options.join("; ")}</td>
+            <td className="p-2 sm:p-4 text-xs sm:text-base">
                 {question.points ? JSON.stringify(question.points) : "None"}
             </td>
-            <td className="p-2 sm:p-4 text-xs sm:text-sm flex flex-col sm:flex-row gap-2">
+            <td className="p-2 sm:p-4 text-xs sm:text-base flex flex-col sm:flex-row gap-2">
                 <button
                     onClick={() => onEdit(question)}
                     className="px-2 sm:px-3 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
@@ -123,15 +123,15 @@ const DraggableQuestion = ({ question, index, moveQuestion, mode, onEdit, delete
 };
 
 export default function QuestionTable({
-                                          questions,
-                                          mode,
-                                          onEdit,
-                                          moveQuestion,
-                                          handleSort,
-                                          sortField,
-                                          sortDirection,
-                                          deleteQuestion,
-                                      }) {
+    questions,
+    mode,
+    onEdit,
+    moveQuestion,
+    handleSort,
+    sortField,
+    sortDirection,
+    deleteQuestion,
+}) {
     const handleMobileDelete = (question) => {
         const cleanText = stripHtmlTags(question.text); // Strip HTML tags
         toast.custom(
@@ -185,61 +185,61 @@ export default function QuestionTable({
                 {/* Table for larger screens */}
                 <table className="w-full hidden sm:table">
                     <thead className="sticky top-0 z-10">
-                    <tr
-                        className={`${
-                            mode === "dark" ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-800"
-                        }`}
-                    >
-                        <th className="p-2 sm:p-4 w-8 sm:w-12"></th>
-                        <th
-                            className="flex p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold cursor-pointer"
-                            onClick={() => handleSort("order")}
+                        <tr
+                            className={`${
+                                mode === "dark" ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-800"
+                            }`}
                         >
-                            Order{" "}
-                            {sortField === "order" && (
-                                <Icon
-                                    icon={sortDirection === "asc" ? "mdi:arrow-up" : "mdi:arrow-down"}
-                                    width={14}
-                                    height={14}
-                                    className={`inline ${
-                                        mode === "dark" ? "text-gray-200" : "text-gray-800"
-                                    }`}
-                                />
-                            )}
-                        </th>
-                        <th
-                            className="p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold cursor-pointer"
-                            onClick={() => handleSort("text")}
-                        >
-                            Question{" "}
-                            {sortField === "text" && (
-                                <Icon
-                                    icon={sortDirection === "asc" ? "mdi:arrow-up" : "mdi:arrow-down"}
-                                    width={14}
-                                    height={14}
-                                    className={`inline ${
-                                        mode === "dark" ? "text-gray-200" : "text-gray-800"
-                                    }`}
-                                />
-                            )}
-                        </th>
-                        <th className="p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold">Options</th>
-                        <th className="p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold">Points</th>
-                        <th className="p-2 sm:p-4 text-left text-xs sm:text-sm font-semibold">Actions</th>
-                    </tr>
+                            <th className="p-2 sm:p-4 w-8 sm:w-12"></th>
+                            <th
+                                className="flex p-2 sm:p-4 text-left text-xs sm:text-base font-semibold cursor-pointer"
+                                onClick={() => handleSort("order")}
+                            >
+                                Order{" "}
+                                {sortField === "order" && (
+                                    <Icon
+                                        icon={sortDirection === "asc" ? "mdi:arrow-up" : "mdi:arrow-down"}
+                                        width={14}
+                                        height={14}
+                                        className={`inline ${
+                                            mode === "dark" ? "text-gray-200" : "text-gray-800"
+                                        }`}
+                                    />
+                                )}
+                            </th>
+                            <th
+                                className="p-2 sm:p-4 text-left text-xs sm:text-base font-semibold cursor-pointer"
+                                onClick={() => handleSort("text")}
+                            >
+                                Question{" "}
+                                {sortField === "text" && (
+                                    <Icon
+                                        icon={sortDirection === "asc" ? "mdi:arrow-up" : "mdi:arrow-down"}
+                                        width={14}
+                                        height={14}
+                                        className={`inline ${
+                                            mode === "dark" ? "text-gray-200" : "text-gray-800"
+                                        }`}
+                                    />
+                                )}
+                            </th>
+                            <th className="p-2 sm:p-4 text-left text-xs sm:text-base font-semibold">Options</th>
+                            <th className="p-2 sm:p-4 text-left text-xs sm:text-base font-semibold">Points</th>
+                            <th className="p-2 sm:p-4 text-left text-xs sm:text-base font-semibold">Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {questions.map((question, index) => (
-                        <DraggableQuestion
-                            key={question.id}
-                            question={question}
-                            index={index}
-                            moveQuestion={moveQuestion}
-                            mode={mode}
-                            onEdit={onEdit}
-                            deleteQuestion={deleteQuestion}
-                        />
-                    ))}
+                        {questions.map((question, index) => (
+                            <DraggableQuestion
+                                key={question.id}
+                                question={question}
+                                index={index}
+                                moveQuestion={moveQuestion}
+                                mode={mode}
+                                onEdit={onEdit}
+                                deleteQuestion={deleteQuestion}
+                            />
+                        ))}
                     </tbody>
                 </table>
 
