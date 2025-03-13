@@ -126,7 +126,7 @@ const HRHeader = ({
                         onClick={() => setDropdownOpen(!dropdownOpen)}
                     >
                         <div className="flex items-center gap-2 cursor-pointer">
-                            <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <div className="w-10 h-10 overflow-hidden">
                                 <Image
                                     src={mode === "dark" ? "/favicon-white.png" : "/favicon.png"}
                                     alt="User Profile"
@@ -168,7 +168,7 @@ const HRHeader = ({
                                 <div className="p-8">
                                     <p className="text-lg mb-6">User Profile</p>
                                     <div className="flex items-center gap-2 border-b pb-6 w-full">
-                                        <div className="rounded-full overflow-hidden flex-shrink-0">
+                                        <div className="overflow-hidden flex-shrink-0">
                                             <Image
                                                 src={mode === "dark" ? "/favicon-white.png" : "/favicon.png"}
                                                 alt="User Profile"
