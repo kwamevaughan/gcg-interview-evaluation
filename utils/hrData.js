@@ -1,19 +1,16 @@
-// src/utils/hrData.js
 import { supabaseServer } from "@/lib/supabaseServer";
 
-export async function fetchHRData({ page = 1, limit = 50, fetchCandidates = true, fetchQuestions = true } = {}) {
+export async function fetchHRData({ fetchCandidates = true, fetchQuestions = true } = {}) {
     try {
         const queries = [];
         if (fetchCandidates) {
             queries.push(
                 supabaseServer
                     .from("candidates")
-                    .select("id, full_name, email, phone, linkedin, opening")
-                    .range((page - 1) * limit, page * limit - 1),
+                    .select("id, full_name, email, phone, linkedin, opening"),
                 supabaseServer
                     .from("responses")
                     .select("user_id, answers, score, resume_url, cover_letter_url, status, country, device, submitted_at")
-                    .range((page - 1) * limit, page * limit - 1)
             );
         }
         if (fetchQuestions) {

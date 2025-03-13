@@ -1,21 +1,20 @@
-// src/components/ApplicantsTable.js
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 
 export default function ApplicantsTable({
-                                            candidates,
-                                            mode,
-                                            onViewCandidate,
-                                            onDeleteCandidate,
-                                            onSort,
-                                            sortField,
-                                            sortDirection,
-                                            selectedIds,
-                                            setSelectedIds,
-                                            handleBulkDelete,
-                                            setIsExportModalOpen,
-                                        }) {
+    candidates,
+    mode,
+    onViewCandidate,
+    onDeleteCandidate,
+    onSort,
+    sortField,
+    sortDirection,
+    selectedIds,
+    setSelectedIds,
+    handleBulkDelete,
+    setIsExportModalOpen,
+}) {
     const [visibleColumns, setVisibleColumns] = useState({
         full_name: true,
         email: true,
@@ -25,6 +24,8 @@ export default function ApplicantsTable({
         phone: false,
         linkedin: false,
     });
+    const [currentPage, setCurrentPage] = useState(1); // Pagination state
+    const [itemsPerPage, setItemsPerPage] = useState(10); // Default items per page
 
     const allColumns = [
         { key: "full_name", label: "Name" },
@@ -35,6 +36,13 @@ export default function ApplicantsTable({
         { key: "phone", label: "Phone" },
         { key: "linkedin", label: "LinkedIn" },
     ];
+
+    // Pagination logic
+    const totalItems = candidates.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const paginatedCandidates = candidates.slice(startIndex, endIndex);
 
     const getSortIcon = (field) => {
         if (sortField !== field)
@@ -53,7 +61,7 @@ export default function ApplicantsTable({
             case "Pending":
                 return <span className={`${baseStyle} bg-yellow-100 text-yellow-800`}>{status}</span>;
             case "Reviewed":
-                return <span className={`${baseStyle} bg-[#f28c5e] text-white`}>{status}</span>; // Lighter orange
+                return <span className={`${baseStyle} bg-[#f28c5e] text-white`}>{status}</span>;
             case "Shortlisted":
                 return <span className={`${baseStyle} bg-green-100 text-green-800`}>{status}</span>;
             case "Rejected":
@@ -94,6 +102,15 @@ export default function ApplicantsTable({
         );
     };
 
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1); // Reset to first page when changing items per page
+    };
+
     return (
         <div
             className={`rounded-lg shadow-lg overflow-hidden border-t-4 border-[#f05d23] ${
@@ -110,7 +127,7 @@ export default function ApplicantsTable({
                                 : "bg-red-500 text-white hover:bg-red-600"
                         }`}
                     >
-                        <Icon icon="mdi:trash-can" width={20} height={20}/>
+                        <Icon icon="mdi:trash-can" width={20} height={20} />
                         Delete Selected ({selectedIds.length})
                     </button>
                 )}
@@ -123,15 +140,20 @@ export default function ApplicantsTable({
                                     : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
                             }`}
                         >
-                            <Icon icon="mdi:table-column" width={20} height={20}/>
+                            <Icon icon="mdi:table-column" width={20} height={20} />
                             Columns
                         </button>
                         <div
-                            className={`absolute right-0 top-full mt-0 w-48 hidden group-hover:flex flex-col ${mode === "dark" ? "bg-gray-800 text-gray-300" : "bg-white text-black"} rounded-lg shadow-lg z-50 border ${mode === "dark" ? "border-gray-700" : "border-gray-200"}`}>
+                            className={`absolute right-0 top-full mt-0 w-48 hidden group-hover:flex flex-col ${
+                                mode === "dark" ? "bg-gray-800 text-gray-300" : "bg-white text-black"
+                            } rounded-lg shadow-lg z-50 border ${mode === "dark" ? "border-gray-700" : "border-gray-200"}`}
+                        >
                             {allColumns.map((col) => (
                                 <label
                                     key={col.key}
-                                    className={`flex items-center gap-2 p-2 hover:${mode === "dark" ? "bg-gray-700" : "bg-gray-100"} cursor-pointer transition-colors`}
+                                    className={`flex items-center gap-2 p-2 hover:${
+                                        mode === "dark" ? "bg-gray-700" : "bg-gray-100"
+                                    } cursor-pointer transition-colors`}
                                 >
                                     <input
                                         type="checkbox"
@@ -139,11 +161,9 @@ export default function ApplicantsTable({
                                         onChange={() => handleToggleColumn(col.key)}
                                         className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
                                     />
-                                    <span
-                                        className={`text-sm ${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}
-                                    >
-                        {col.label}
-                    </span>
+                                    <span className={`text-sm ${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}>
+                                        {col.label}
+                                    </span>
                                 </label>
                             ))}
                         </div>
@@ -156,140 +176,130 @@ export default function ApplicantsTable({
                                 : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
                         }`}
                     >
-                        <Icon icon="mdi:export" width={20} height={20}/>
+                        <Icon icon="mdi:export" width={20} height={20} />
                         Export
                     </button>
                 </div>
-
             </div>
-            <div
-                className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
+            <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#f05d23] scrollbar-track-gray-200">
                 <table className="w-full hidden sm:table">
                     <thead className="sticky top-0 z-10">
-                    <tr
-                        className={`${
-                            mode === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-[#231812]"
-                        }`}
-                    >
-                        <th className="p-2 sm:p-5">
-                            <input
-                                type="checkbox"
-                                checked={selectedIds.length === candidates.length && candidates.length > 0}
-                                onChange={handleSelectAll}
-                                className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                            />
-                        </th>
-                        {allColumns.map(
-                            (col) =>
-                                visibleColumns[col.key] && (
-                                    <th
-                                        key={col.key}
-                                        className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold cursor-pointer"
-                                        onClick={() => onSort(col.key)}
-                                    >
+                        <tr className={`${mode === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-[#231812]"}`}>
+                            <th className="p-2 sm:p-5">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.length === candidates.length && candidates.length > 0}
+                                    onChange={handleSelectAll}
+                                    className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
+                                />
+                            </th>
+                            {allColumns.map(
+                                (col) =>
+                                    visibleColumns[col.key] && (
+                                        <th
+                                            key={col.key}
+                                            className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold cursor-pointer"
+                                            onClick={() => onSort(col.key)}
+                                        >
                                             <span className="inline-flex items-center">
                                                 {col.label} {getSortIcon(col.key)}
                                             </span>
-                                    </th>
-                                )
-                        )}
-                        <th className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold">Actions</th>
-                    </tr>
+                                        </th>
+                                    )
+                            )}
+                            <th className="p-2 sm:p-5 text-left text-xs sm:text-sm font-semibold">Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {candidates.map((candidate, index) => {
-                        const percentage = candidate.questions.length
-                            ? Math.round((candidate.score / (candidate.questions.length * 10)) * 100)
-                            : 0;
-                        return (
-                            <tr
-                                key={candidate.id}
-                                className={`border-b hover:bg-opacity-80 transition duration-200 animate-fade-in ${
-                                    index % 2 === 0
-                                        ? mode === "dark"
-                                            ? "bg-gray-900"
-                                            : "bg-gray-50"
-                                        : mode === "dark"
-                                            ? "bg-gray-800"
-                                            : "bg-white"
-                                } ${
-                                    mode === "dark"
-                                        ? "border-gray-700 hover:bg-gray-700 text-white"
-                                        : "border-gray-200 hover:bg-gray-100 text-[#231812]"
-                                }`}
-                            >
-                                <td className="p-2 sm:p-5">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.includes(candidate.id)}
-                                        onChange={() => handleSelectRow(candidate.id)}
-                                        className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
-                                    />
-                                </td>
-                                {visibleColumns.full_name && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                        {candidate.full_name}
+                        {paginatedCandidates.map((candidate, index) => {
+                            const percentage = candidate.questions.length
+                                ? Math.round((candidate.score / (candidate.questions.length * 10)) * 100)
+                                : 0;
+                            return (
+                                <tr
+                                    key={candidate.id}
+                                    className={`border-b hover:bg-opacity-80 transition duration-200 animate-fade-in ${
+                                        index % 2 === 0
+                                            ? mode === "dark"
+                                                ? "bg-gray-900"
+                                                : "bg-gray-50"
+                                            : mode === "dark"
+                                                ? "bg-gray-800"
+                                                : "bg-white"
+                                    } ${
+                                        mode === "dark"
+                                            ? "border-gray-700 hover:bg-gray-700 text-white"
+                                            : "border-gray-200 hover:bg-gray-100 text-[#231812]"
+                                    }`}
+                                >
+                                    <td className="p-2 sm:p-5">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(candidate.id)}
+                                            onChange={() => handleSelectRow(candidate.id)}
+                                            className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
+                                        />
                                     </td>
-                                )}
-                                {visibleColumns.email && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.email}</td>
-                                )}
-                                {visibleColumns.opening && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                        {candidate.opening}
+                                    {visibleColumns.full_name && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.full_name}</td>
+                                    )}
+                                    {visibleColumns.email && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.email}</td>
+                                    )}
+                                    {visibleColumns.opening && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.opening}</td>
+                                    )}
+                                    {visibleColumns.score && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
+                                            {candidate.score}/{candidate.questions.length * 10} ({percentage}%)
+                                        </td>
+                                    )}
+                                    {visibleColumns.status && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
+                                            {getStatusBadge(candidate.status)}
+                                        </td>
+                                    )}
+                                    {visibleColumns.phone && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.phone || "-"}</td>
+                                    )}
+                                    {visibleColumns.linkedin && (
+                                        <td className="p-2 sm:p-5 text-xs sm:text-base">
+                                            {candidate.linkedin || "-"}
+                                        </td>
+                                    )}
+                                    <td className="p-2 sm:p-5 text-xs sm:text-base flex flex-col sm:flex-row gap-2">
+                                        <button
+                                            onClick={() => onViewCandidate(candidate)}
+                                            className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
+                                                mode === "dark"
+                                                    ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
+                                                    : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
+                                            }`}
+                                        >
+                                            <Icon icon="mdi:eye" width={16} height={16} />
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => onDeleteCandidate(candidate.id)}
+                                            className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
+                                                mode === "dark"
+                                                    ? "bg-red-700 text-white hover:bg-red-600"
+                                                    : "bg-red-500 text-white hover:bg-red-600"
+                                            }`}
+                                        >
+                                            <Icon icon="mdi:trash-can" width={16} height={16} />
+                                            Delete
+                                        </button>
                                     </td>
-                                )}
-                                {visibleColumns.score && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                        {candidate.score}/{candidate.questions.length * 10} ({percentage}%)
-                                    </td>
-                                )}
-                                {visibleColumns.status && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                        {getStatusBadge(candidate.status)}
-                                    </td>
-                                )}
-                                {visibleColumns.phone && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">{candidate.phone || "-"}</td>
-                                )}
-                                {visibleColumns.linkedin && (
-                                    <td className="p-2 sm:p-5 text-xs sm:text-base">
-                                        {candidate.linkedin || "-"}
-                                    </td>
-                                )}
-                                <td className="p-2 sm:p-5 text-xs sm:text-base flex flex-col sm:flex-row gap-2">
-                                    <button
-                                        onClick={() => onViewCandidate(candidate)}
-                                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
-                                            mode === "dark"
-                                                ? "bg-gray-700 text-[#f05d23] hover:bg-gray-600"
-                                                : "bg-gray-200 text-[#f05d23] hover:bg-gray-300"
-                                        }`}
-                                    >
-                                        <Icon icon="mdi:eye" width={16} height={16} />
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={() => onDeleteCandidate(candidate.id)}
-                                        className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2 transition duration-200 shadow-md text-xs sm:text-base ${
-                                            mode === "dark"
-                                                ? "bg-red-700 text-white hover:bg-red-600"
-                                                : "bg-red-500 text-white hover:bg-red-600"
-                                        }`}
-                                    >
-                                        <Icon icon="mdi:trash-can" width={16} height={16} />
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        );
-                    })}
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
 
                 {/* Card layout for mobile */}
                 <div className="sm:hidden space-y-4 p-2">
-                    {candidates.map((candidate) => {
+                    {paginatedCandidates.map((candidate) => {
                         const percentage = candidate.questions.length
                             ? Math.round((candidate.score / (candidate.questions.length * 10)) * 100)
                             : 0;
@@ -310,9 +320,7 @@ export default function ApplicantsTable({
                                         className="h-4 w-4 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23]"
                                     />
                                     {visibleColumns.full_name && (
-                                        <div className="text-sm font-semibold">
-                                            {candidate.full_name}
-                                        </div>
+                                        <div className="text-sm font-semibold">{candidate.full_name}</div>
                                     )}
                                 </div>
                                 {visibleColumns.email && (
@@ -341,8 +349,7 @@ export default function ApplicantsTable({
                                 )}
                                 {visibleColumns.linkedin && (
                                     <div className="text-xs mb-1">
-                                        <span className="font-medium">LinkedIn:</span>{" "}
-                                        {candidate.linkedin || "-"}
+                                        <span className="font-medium">LinkedIn:</span> {candidate.linkedin || "-"}
                                     </div>
                                 )}
                                 <div className="flex flex-wrap gap-2">
@@ -374,16 +381,72 @@ export default function ApplicantsTable({
                     })}
                 </div>
 
-                {candidates.length === 0 && (
+                {paginatedCandidates.length === 0 && (
                     <p
-                        className={`text-center p-4 italic ${
-                            mode === "dark" ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className={`text-center p-4 italic ${mode === "dark" ? "text-gray-400" : "text-gray-500"}`}
                     >
-                        No applicants available yet.
+                        No applicants available on this page.
                     </p>
                 )}
             </div>
+
+            {/* Pagination Controls */}
+            {totalItems > 0 && (
+                <div className={`p-4 flex flex-col sm:flex-row justify-between items-center gap-4 ${mode === "dark" ? "bg-gray-800" : "bg-white"}`}>
+                    <div className="flex items-center gap-2">
+                        <label className={`${mode === "dark" ? "text-gray-300" : "text-[#231812]"} text-sm`}>
+                            Items per page:
+                        </label>
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className={`p-1 border rounded-lg ${
+                                mode === "dark"
+                                    ? "bg-gray-700 text-white border-gray-600"
+                                    : "bg-white text-[#231812] border-gray-300"
+                            }`}
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                                currentPage === 1
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    : mode === "dark"
+                                    ? "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
+                                    : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
+                            } transition duration-200`}
+                        >
+                            <Icon icon="mdi:chevron-left" width={20} height={20} />
+                            Previous
+                        </button>
+                        <span className={`${mode === "dark" ? "text-gray-300" : "text-[#231812]"}`}>
+                            Page {currentPage} of {totalPages} ({startIndex + 1}-{endIndex} of {totalItems})
+                        </span>
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                                currentPage === totalPages
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    : mode === "dark"
+                                    ? "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
+                                    : "bg-[#f05d23] text-white hover:bg-[#d94f1e]"
+                            } transition duration-200`}
+                        >
+                            Next
+                            <Icon icon="mdi:chevron-right" width={20} height={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
