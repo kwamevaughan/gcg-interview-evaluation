@@ -81,7 +81,7 @@ export default function JobDescriptionModal({ isOpen, onClose, onProceed, select
                             <Icon icon="mdi:calendar-clock" className="w-6 h-6 text-[#f05d23] mr-2" />
                             <p className="text-[#231812]">
                                 <strong>{isExpired(expires_on) ? "Expired on" : "Expires on"}:</strong>{" "}
-                                {new Date(expires_on).toLocaleDateString()}
+                                {new Date(expires_on).toLocaleDateString("en-GB")}
                             </p>
                         </div>
                     </div>
