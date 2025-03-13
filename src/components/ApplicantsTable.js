@@ -5,6 +5,8 @@ import TableRow from "./TableRow";
 import MobileCard from "./MobileCard";
 import ColumnSelector from "./ColumnSelector";
 import PaginationControls from "./PaginationControls";
+import { Icon } from "@iconify/react";
+
 
 export default function ApplicantsTable({
     candidates,
