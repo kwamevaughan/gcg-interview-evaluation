@@ -19,7 +19,7 @@ export default function HRAnalytics({ mode = "light", toggleMode }) {
         >
             <Toaster position="top-right" reverseOrder={false} />
             <HRHeader mode={mode} toggleMode={toggleMode} onLogout={handleLogout} />
-            <div className="flex flex-1">
+            
                 <HRSidebar
                     isOpen={isSidebarOpen}
                     mode={mode}
@@ -38,7 +38,7 @@ export default function HRAnalytics({ mode = "light", toggleMode }) {
                         Placeholder for applicant stats coming soon...
                     </p>
                 </div>
-            </div>
+            
             <footer
                 className={`p-4 text-center text-sm shadow-inner ${
                     mode === "dark" ? "bg-gray-900 text-gray-400" : "bg-white text-gray-500"
