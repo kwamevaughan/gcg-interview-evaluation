@@ -102,6 +102,11 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                             icon: "lsicon:email-send-outline",
                             label: "Email Templates",
                         },
+                        {
+                            href: "/hr/automations",
+                            icon: "carbon:power-virtual-server-disaster-recovery-automation",
+                            label: "Automations",
+                        },
                     ].map(({ href, icon, label }) => (
                         <li key={href} className="py-2">
                             <button
