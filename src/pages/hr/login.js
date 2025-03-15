@@ -174,7 +174,7 @@ export default function HRLogin() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-[#f05d23] focus:border-transparent transition-all duration-200 text-[#231812] placeholder-gray-400"
-                                    placeholder="Enter GCG analytics email"
+                                    placeholder="Enter GCG email"
                                     required
                                 />
                             </div>
