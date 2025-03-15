@@ -89,7 +89,7 @@ serve(async () => {
             }
         } else if (automation.action_type === "notify") {
             if (automation.notify_type === "slack") {
-                const slackWebhookUrl = Deno.env.get("SLACK_WEBHOOK_URL") || "https://hooks.slack.com/services/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";
+                const slackWebhookUrl = Deno.env.get("SLACK_WEBHOOK_URL");
                 const candidateList = candidates.slice(0, 10).map((c) => `- ${c.full_name} (Score: ${c.responses.score})`).join("\n");
                 const message = `*Automation Triggered: ${automation.condition_field} ${automation.condition_operator} ${automation.condition_value}*\n` +
                                 `${candidates.length} candidates need review:\n${candidateList}${candidates.length > 10 ? "\n...and more" : ""}\n` +
