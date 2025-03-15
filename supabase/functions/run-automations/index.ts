@@ -8,7 +8,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 serve(async () => {
     const now = new Date();
 
-    // Fetch active automations
     const { data: automations, error } = await supabase
         .from("automations")
         .select("*")
@@ -25,17 +24,16 @@ serve(async () => {
             const start = new Date(automation.start_date);
             const end = new Date(automation.end_date);
             if (now < start || now > end) continue;
-        } else if (automation.schedule_type === "hourly") {
+        } else if (automation.schedule_type === "forever" || automation.schedule_type === "hourly") {
             const lastRun = automation.last_run ? new Date(automation.last_run) : new Date(0);
             const hoursSinceLastRun = (now - lastRun) / (1000 * 60 * 60);
             if (hoursSinceLastRun < automation.interval_hours) continue;
         }
 
-        // Fetch matching candidates
+        // Fetch candidates
         let query = supabase
             .from("candidates")
-            .select("id, full_name, email, responses!inner(score, status, submitted_at, user_id)")
-            .eq("responses.user_id", supabase.raw("candidates.id"));
+            .select("id, full_name, email, responses!inner(score, status, submitted_at, user_id)");
 
         if (automation.condition_field === "score") {
             query = query[automation.condition_operator === ">" ? "gt" : automation.condition_operator === "<" ? "lt" : "eq"]("responses.score", automation.condition_value);
@@ -53,19 +51,22 @@ serve(async () => {
             continue;
         }
 
-        for (const candidate of candidates) {
-            if (automation.action_type === "email") {
-                const { data: template } = await supabase
-                    .from("email_templates")
-                    .select("subject, body")
-                    .eq("name", automation.action_value)
-                    .single();
+        if (candidates.length === 0) continue;
 
-                if (template) {
+        // Execute actions
+        if (automation.action_type === "email") {
+            const { data: template } = await supabase
+                .from("email_templates")
+                .select("subject, body")
+                .eq("name", automation.action_value)
+                .single();
+
+            if (template) {
+                for (const candidate of candidates) {
                     const subject = template.subject.replace("{{fullName}}", candidate.full_name);
                     const body = template.body
                         .replace("{{fullName}}", candidate.full_name)
-                        .replace("{{opening}}", candidate.opening)
+                        .replace("{{opening}}", candidate.opening || "N/A")
                         .replace("{{score}}", candidate.responses.score);
 
                     const response = await fetch("https://careers.growthpad.co.ke/api/send-status-email", {
@@ -78,18 +79,47 @@ serve(async () => {
                         console.error("Failed to send email for", candidate.id, await response.text());
                     }
                 }
-            } else if (automation.action_type === "status") {
+            }
+        } else if (automation.action_type === "status") {
+            for (const candidate of candidates) {
                 await supabase
                     .from("responses")
                     .update({ status: automation.action_value })
                     .eq("user_id", candidate.id);
-            } else if (automation.action_type === "notify") {
-                console.log(`Notify team about ${candidate.full_name} via ${automation.action_value}`);
+            }
+        } else if (automation.action_type === "notify") {
+            if (automation.notify_type === "slack") {
+                const slackWebhookUrl = Deno.env.get("SLACK_WEBHOOK_URL") || "https://hooks.slack.com/services/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";
+                const candidateList = candidates.slice(0, 10).map((c) => `- ${c.full_name} (Score: ${c.responses.score})`).join("\n");
+                const message = `*Automation Triggered: ${automation.condition_field} ${automation.condition_operator} ${automation.condition_value}*\n` +
+                                `${candidates.length} candidates need review:\n${candidateList}${candidates.length > 10 ? "\n...and more" : ""}\n` +
+                                `View details: https://careers.growthpad.co.ke/hr/applicants`;
+
+                await fetch(slackWebhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: message }),
+                });
+            } else if (automation.notify_type === "email") {
+                const candidateList = candidates.map((c) => `- ${c.full_name} (Score: ${c.responses.score})`).join("\n");
+                const message = `Automation Triggered: ${automation.condition_field} ${automation.condition_operator} ${automation.condition_value}\n` +
+                                `${candidates.length} candidates need review:\n${candidateList}\n` +
+                                `View details: https://careers.growthpad.co.ke/hr/applicants`;
+
+                await fetch("https://careers.growthpad.co.ke/api/send-status-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        subject: "Automation Notification",
+                        body: message,
+                        email: automation.action_value,
+                    }),
+                });
             }
         }
 
-        // Update last_run if hourly
-        if (automation.schedule_type === "hourly") {
+        // Update last_run for "forever" or "hourly"
+        if (automation.schedule_type === "forever" || automation.schedule_type === "hourly") {
             await supabase
                 .from("automations")
                 .update({ last_run: now.toISOString() })
