@@ -374,7 +374,7 @@ export default function AutomationForm({ onSave, onCancel, mode, emailTemplates,
                         className="w-full px-4 py-2 bg-purple-500 text-white rounded-full flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors"
                     >
                         <Icon icon="mdi:play" width={20} />
-                        Run Now
+                        Test Run
                     </motion.button>
                     {isPreviewOpen && (
                         <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg max-h-40 overflow-y-auto">
