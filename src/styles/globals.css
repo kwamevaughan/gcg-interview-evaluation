@@ -187,3 +187,9 @@ html {
 
 
 
+.sidebar-open .content-container {
+    margin-left: 300px ; 
+}
+.sidebar-closed .content-container {
+    margin-left: 80px ; 
+}

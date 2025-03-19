@@ -183,11 +183,11 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
             <div className="flex flex-1">
                 <HRSidebar isOpen={isSidebarOpen} mode={mode} toggleSidebar={toggleSidebar} />
                 <main
-                    className={`flex-1 p-6 transition-all duration-300 ${
+                    className={`content-container flex-1 p-6 transition-all duration-300 ${
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     } ${mode === "dark" ? "bg-gray-900" : "bg-gray-100"}`}
                 >
-                    <div className="max-w-6xl mx-auto space-y-6">
+                    <div className="max-w-7xl mx-auto space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                             <div className="lg:col-span-1">
                                 <EmailTemplateList

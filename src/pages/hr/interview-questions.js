@@ -97,11 +97,11 @@ export default function HRInterviewQuestions({ mode = "light", toggleMode, initi
                         toggleSidebar={toggleSidebar}
                     />
                     <div
-                        className={`flex-1 p-6 transition-all duration-300 ${
+                        className={`content-container flex-1 p-6 transition-all duration-300 ${
                             isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                         }`}
                     >
-                        <div className="max-w-6xl mx-auto">
+                        <div className="max-w-7xl mx-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2"></div>
                                 <button

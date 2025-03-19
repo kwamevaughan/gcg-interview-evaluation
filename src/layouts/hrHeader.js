@@ -41,7 +41,7 @@ const HRHeader = ({
     return (
         <header
             ref={headerRef}
-            className={`fixed top-0 left-0 right-0 z-50 mb-6 transition-all duration-300 shadow-sm ${
+            className={`fixed top-0 left-0 right-0 z-50 mb-6 content-container transition-all duration-300 shadow-sm ${
                 mode === "dark"
                     ? "border-[#f05d23] bg-[#101827] text-white bg-opacity-100"
                     : "border-gray-300 bg-[#ececec] text-black bg-opacity-50"

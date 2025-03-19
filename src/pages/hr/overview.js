@@ -176,9 +176,7 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
                     toggleSidebar={toggleSidebar}
                 />
                 <div
-                    className={`flex-1 p-6 transition-all duration-300 overflow-hidden ${
-                        isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
-                    }`}
+                    className={`content-container flex-1 p-6 transition-all duration-300 overflow-hidden md:ml-[80px] sidebar-open:md:ml-[300px] sidebar-closed:md:ml-[80px]`}
                 >
                     <div className="max-w-7xl mx-auto">
                         <WelcomeCard

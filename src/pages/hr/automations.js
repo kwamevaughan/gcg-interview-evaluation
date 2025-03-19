@@ -180,11 +180,11 @@ export default function Automations({ mode = "light", toggleMode, initialCandida
                     toggleSidebar={toggleSidebar}
                 />
                 <div
-                    className={`flex-1 p-6 transition-all duration-300 overflow-hidden ${
+                    className={`content-container flex-1 p-6 transition-all duration-300 overflow-hidden ${
                         isSidebarOpen ? "md:ml-[300px]" : "md:ml-[80px]"
                     }`}
                 >
-                    <div className="max-w-6xl mx-auto space-y-6">
+                    <div className="max-w-7xl mx-auto space-y-6">
                         <motion.h1
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
