@@ -158,7 +158,6 @@ export default function HROverview({ mode = "light", toggleMode, initialCandidat
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
-            <Toaster position="top-center" reverseOrder={false} />
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}

@@ -162,7 +162,7 @@ export default function Automations({ mode = "light", toggleMode, initialCandida
 
     return (
         <div className={`min-h-screen flex flex-col ${mode === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
-            <Toaster position="top-center" reverseOrder={false} />
+
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}

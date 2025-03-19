@@ -1,8 +1,6 @@
-// src/pages/_app.js
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast"; // Keep only react-hot-toast
 import "leaflet/dist/leaflet.css";
 import "../styles/globals.css";
 
@@ -41,10 +39,39 @@ function MyApp({ Component, pageProps }) {
         return () => mediaQuery.removeEventListener("change", handleChange);
     }, []);
 
+    // Handle route change with toast
+    useEffect(() => {
+        const routeChangeStart = (url) => {
+            const pageName = url.split("/").pop() || "Dashboard";
+            const capitalizedPageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+            toast.loading(`Fetching ${capitalizedPageName}...`, {
+                id: "route-loading",
+            });
+        };
+
+        const routeChangeComplete = () => {
+            toast.dismiss("route-loading");
+        };
+
+        const routeChangeError = () => {
+            toast.error("Failed to load page", { id: "route-loading" });
+        };
+
+        router.events.on("routeChangeStart", routeChangeStart);
+        router.events.on("routeChangeComplete", routeChangeComplete);
+        router.events.on("routeChangeError", routeChangeError);
+
+        return () => {
+            router.events.off("routeChangeStart", routeChangeStart);
+            router.events.off("routeChangeComplete", routeChangeComplete);
+            router.events.off("routeChangeError", routeChangeError);
+        };
+    }, [router]);
+
     return (
         <div className={mode === "dark" ? "dark" : ""}>
+            <Toaster position="top-center" reverseOrder={false} />
             <Component {...pageProps} mode={mode} toggleMode={toggleMode} />
-            <ToastContainer position="top-right" theme={mode === "dark" ? "dark" : "light"} />
         </div>
     );
 }

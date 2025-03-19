@@ -171,7 +171,7 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
 
     return (
         <div className={`min-h-screen flex flex-col ${mode === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
-            <Toaster />
+
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}

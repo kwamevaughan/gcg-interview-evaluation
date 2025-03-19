@@ -17,7 +17,7 @@ export default function HRAnalytics({ mode = "light", toggleMode }) {
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
-            <Toaster position="top-right" reverseOrder={false} />
+
             <HRHeader mode={mode} toggleMode={toggleMode} onLogout={handleLogout} />
             
                 <HRSidebar

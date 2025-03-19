@@ -149,7 +149,7 @@ export default function HRLogin() {
         <div className="min-h-screen flex pt-14 flex-col bg-gradient-to-br from-gray-50 via-gray-100 to-[#f05d23] bg-opacity-50">
             <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                 <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 transform transition-all duration-500 hover:shadow-2xl">
-                    <Toaster position="top-right" reverseOrder={false} />
+
                     <div className="mb-8 text-center">
                         <Image
                             src="/assets/images/logo-tagline-orange.svg"

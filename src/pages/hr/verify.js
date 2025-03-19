@@ -45,7 +45,7 @@ export default function Verify() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-[#f05d23] bg-opacity-50">
-            <Toaster position="top-right" reverseOrder={false} />
+
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
                 <Image
                     src="/assets/images/logo-tagline-orange.svg"

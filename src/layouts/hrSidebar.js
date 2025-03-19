@@ -4,6 +4,8 @@ import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { Icon } from "@iconify/react";
+import toast, { Toaster } from "react-hot-toast";
+
 
 const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
     const [windowWidth, setWindowWidth] = useState(null);
