@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import toast, { Toaster } from "react-hot-toast"; // Keep only react-hot-toast
+import toast, { Toaster } from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
 import "../styles/globals.css";
+import { sidebarNav } from "@/data/nav";
 
 function MyApp({ Component, pageProps }) {
     const [mode, setMode] = useState("light");
@@ -42,9 +43,10 @@ function MyApp({ Component, pageProps }) {
     // Handle route change with toast
     useEffect(() => {
         const routeChangeStart = (url) => {
-            const pageName = url.split("/").pop() || "Dashboard";
-            const capitalizedPageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
-            toast.loading(`Fetching ${capitalizedPageName}...`, {
+            const pageSlug = url.split("/").pop() || "overview"; // Default to "overview" if empty
+            const page = sidebarNav.find((item) => item.href === url || item.href.endsWith(`/${pageSlug}`));
+            const pageName = page ? page.label : pageSlug.charAt(0).toUpperCase() + pageSlug.slice(1); // Fallback to capitalized slug
+            toast.loading(`Fetching ${pageName}...`, {
                 id: "route-loading",
             });
         };

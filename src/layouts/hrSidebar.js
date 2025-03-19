@@ -1,11 +1,9 @@
-// src/layouts/hrSidebar.js
 import { useEffect, useState, useRef } from "react";
 import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { Icon } from "@iconify/react";
-import toast, { Toaster } from "react-hot-toast";
-
+import { sidebarNav } from "@/data/nav";
 
 const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
     const [windowWidth, setWindowWidth] = useState(null);
@@ -17,7 +15,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         handleResize();
         window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+        return () => window.addEventListener("resize", handleResize);
     }, []);
 
     // Handle outside click/tap to close sidebar on mobile
@@ -41,7 +39,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
             document.removeEventListener("mousedown", handleOutsideClick);
             document.removeEventListener("touchstart", handleOutsideClick);
         };
-    }, [isOpen, windowWidth, toggleSidebar]); // Dependencies
+    }, [isOpen, windowWidth, toggleSidebar]);
 
     if (windowWidth === null) return null;
 
@@ -90,26 +88,7 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
 
                 {/* Navigation */}
                 <ul className="flex-grow px-2">
-                    {[
-                        { href: "/hr/overview", icon: "mdi:view-dashboard", label: "Dashboard Overview" },
-                        { href: "/hr/jobs", icon: "mdi:briefcase", label: "Job Postings" },
-                        { href: "/hr/applicants", icon: "mdi:account-group", label: "Applicants" },
-                        {
-                            href: "/hr/interview-questions",
-                            icon: "mdi:account-question",
-                            label: "Interview Questions",
-                        },
-                        {
-                            href: "/hr/email-templates",
-                            icon: "lsicon:email-send-outline",
-                            label: "Email Templates",
-                        },
-                        {
-                            href: "/hr/automations",
-                            icon: "carbon:power-virtual-server-disaster-recovery-automation",
-                            label: "Automations",
-                        },
-                    ].map(({ href, icon, label }) => (
+                    {sidebarNav.map(({ href, icon, label }) => (
                         <li key={href} className="py-2">
                             <button
                                 onClick={() => {
@@ -166,7 +145,11 @@ const HRSidebar = ({ isOpen, mode, onLogout, toggleSidebar }) => {
                                             className="object-cover"
                                         />
                                     </div>
-                                    <span className={`text-base font-medium ${mode === "dark" ? "text-gray-200" : "text-[#231812]"}`}>
+                                    <span
+                                        className={`text-base font-medium ${
+                                            mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                        }`}
+                                    >
                                         {fullName}
                                     </span>
                                 </div>
