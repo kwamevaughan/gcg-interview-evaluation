@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Head from "next/head";
+import Link from "next/link"; // Import Link
 import toast from "react-hot-toast";
 import JobsHeader from "@/layouts/JobsHeader";
 import Footer from "@/layouts/footer";
 import { Icon } from "@iconify/react";
 import { generateJobPostingSchema } from "@/lib/jobPostingSchema";
 
-export default function PublicJobListings({ mode, toggleMode, initialJobs }) {
+export default function PublicJobListings({ mode, toggleMode, initialJobs, countries }) {
     const [jobs, setJobs] = useState(initialJobs);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all"); // "all", "active", "expired"
@@ -19,7 +20,7 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs }) {
         itemListElement: jobs.map((job, index) => ({
             "@type": "ListItem",
             position: index + 1,
-            item: generateJobPostingSchema(job),
+            item: generateJobPostingSchema(job, countries),
         })),
     };
 
@@ -209,11 +210,9 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs }) {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredJobs.map((job) => (
-                                <a
+                                <Link
                                     key={job.id}
                                     href={`/hr/jobs/${job.slug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                     className={`block p-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                                         mode === "dark"
                                             ? "bg-gray-800 text-white border-gray-700"
@@ -271,7 +270,7 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs }) {
                                             <Icon icon="mdi:arrow-right" className="w-5 h-5" />
                                         </span>
                                     </div>
-                                </a>
+                                </Link>
                             ))}
                         </div>
                     )}
@@ -293,10 +292,18 @@ export async function getServerSideProps() {
     };
 
     try {
-        const { data, error } = await supabase.from("job_openings").select("*").order("created_at", { ascending: false });
-        if (error) throw error;
+        // Fetch jobs from Supabase
+        const { data: jobsData, error: jobsError } = await supabase
+            .from("job_openings")
+            .select("*")
+            .order("created_at", { ascending: false });
+        if (jobsError) throw jobsError;
 
-        const jobs = data.map((job) => {
+        // Fetch countries.json
+        const countriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/assets/misc/countries.json`);
+        const countries = await countriesRes.json();
+
+        const jobs = jobsData.map((job) => {
             let parsedLocation = job.location;
             if (parsedLocation && typeof parsedLocation === "string") {
                 try {
@@ -308,16 +315,16 @@ export async function getServerSideProps() {
 
             return {
                 ...job,
-                expires_on: formatDate(job.expires_on),
+                expires_on: formatDate(job.expires_on), // Display as DD/MM/YYYY
                 is_expired: new Date(job.expires_on) < new Date(),
                 location: parsedLocation,
             };
         });
 
-        return { props: { initialJobs: jobs } };
+        return { props: { initialJobs: jobs, countries } };
     } catch (error) {
-        console.error("Error fetching jobs:", error);
+        console.error("Error fetching data:", error);
         toast.error("Failed to load job openings");
-        return { props: { initialJobs: [] } };
+        return { props: { initialJobs: [], countries: [] } };
     }
 }
