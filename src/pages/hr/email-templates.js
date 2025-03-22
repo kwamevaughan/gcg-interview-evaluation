@@ -156,7 +156,7 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
         email: "john.doe@example.com",
         phone: "+254 701 850 850",
         linkedin: "linkedin.com/in/johndoe",
-        opening: "Software Engineer",
+        opening: "Digital Media Manager",
         score: "85",
         resumeUrl: "https://example.com/resume.pdf",
         coverLetterUrl: "https://example.com/coverletter.pdf",
@@ -168,9 +168,9 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
             </table>
         `,
         // Job Opening Sample Data
-        jobTitle: "Software Engineer",
+        jobTitle: "Digital Media Manager",
         expiresOn: "01/04/2025",
-        jobUrl: "https://careers.growthpad.co.ke/hr/jobs/software-engineer",
+        jobUrl: "https://careers.growthpad.co.ke/hr/jobs/digital-media-manager",
     };
 
     return (
