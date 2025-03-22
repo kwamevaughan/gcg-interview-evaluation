@@ -193,3 +193,11 @@ html {
 .sidebar-closed .content-container {
     margin-left: 80px ; 
 }
+
+@media (max-width: 768px) {
+    .sidebar-open .content-container,
+    .sidebar-closed .content-container {
+        margin: 0 ; 
+    }
+     
+}
