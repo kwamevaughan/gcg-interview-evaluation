@@ -2,8 +2,15 @@ import { Icon } from "@iconify/react";
 import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { useState } from "react";
+import ShareModal from "./ShareModal";
+import NotifyEmailGroupModal from "./NotifyEmailGroupModal";
 
 export default function JobListings({ mode, jobs, onJobDeleted }) {
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+
     const handleDelete = (id, title) => {
         toast.custom(
             (t) => (
@@ -50,6 +57,11 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
             ),
             { duration: Infinity }
         );
+    };
+
+    const handleShare = (job) => {
+        setSelectedJob(job);
+        setIsShareModalOpen(true);
     };
 
     return (
@@ -151,6 +163,13 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                         <Icon icon="mdi:trash-can" width={14} height={14} />
                                         Delete
                                     </button>
+                                    <button
+                                        onClick={() => handleShare(job)}
+                                        className="px-2 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                                    >
+                                        <Icon icon="mdi:share" width={14} height={14} />
+                                        Share
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -202,6 +221,13 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                     <Icon icon="mdi:trash-can" width={14} height={14} />
                                     Delete
                                 </button>
+                                <button
+                                    onClick={() => handleShare(job)}
+                                    className="px-2 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 flex items-center gap-1 text-xs"
+                                >
+                                    <Icon icon="mdi:share" width={14} height={14} />
+                                    Share
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -217,6 +243,23 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                     </p>
                 )}
             </div>
+
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                job={selectedJob}
+                mode={mode}
+                onNotify={() => setIsNotifyModalOpen(true)}
+            />
+
+            <NotifyEmailGroupModal
+                isOpen={isNotifyModalOpen}
+                onClose={() => setIsNotifyModalOpen(false)}
+                jobTitle={selectedJob?.title}
+                jobId={selectedJob?.id}
+                expiresOn={selectedJob?.expires_on}
+                mode={mode}
+            />
         </div>
     );
 }

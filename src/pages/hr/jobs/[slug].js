@@ -2,14 +2,17 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
-import JobsHeader from "@/layouts/JobsHeader"; // Your custom header
+import JobsHeader from "@/layouts/JobsHeader";
 import Footer from "@/layouts/footer";
 import { Icon } from "@iconify/react";
 import Head from "next/head";
+import ShareModal from "@/components/ShareModal";
+import { generateJobPostingSchema } from "@/lib/jobPostingSchema";
 
 export default function JobDetail({ mode, toggleMode, initialJob }) {
     const [job, setJob] = useState(initialJob || null);
     const [timeLeft, setTimeLeft] = useState(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const router = useRouter();
     const { slug } = router.query;
 
@@ -23,7 +26,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
         if (job && !job.is_expired) {
             const calculateTimeLeft = () => {
                 const now = new Date();
-                const expiry = new Date(job.expires_on.split("/").reverse().join("-")); // DD/MM/YYYY to YYYY-MM-DD
+                const expiry = new Date(job.expires_on.split("/").reverse().join("-"));
                 const diffTime = expiry - now;
                 if (diffTime <= 0) {
                     setTimeLeft(null);
@@ -39,7 +42,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 setTimeLeft({ months, days, hours, minutes, seconds });
             };
             calculateTimeLeft();
-            const interval = setInterval(calculateTimeLeft, 1000); // Update every second
+            const interval = setInterval(calculateTimeLeft, 1000);
             return () => clearInterval(interval);
         }
     }, [job]);
@@ -58,6 +61,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 ...data,
                 expires_on: formatDate(data.expires_on),
                 is_expired: new Date(data.expires_on) < new Date(),
+                location: data.location || null, // No JSON.parse needed
             };
             setJob(formattedJob);
             toast.success("Job details loaded!", { id: loadingToast });
@@ -94,7 +98,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
-            {/* SEO Meta Tags */}
             <Head>
                 <title>{job ? `${job.title} | Growthpad Careers` : "Job Details | Growthpad Careers"}</title>
                 <meta
@@ -118,20 +121,23 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={`https://careers.growthpad.co.ke/hr/jobs/${slug}`} />
+                {job && (
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateJobPostingSchema(job)) }}
+                    />
+                )}
             </Head>
 
-            {/* Custom Header */}
             <JobsHeader
                 mode={mode}
                 toggleMode={toggleMode}
-                pageName={job ? job.title : "Job Opening"} // Dynamic job title
+                pageName={job ? job.title : "Job Opening"}
                 pageDescription="Explore this career opportunity and apply today!"
             />
 
-            {/* Main Content */}
-            <main className="flex-1 p-6 pt-24"> {/* Added pt-24 to account for fixed header */}
+            <main className="flex-1 p-6 pt-24">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left/Main Section */}
                     <div className="lg:col-span-2">
                         <div className="mb-6">
                             <button
@@ -197,7 +203,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                         )}
                     </div>
 
-                    {/* Right Sidebar */}
                     {job && (
                         <div className="lg:col-span-1">
                             <div
@@ -210,7 +215,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                     Application Details
                                 </h3>
                                 <div className="space-y-6">
-                                    {/* Expires On */}
                                     <div className="flex gap-2">
                                         <p
                                             className={`text-base font-medium flex items-center gap-2 ${
@@ -223,7 +227,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                         <p className="text-base">{job.expires_on}</p>
                                     </div>
 
-                                    {/* Time Remaining */}
                                     {!job.is_expired && timeLeft && (
                                         <div
                                             className={`justify-center mb-6 p-4 rounded-lg shadow-sm flex items-center gap-2 ${
@@ -256,7 +259,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                         </div>
                                     )}
 
-                                    {/* Status */}
                                     <div className="flex gap-2">
                                         <p
                                             className={`text-base font-medium flex items-center gap-2 ${
@@ -278,7 +280,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                         </p>
                                     </div>
 
-                                    {/* Apply Button */}
                                     <button
                                         onClick={handleApply}
                                         disabled={job.is_expired}
@@ -291,12 +292,31 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                         <Icon icon="mdi:send" className="w-6 h-6" />
                                         Apply Now
                                     </button>
+
+                                    <button
+                                        onClick={() => setIsShareModalOpen(true)}
+                                        className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+                                            mode === "dark"
+                                                ? "bg-gray-700 text-white hover:bg-gray-600"
+                                                : "bg-gray-200 text-[#231812] hover:bg-gray-300"
+                                        }`}
+                                    >
+                                        <Icon icon="mdi:share" className="w-6 h-6" />
+                                        Share
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
             </main>
+
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                job={job}
+                mode={mode}
+            />
 
             <Footer mode={mode} />
         </div>
@@ -327,6 +347,7 @@ export async function getServerSideProps(context) {
             ...data,
             expires_on: formatDate(data.expires_on),
             is_expired: new Date(data.expires_on) < new Date(),
+            location: data.location || null, // No JSON.parse needed
         };
 
         return {

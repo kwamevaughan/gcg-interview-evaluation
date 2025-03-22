@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { data, error } = await supabase.from("email_groups").select("id, name");
+        const { data, error } = await supabase.from("email_groups").select("id, name"); // Back to id, name only
         if (error) throw error;
         res.status(200).json(data);
     } catch (error) {
