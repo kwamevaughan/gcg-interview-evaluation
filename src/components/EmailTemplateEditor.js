@@ -19,7 +19,10 @@ const dynamicTags = [
   { label: "Score", value: "{{score}}" },
   { label: "Resume URL", value: "{{resumeUrl}}" },
   { label: "Cover Letter URL", value: "{{coverLetterUrl}}" },
-  { label: "Answers Table", value: "{{answersTable}}" }
+  { label: "Answers Table", value: "{{answersTable}}" },
+  { label: "Job Title", value: "{{jobTitle}}" },
+  { label: "Expres On", value: "{{expiresOn}}" },
+  { label: "Job Link", value: "{{jobUrl}}" }
 ];
 
 const EmailTemplateEditor = ({
@@ -78,37 +81,42 @@ const EmailTemplateEditor = ({
           <div className="relative">
             <label className="block text-sm font-medium mb-1">Content</label>
             <div className="mb-2">
-              <button
-                onClick={() => setIsTagMenuOpen(!isTagMenuOpen)}
-                className={`px-3 py-1 rounded-md font-medium flex items-center gap-2 ${
-                  mode === "dark"
-                    ? "bg-gray-700 text-white hover:bg-gray-600"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                <Icon icon="mdi:tag-outline" width={20} />
-                Insert Tag
-              </button>
-              {isTagMenuOpen && (
-                <div
-                  className={`absolute z-10 mt-1 w-48 rounded-md shadow-lg ${
-                    mode === "dark" ? "bg-gray-700 text-white" : "bg-white text-gray-900"
-                  }`}
-                >
-                  {dynamicTags.map((tag) => (
-                    <button
-                      key={tag.value}
-                      onClick={() => handleInsertTag(tag.value)}
-                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#f05d23] hover:text-white ${
-                        mode === "dark" ? "hover:bg-[#d94f1e]" : ""
-                      }`}
-                    >
-                      {tag.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+  <button
+    onClick={() => setIsTagMenuOpen(!isTagMenuOpen)}
+    className={`px-3 py-1 rounded-md font-medium flex items-center gap-2 ${
+      mode === "dark"
+        ? "bg-gray-700 text-white hover:bg-gray-600"
+        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+    }`}
+  >
+    <Icon icon="mdi:tag-outline" width={20} />
+    Insert Tag
+  </button>
+  {isTagMenuOpen && (
+    <div
+      className={`absolute z-10 mt-1 w-48 rounded-md shadow-lg ${
+        mode === "dark" ? "bg-gray-700 text-white" : "bg-white text-gray-900"
+      }`}
+      style={{
+        maxHeight: '200px',  // You can adjust the height as needed
+        overflowY: 'auto',  // Enables vertical scrolling if content overflows
+      }}
+    >
+      {dynamicTags.map((tag) => (
+        <button
+          key={tag.value}
+          onClick={() => handleInsertTag(tag.value)}
+          className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#f05d23] hover:text-white ${
+            mode === "dark" ? "hover:bg-[#d94f1e]" : ""
+          }`}
+        >
+          {tag.label}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
+
             <div className="border rounded-md overflow-hidden dark:border-gray-600">
               {editorLoaded && editorConfig ? (
                 <JoditEditor

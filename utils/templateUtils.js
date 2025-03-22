@@ -4,5 +4,6 @@ export const templateNameMap = {
     reviewedEmail: "Application Reviewed",
     shortlistedEmail: "Shortlisted Candidate",
     rejectedEmail: "Application Rejected",
-    candidateEmail: "Candidate Welcome"
+    candidateEmail: "Candidate Welcome",
+    jobPostedNotification: "Recruiter Notification"
   };

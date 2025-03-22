@@ -124,7 +124,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
             <JobsHeader
                 mode={mode}
                 toggleMode={toggleMode}
-                isSidebarOpen={false} // No sidebar for public page
                 pageName={job ? job.title : "Job Opening"} // Dynamic job title
                 pageDescription="Explore this career opportunity and apply today!"
             />

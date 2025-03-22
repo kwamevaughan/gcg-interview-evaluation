@@ -56,8 +56,8 @@ export default async function handler(req, res) {
         });
 
         const mailOptions = {
-            from: `"HR Team" <${process.env.EMAIL_USER}>`,
-            replyTo: "careers@growthpad.co.ke",
+            from: `"Growthpad Consulting Group" <${process.env.EMAIL_USER}>`,
+            replyTo: process.env.EMAIL_REPLYTO,
             to: emailList,
             subject: finalSubject,
             html: finalBody,

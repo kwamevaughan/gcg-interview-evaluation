@@ -167,11 +167,14 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
                 <tr><td style="border: 1px solid #ccc; padding: 8px;">Q2</td><td style="border: 1px solid #ccc; padding: 8px;">Answer 2</td></tr>
             </table>
         `,
+        // Job Opening Sample Data
+        jobTitle: "Software Engineer",
+        expiresOn: "01/04/2025",
+        jobUrl: "https://careers.growthpad.co.ke/hr/jobs/software-engineer",
     };
 
     return (
         <div className={`min-h-screen flex flex-col ${mode === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
-
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}

@@ -5,16 +5,20 @@ const EmailPreviewModal = ({ isOpen, onClose, subject, body, mode, sampleData })
   if (!isOpen) return null;
 
   // Replace dynamic tags with sample data
-  const renderBodyWithSampleData = (body) => {
-    let renderedBody = body || "<p>No content</p>";
+  const replacePlaceholders = (text) => {
+    let renderedText = text || ""; // Default to empty string if undefined
     if (sampleData) {
       Object.keys(sampleData).forEach((key) => {
         const tag = `{{${key}}}`;
-        renderedBody = renderedBody.replace(new RegExp(tag, "g"), sampleData[key]);
+        renderedText = renderedText.replace(new RegExp(tag, "g"), sampleData[key]);
       });
     }
-    return renderedBody;
+    return renderedText || "No content"; // Fallback if still empty
   };
+
+  // Apply replacement to both subject and body
+  const renderedSubject = replacePlaceholders(subject);
+  const renderedBody = replacePlaceholders(body);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -35,11 +39,11 @@ const EmailPreviewModal = ({ isOpen, onClose, subject, body, mode, sampleData })
         <div className="p-6 flex-1 overflow-y-auto">
           <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
             <strong className="text-sm uppercase text-gray-600 dark:text-gray-400">Subject:</strong>{" "}
-            <span>{subject || "No subject"}</span>
+            <span>{renderedSubject}</span>
           </div>
           <div
             className="prose dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: renderBodyWithSampleData(body) }}
+            dangerouslySetInnerHTML={{ __html: renderedBody }}
           />
         </div>
         <div className="p-4 border-t dark:border-gray-700 flex justify-end">
