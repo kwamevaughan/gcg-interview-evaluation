@@ -50,7 +50,7 @@ const Footer = ({ mode }) => {
                         </a>
                         <a
                             target="_blank"
-                            href="https://growthpad.co.ke"
+                            href="https://growthpad.co.ke/tenders"
                             className="relative transform transition duration-300 hover:translate-y-[-4px]"
                         >
                             Tenders

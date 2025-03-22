@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export default function JobListings({ mode, jobs, onJobDeleted }) {
     const handleDelete = (id, title) => {
@@ -58,7 +59,6 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
             }`}
         >
             <div className="max-h-[500px] overflow-y-auto">
-                {/* Table for larger screens */}
                 <table className="w-full hidden sm:table">
                     <thead className="sticky top-0 z-10">
                         <tr className={`${mode === "dark" ? "bg-gray-700" : "bg-gray-100"}`}>
@@ -114,7 +114,7 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                         mode === "dark" ? "text-gray-300" : "text-gray-800"
                                     }`}
                                 >
-                                    {job.expires_on} {/* Use pre-formatted string directly */}
+                                    {job.expires_on}
                                 </td>
                                 <td
                                     className={`p-2 sm:p-4 text-xs sm:text-sm ${
@@ -124,17 +124,15 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                     {job.is_expired ? "Expired" : "Active"}
                                 </td>
                                 <td className="p-2 sm:p-4 text-xs sm:text-sm flex flex-col sm:flex-row gap-2">
-                                    <button
-                                        onClick={() =>
-                                            window.dispatchEvent(
-                                                new CustomEvent("openJobModal", { detail: job.title })
-                                            )
-                                        }
+                                    <Link
+                                        href={`/hr/jobs/${job.slug}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
                                     >
                                         <Icon icon="mdi:eye" width={14} height={14} />
                                         View
-                                    </button>
+                                    </Link>
                                     <button
                                         onClick={() =>
                                             window.dispatchEvent(
@@ -159,7 +157,6 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                     </tbody>
                 </table>
 
-                {/* Card layout for mobile */}
                 <div className="sm:hidden space-y-4">
                     {jobs.map((job) => (
                         <div
@@ -172,23 +169,21 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                         >
                             <div className="text-sm font-semibold mb-2">{job.title}</div>
                             <div className="text-xs mb-1">
-                                <span className="font-medium">Expires:</span> {job.expires_on} {/* Use pre-formatted string */}
+                                <span className="font-medium">Expires:</span> {job.expires_on}
                             </div>
                             <div className="text-xs mb-2">
                                 <span className="font-medium">Status:</span> {job.is_expired ? "Expired" : "Active"}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                <button
-                                    onClick={() =>
-                                        window.dispatchEvent(
-                                            new CustomEvent("openJobModal", { detail: job.title })
-                                        )
-                                    }
+                                <Link
+                                    href={`/hr/jobs/${job.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs"
                                 >
                                     <Icon icon="mdi:eye" width={14} height={14} />
                                     View
-                                </button>
+                                </Link>
                                 <button
                                     onClick={() =>
                                         window.dispatchEvent(
@@ -212,7 +207,6 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                     ))}
                 </div>
 
-                {/* No jobs message */}
                 {jobs.length === 0 && (
                     <p
                         className={`text-center p-4 italic ${

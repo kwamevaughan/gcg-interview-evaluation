@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import HRSidebar from "@/layouts/hrSidebar";
 import HRHeader from "@/layouts/hrHeader";
 import useSidebar from "@/hooks/useSidebar";
@@ -11,12 +11,13 @@ import PreviewModal from "@/components/PreviewModal";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import SimpleFooter from "@/layouts/simpleFooter";
+import NotifyEmailGroupModal from "@/components/NotifyEmailGroupModal";
 
 // Helper function to format ISO date as DD/MM/YYYY
 const formatDate = (isoDateString) => {
     const date = new Date(isoDateString);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 };
@@ -30,9 +31,11 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false); // New state for notify modal
     const [previewUrl, setPreviewUrl] = useState(null);
     const [selectedOpening, setSelectedOpening] = useState(null);
     const [editJob, setEditJob] = useState(null);
+    const [lastJob, setLastJob] = useState(null); // Track the last posted job
 
     useEffect(() => {
         console.log("Initial jobs on mount:", initialJobs);
@@ -70,7 +73,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
 
             const updatedJobs = data.map((job) => ({
                 ...job,
-                expires_on: formatDate(job.expires_on), // Format as DD/MM/YYYY
+                expires_on: formatDate(job.expires_on),
                 is_expired: new Date(job.expires_on) < new Date(),
             }));
             console.log("Fetched jobs:", updatedJobs);
@@ -109,7 +112,9 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const handleEditSave = async (updatedJob) => {
         console.log("Saved job:", updatedJob);
         setJobs((prevJobs) =>
-            prevJobs.map((j) => (j.id === updatedJob.id ? { ...j, ...updatedJob, expires_on: formatDate(updatedJob.expires_on) } : j))
+            prevJobs.map((j) =>
+                j.id === updatedJob.id ? { ...j, ...updatedJob, expires_on: formatDate(updatedJob.expires_on) } : j
+            )
         );
         await fetchJobs();
         handleCloseEditModal();
@@ -118,6 +123,8 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const handleJobAdded = (newJob) => {
         console.log("New job added:", newJob);
         setJobs((prevJobs) => [{ ...newJob, expires_on: formatDate(newJob.expires_on) }, ...prevJobs]);
+        setLastJob({ title: newJob.title, id: newJob.id, expiresOn: formatDate(newJob.expires_on), slug: newJob.slug }); // Add slug
+        setIsNotifyModalOpen(true);
     };
 
     const handlePreview = (url) => {
@@ -136,7 +143,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
         setPreviewUrl(null);
     };
 
-    console.log("Rendering with jobs:", jobs);
+    // console.log("Rendering with jobs:", jobs);
 
     return (
         <div
@@ -144,7 +151,6 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
-
             <HRHeader
                 toggleSidebar={toggleSidebar}
                 isSidebarOpen={isSidebarOpen}
@@ -197,6 +203,14 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
                 onClose={handleClosePreviewModal}
                 mode={mode}
             />
+            <NotifyEmailGroupModal
+                isOpen={isNotifyModalOpen}
+                onClose={() => setIsNotifyModalOpen(false)}
+                jobTitle={lastJob?.title}
+                jobId={lastJob?.id}
+                expiresOn={lastJob?.expiresOn}
+                mode={mode}
+            />
             <SimpleFooter mode={mode} isSidebarOpen={isSidebarOpen} />
         </div>
     );
@@ -226,11 +240,11 @@ export async function getServerSideProps(context) {
 
         const initialJobs = data.map((job) => ({
             ...job,
-            expires_on: formatDate(job.expires_on), // Convert ISO to DD/MM/YYYY
+            expires_on: formatDate(job.expires_on),
             is_expired: new Date(job.expires_on) < new Date(),
         }));
 
-        console.log("getServerSideProps returning:", initialJobs);
+        // console.log("getServerSideProps returning:", initialJobs);
         return {
             props: {
                 initialJobs,
