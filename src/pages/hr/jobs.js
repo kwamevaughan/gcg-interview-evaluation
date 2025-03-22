@@ -1,3 +1,4 @@
+// TODO: Extract modal logic to useJobModals hook for better maintainability
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
@@ -13,7 +14,7 @@ import { supabase } from "@/lib/supabase";
 import SimpleFooter from "@/layouts/simpleFooter";
 import NotifyEmailGroupModal from "@/components/NotifyEmailGroupModal";
 
-// Helper function to format ISO date as DD/MM/YYYY
+// Helper function to format ISO date as DD/MM/YYYY for display
 const formatDate = (isoDateString) => {
     const date = new Date(isoDateString);
     const day = String(date.getDate()).padStart(2, "0");
@@ -31,11 +32,11 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-    const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false); // New state for notify modal
+    const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [selectedOpening, setSelectedOpening] = useState(null);
     const [editJob, setEditJob] = useState(null);
-    const [lastJob, setLastJob] = useState(null); // Track the last posted job
+    const [lastJob, setLastJob] = useState(null);
 
     useEffect(() => {
         console.log("Initial jobs on mount:", initialJobs);
@@ -73,10 +74,9 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
 
             const updatedJobs = data.map((job) => ({
                 ...job,
-                expires_on: formatDate(job.expires_on),
                 is_expired: new Date(job.expires_on) < new Date(),
+                expires_on_display: formatDate(job.expires_on), // For display only
             }));
-            console.log("Fetched jobs:", updatedJobs);
             setJobs(updatedJobs);
             toast.success("Data loaded successfully!", { id: loadingToast });
         } catch (error) {
@@ -113,17 +113,27 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
         console.log("Saved job:", updatedJob);
         setJobs((prevJobs) =>
             prevJobs.map((j) =>
-                j.id === updatedJob.id ? { ...j, ...updatedJob, expires_on: formatDate(updatedJob.expires_on) } : j
+                j.id === updatedJob.id
+                    ? { ...j, ...updatedJob, expires_on_display: formatDate(updatedJob.expires_on) }
+                    : j
             )
         );
-        await fetchJobs();
+        await fetchJobs(); // Refetch to ensure consistency
         handleCloseEditModal();
     };
 
     const handleJobAdded = (newJob) => {
         console.log("New job added:", newJob);
-        setJobs((prevJobs) => [{ ...newJob, expires_on: formatDate(newJob.expires_on) }, ...prevJobs]);
-        setLastJob({ title: newJob.title, id: newJob.id, expiresOn: formatDate(newJob.expires_on), slug: newJob.slug }); // Add slug
+        setJobs((prevJobs) => [
+            { ...newJob, expires_on_display: formatDate(newJob.expires_on) },
+            ...prevJobs,
+        ]);
+        setLastJob({
+            title: newJob.title,
+            id: newJob.id,
+            expiresOn: formatDate(newJob.expires_on), // For NotifyEmailGroupModal
+            slug: newJob.slug,
+        });
         setIsNotifyModalOpen(true);
     };
 
@@ -142,8 +152,6 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
         setIsPreviewModalOpen(false);
         setPreviewUrl(null);
     };
-
-    // console.log("Rendering with jobs:", jobs);
 
     return (
         <div
@@ -173,7 +181,7 @@ export default function HRJobBoard({ mode = "light", toggleMode, initialJobs = [
                     }`}
                 >
                     <div className="max-w-7xl mx-auto">
-                        {jobs ? (
+                        {jobs.length ? (
                             <JobListings mode={mode} jobs={jobs} onJobDeleted={fetchJobs} />
                         ) : (
                             <p>Loading jobs...</p>
@@ -240,11 +248,10 @@ export async function getServerSideProps(context) {
 
         const initialJobs = data.map((job) => ({
             ...job,
-            expires_on: formatDate(job.expires_on),
             is_expired: new Date(job.expires_on) < new Date(),
+            expires_on_display: formatDate(job.expires_on), // For display only
         }));
 
-        // console.log("getServerSideProps returning:", initialJobs);
         return {
             props: {
                 initialJobs,

@@ -1,5 +1,9 @@
-export function generateJobPostingSchema(job) {
+export function generateJobPostingSchema(job, countries) {
     if (!job) return null;
+
+    const countryCode = job.location?.country
+        ? countries.find((c) => c.name === job.location.country)?.code || job.location.country
+        : "KE";
 
     return {
         "@context": "https://schema.org",
@@ -13,7 +17,7 @@ export function generateJobPostingSchema(job) {
             "@type": "Organization",
             name: "Growthpad Consulting Group",
             sameAs: "https://growthpad.co.ke",
-            logo: "https://growthpad.co.ke/wp-content/uploads/2024/10/GCG-final-logo-proposals_v6-6.png", // Updated logo URL
+            logo: "https://growthpad.co.ke/wp-content/uploads/2024/10/GCG-final-logo-proposals_v6-6.png",
         },
         jobLocation: job.location
             ? {
@@ -22,7 +26,7 @@ export function generateJobPostingSchema(job) {
                       "@type": "PostalAddress",
                       addressLocality: job.location.city,
                       addressRegion: job.location.region,
-                      addressCountry: job.location.country,
+                      addressCountry: countryCode, // ISO code for Schema.org
                   },
               }
             : {

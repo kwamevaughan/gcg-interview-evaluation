@@ -1,18 +1,21 @@
 "use client";
-
+// TODO: Refactor into smaller components (e.g., TextInput, useJobEditor) for maintainability
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import Select from "react-select";
 
 // Dynamically import EditorComponent with SSR disabled
 const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
 export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPreview }) {
     const [editJob, setEditJob] = useState({});
+    const [countries, setCountries] = useState([]);
+    const [countryOptions, setCountryOptions] = useState([]);
 
-    // Fetch job data when modal opens
+    // Fetch job data and countries when modal opens
     useEffect(() => {
         const fetchJobData = async () => {
             if (!job || !job.id) {
@@ -40,14 +43,61 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                 console.log("Fetched job data:", jobData);
             }
 
+            // Safely format expires_on to YYYY-MM-DD
+            if (jobData.expires_on) {
+                const date = new Date(jobData.expires_on);
+                if (!isNaN(date.getTime())) { // Check if the date is valid
+                    jobData.expires_on = date.toISOString().split("T")[0]; // Ensure YYYY-MM-DD
+                } else {
+                    // Fallback for DD/MM/YYYY or other unexpected formats
+                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(jobData.expires_on)) {
+                        const [day, month, year] = jobData.expires_on.split("/");
+                        const parsedDate = new Date(`${year}-${month}-${day}`);
+                        if (!isNaN(parsedDate.getTime())) {
+                            jobData.expires_on = parsedDate.toISOString().split("T")[0];
+                            console.log(`Parsed DD/MM/YYYY: ${jobData.expires_on} -> ${parsedDate}`);
+                        } else {
+                            console.warn("Invalid expires_on value after DD/MM/YYYY parse:", jobData.expires_on);
+                            jobData.expires_on = ""; // Default to empty if still invalid
+                        }
+                    } else {
+                        console.warn("Invalid expires_on value:", jobData.expires_on);
+                        jobData.expires_on = ""; // Default to empty if invalid
+                    }
+                }
+            } else {
+                console.log("expires_on is null or undefined, setting to empty string");
+                jobData.expires_on = "";
+            }
+            
             console.log("Setting editJob:", jobData);
             setEditJob(jobData);
         };
 
+        // Fetch countries for the dropdown
+        const fetchCountries = async () => {
+            try {
+                const res = await fetch("/assets/misc/countries.json");
+                const data = await res.json();
+                setCountries(data);
+                const options = data.map((country) => ({
+                    label: country.name,
+                    value: country.name,
+                }));
+                setCountryOptions(options);
+            } catch (err) {
+                console.error("Error fetching countries:", err);
+                setCountryOptions([{ label: "Kenya", value: "Kenya" }]);
+            }
+        };
+
         if (isOpen) {
             fetchJobData();
+            fetchCountries();
         } else {
             setEditJob({});
+            setCountries([]);
+            setCountryOptions([]);
         }
     }, [isOpen, job]);
 
@@ -85,7 +135,15 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             file_url: fileUrl,
             file_id: fileId,
             expires_on: editJob.expires_on,
-            is_expired: new Date(editJob.expires_on) < new Date(),
+            is_expired: editJob.expires_on ? new Date(editJob.expires_on) < new Date() : false,
+            employment_type: editJob.employment_type || "FULL_TIME",
+            location: {
+                city: editJob.location?.city || "",
+                region: editJob.location?.region || "",
+                country: countries.find((c) => c.name === editJob.location?.country)?.code || editJob.location?.country || "",
+            },
+            remote: editJob.remote || false,
+            department: editJob.department || null,
         };
         console.log("Updated job data:", updatedJobData);
 
@@ -106,6 +164,10 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                 file_url: null,
                 file_id: null,
                 expires_on: "",
+                employment_type: "FULL_TIME",
+                location: { city: "", region: "", country: "" },
+                remote: false,
+                department: null,
                 newFile: null,
                 removeFile: false,
             });
@@ -136,6 +198,56 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
         } else {
             toast.error("No file available to preview.");
         }
+    };
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0];
+
+    // Custom styles for react-select
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            backgroundColor: mode === "dark" ? "#374151" : "#F9FAFB",
+            borderColor: mode === "dark" ? "#4B5563" : "#D1D5DB",
+            color: mode === "dark" ? "#F9FAFB" : "#231812",
+            padding: "0.5rem",
+            paddingLeft: "2.5rem",
+            borderRadius: "0.5rem",
+            boxShadow: "none",
+            "&:hover": {
+                borderColor: "#F05D23",
+            },
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: mode === "dark" ? "#374151" : "#F9FAFB",
+            color: mode === "dark" ? "#F9FAFB" : "#231812",
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected
+                ? "#F05D23"
+                : mode === "dark"
+                ? "#374151"
+                : "#F9FAFB",
+            color: state.isSelected ? "#FFFFFF" : mode === "dark" ? "#F9FAFB" : "#231812",
+            "&:hover": {
+                backgroundColor: state.isSelected ? "#F05D23" : "#FED7AA",
+                color: state.isSelected ? "#FFFFFF" : "#231812",
+            },
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: mode === "dark" ? "#F9FAFB" : "#231812",
+        }),
+        input: (provided) => ({
+            ...provided,
+            color: mode === "dark" ? "#F9FAFB" : "#231812",
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: mode === "dark" ? "#9CA3AF" : "#6B7280",
+        }),
     };
 
     if (!isOpen) return null;
@@ -187,6 +299,37 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                     placeholder="e.g., Comms and Projects Specialist"
                                     required
                                 />
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                }`}
+                            >
+                                Employment Type <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <Icon
+                                    icon="mdi:briefcase"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                />
+                                <select
+                                    value={editJob.employment_type || "FULL_TIME"}
+                                    onChange={(e) => setEditJob((prev) => ({ ...prev, employment_type: e.target.value }))}
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
+                                        mode === "dark"
+                                            ? "bg-gray-700 text-gray-200 border-gray-600"
+                                            : "bg-gray-50 text-[#231812] border-gray-300"
+                                    }`}
+                                    required
+                                >
+                                    <option value="FULL_TIME">Full-Time</option>
+                                    <option value="PART_TIME">Part-Time</option>
+                                    <option value="CONTRACTOR">Contractor</option>
+                                    <option value="TEMPORARY">Temporary</option>
+                                    <option value="INTERN">Internship</option>
+                                </select>
                             </div>
                         </div>
                         <div className="flex flex-col">
@@ -312,10 +455,11 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                     />
                                     <input
                                         type="date"
-                                        value={editJob.expires_on ? editJob.expires_on.split("T")[0] : ""}
+                                        value={editJob.expires_on || ""}
                                         onChange={(e) =>
                                             setEditJob((prev) => ({ ...prev, expires_on: e.target.value }))
                                         }
+                                        min={today} // Prevent past dates
                                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
                                             mode === "dark"
                                                 ? "bg-gray-700 text-gray-200 border-gray-600"
@@ -324,6 +468,144 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                         required
                                     />
                                 </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                }`}
+                            >
+                                Department (Optional)
+                            </label>
+                            <div className="relative">
+                                <Icon
+                                    icon="mdi:domain"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                />
+                                <input
+                                    type="text"
+                                    value={editJob.department || ""}
+                                    onChange={(e) => setEditJob((prev) => ({ ...prev, department: e.target.value }))}
+                                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
+                                        mode === "dark"
+                                            ? "bg-gray-700 text-gray-200 border-gray-600"
+                                            : "bg-gray-50 text-[#231812] border-gray-300"
+                                    }`}
+                                    placeholder="e.g., Business Development"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                }`}
+                            >
+                                Location <span className="text-red-500">*</span>
+                            </label>
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Icon
+                                        icon="mdi:map-marker"
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editJob.location?.city || ""}
+                                        onChange={(e) =>
+                                            setEditJob((prev) => ({
+                                                ...prev,
+                                                location: { ...prev.location, city: e.target.value },
+                                            }))
+                                        }
+                                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
+                                            mode === "dark"
+                                                ? "bg-gray-700 text-gray-200 border-gray-600"
+                                                : "bg-gray-50 text-[#231812] border-gray-300"
+                                        }`}
+                                        placeholder="City (e.g., Nairobi)"
+                                        required
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Icon
+                                        icon="mdi:map"
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23]"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editJob.location?.region || ""}
+                                        onChange={(e) =>
+                                            setEditJob((prev) => ({
+                                                ...prev,
+                                                location: { ...prev.location, region: e.target.value },
+                                            }))
+                                        }
+                                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
+                                            mode === "dark"
+                                                ? "bg-gray-700 text-gray-200 border-gray-600"
+                                                : "bg-gray-50 text-[#231812] border-gray-300"
+                                        }`}
+                                        placeholder="Region (e.g., Nairobi County)"
+                                        required
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Icon
+                                        icon="mdi:earth"
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#f05d23] z-10"
+                                    />
+                                    <Select
+                                        value={
+                                            editJob.location?.country
+                                                ? { label: editJob.location.country, value: editJob.location.country }
+                                                : null
+                                        }
+                                        onChange={(selectedOption) =>
+                                            setEditJob((prev) => ({
+                                                ...prev,
+                                                location: {
+                                                    ...prev.location,
+                                                    country: selectedOption ? selectedOption.value : "",
+                                                },
+                                            }))
+                                        }
+                                        options={countryOptions}
+                                        placeholder="Select or type country"
+                                        isSearchable
+                                        isClearable
+                                        styles={customStyles}
+                                        className="w-full"
+                                        classNamePrefix="react-select"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                className={`block text-sm font-medium mb-2 ${
+                                    mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                }`}
+                            >
+                                Is the Job Remote?
+                            </label>
+                            <div className="relative">
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={editJob.remote || false}
+                                        onChange={(e) => setEditJob((prev) => ({ ...prev, remote: e.target.checked }))}
+                                        className="w-5 h-5 text-[#f05d23] border-gray-300 rounded focus:ring-[#f05d23] mr-2"
+                                    />
+                                    <span
+                                        className={`text-sm ${
+                                            mode === "dark" ? "text-gray-200" : "text-[#231812]"
+                                        }`}
+                                    >
+                                        This is a remote position
+                                    </span>
+                                </label>
                             </div>
                         </div>
                         <div className="flex gap-4">

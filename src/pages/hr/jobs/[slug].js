@@ -8,8 +8,10 @@ import { Icon } from "@iconify/react";
 import Head from "next/head";
 import ShareModal from "@/components/ShareModal";
 import { generateJobPostingSchema } from "@/lib/jobPostingSchema";
+import fs from "fs";
+import path from "path";
 
-export default function JobDetail({ mode, toggleMode, initialJob }) {
+export default function JobDetail({ mode, toggleMode, initialJob, countries }) {
     const [job, setJob] = useState(initialJob || null);
     const [timeLeft, setTimeLeft] = useState(null);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -57,11 +59,12 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 .single();
             if (error) throw error;
 
+            const countryName = countries.find((c) => c.code === data.location?.country)?.name || data.location?.country;
             const formattedJob = {
                 ...data,
                 expires_on: formatDate(data.expires_on),
                 is_expired: new Date(data.expires_on) < new Date(),
-                location: data.location || null, // No JSON.parse needed
+                location: data.location ? { ...data.location, country: countryName } : null,
             };
             setJob(formattedJob);
             toast.success("Job details loaded!", { id: loadingToast });
@@ -92,6 +95,14 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
         ? `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(job.file_url)}`
         : null;
 
+    const employmentTypeLabel = {
+        FULL_TIME: "Full-Time",
+        PART_TIME: "Part-Time",
+        CONTRACTOR: "Contractor",
+        TEMPORARY: "Temporary",
+        INTERN: "Internship",
+    };
+
     return (
         <div
             className={`min-h-screen flex flex-col ${
@@ -104,7 +115,9 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                     name="description"
                     content={
                         job
-                            ? `Apply for ${job.title} at Growthpad. Expires on ${job.expires_on}. View details and submit your application today!`
+                            ? `Apply for ${job.title} at Growthpad. ${employmentTypeLabel[job.employment_type] || ""} position in ${
+                                  job.location?.city || ""
+                              }, ${job.remote ? "Remote" : "On-site"}. Expires on ${job.expires_on}.`
                             : "Explore career opportunities at Growthpad Consulting Group."
                     }
                 />
@@ -115,7 +128,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                     property="og:description"
                     content={
                         job
-                            ? `Apply for ${job.title}. Expires ${job.expires_on}.`
+                            ? `Apply for ${job.title}. ${employmentTypeLabel[job.employment_type] || ""} position. Expires ${job.expires_on}.`
                             : "Explore career opportunities at Growthpad."
                     }
                 />
@@ -124,7 +137,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                 {job && (
                     <script
                         type="application/ld+json"
-                        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateJobPostingSchema(job)) }}
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateJobPostingSchema(job, countries)) }}
                     />
                 )}
             </Head>
@@ -141,7 +154,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                     <div className="lg:col-span-2">
                         <div className="mb-6">
                             <button
-                                onClick={() => router.push("/")}
+                                onClick={() => router.push("/job-board")}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                                     mode === "dark"
                                         ? "bg-gray-700 text-white hover:bg-gray-600"
@@ -149,7 +162,7 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                 }`}
                             >
                                 <Icon icon="mdi:arrow-left" className="w-5 h-5" />
-                                Back to Home
+                                Back to Jobs
                             </button>
                         </div>
                         {job ? (
@@ -221,12 +234,59 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                                 mode === "dark" ? "text-gray-300" : "text-gray-600"
                                             }`}
                                         >
+                                            <Icon icon="mdi:briefcase" className="w-5 h-5 text-[#f05d23]" />
+                                            Employment Type
+                                        </p>
+                                        <p className="text-base">{employmentTypeLabel[job.employment_type] || "N/A"}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p
+                                            className={`text-base font-medium flex items-center gap-2 ${
+                                                mode === "dark" ? "text-gray-300" : "text-gray-600"
+                                            }`}
+                                        >
+                                            <Icon icon="mdi:map-marker" className="w-5 h-5 text-[#f05d23]" />
+                                            Location
+                                        </p>
+                                        <p className="text-base">
+                                            {job.location ? `${job.location.city}, ${job.location.region}, ${job.location.country}` : "N/A"}
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p
+                                            className={`text-base font-medium flex items-center gap-2 ${
+                                                mode === "dark" ? "text-gray-300" : "text-gray-600"
+                                            }`}
+                                        >
+                                            <Icon icon="mdi:home" className="w-5 h-5 text-[#f05d23]" />
+                                            Remote
+                                        </p>
+                                        <p className="text-base">{job.remote ? "Yes" : "No"}</p>
+                                    </div>
+                                    {job.department && (
+                                        <div className="flex gap-2">
+                                            <p
+                                                className={`text-base font-medium flex items-center gap-2 ${
+                                                    mode === "dark" ? "text-gray-300" : "text-gray-600"
+                                                }`}
+                                            >
+                                                <Icon icon="mdi:domain" className="w-5 h-5 text-[#f05d23]" />
+                                                Department
+                                            </p>
+                                            <p className="text-base">{job.department}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <p
+                                            className={`text-base font-medium flex items-center gap-2 ${
+                                                mode === "dark" ? "text-gray-300" : "text-gray-600"
+                                            }`}
+                                        >
                                             <Icon icon="mdi:calendar" className="w-5 h-5 text-[#f05d23]" />
                                             Expires On
                                         </p>
                                         <p className="text-base">{job.expires_on}</p>
                                     </div>
-
                                     {!job.is_expired && timeLeft && (
                                         <div
                                             className={`justify-center mb-6 p-4 rounded-lg shadow-sm flex items-center gap-2 ${
@@ -258,7 +318,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                             </div>
                                         </div>
                                     )}
-
                                     <div className="flex gap-2">
                                         <p
                                             className={`text-base font-medium flex items-center gap-2 ${
@@ -279,7 +338,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                             {job.is_expired ? "Expired" : "Active"}
                                         </p>
                                     </div>
-
                                     <button
                                         onClick={handleApply}
                                         disabled={job.is_expired}
@@ -292,7 +350,6 @@ export default function JobDetail({ mode, toggleMode, initialJob }) {
                                         <Icon icon="mdi:send" className="w-6 h-6" />
                                         Apply Now
                                     </button>
-
                                     <button
                                         onClick={() => setIsShareModalOpen(true)}
                                         className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 ${
@@ -327,6 +384,10 @@ export async function getServerSideProps(context) {
     const { params } = context;
     const { slug } = params;
 
+    // Read countries.json from public/assets/misc
+    const filePath = path.join(process.cwd(), "public", "assets", "misc", "countries.json");
+    const countries = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
     try {
         const { data, error } = await supabase
             .from("job_openings")
@@ -335,6 +396,7 @@ export async function getServerSideProps(context) {
             .single();
         if (error) throw error;
 
+        const countryName = countries.find((c) => c.code === data.location?.country)?.name || data.location?.country;
         const formatDate = (isoDateString) => {
             const date = new Date(isoDateString);
             const day = String(date.getDate()).padStart(2, "0");
@@ -347,12 +409,13 @@ export async function getServerSideProps(context) {
             ...data,
             expires_on: formatDate(data.expires_on),
             is_expired: new Date(data.expires_on) < new Date(),
-            location: data.location || null, // No JSON.parse needed
+            location: data.location ? { ...data.location, country: countryName } : null,
         };
 
         return {
             props: {
                 initialJob,
+                countries,
             },
         };
     } catch (error) {
@@ -360,6 +423,7 @@ export async function getServerSideProps(context) {
         return {
             props: {
                 initialJob: null,
+                countries,
             },
         };
     }
