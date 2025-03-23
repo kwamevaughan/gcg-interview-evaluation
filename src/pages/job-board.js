@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect
 import { supabase } from "@/lib/supabase";
 import Head from "next/head";
-import Link from "next/link"; // Import Link
-import toast from "react-hot-toast";
+import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 import JobsHeader from "@/layouts/JobsHeader";
 import Footer from "@/layouts/footer";
 import { Icon } from "@iconify/react";
@@ -11,8 +11,13 @@ import { generateJobPostingSchema } from "@/lib/jobPostingSchema";
 export default function PublicJobListings({ mode, toggleMode, initialJobs, countries }) {
     const [jobs, setJobs] = useState(initialJobs);
     const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all"); // "all", "active", "expired"
+    const [statusFilter, setStatusFilter] = useState("all");
     const [locationFilter, setLocationFilter] = useState("");
+    const [isMounted, setIsMounted] = useState(false); // Track client-side mount
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const schema = {
         "@context": "https://schema.org",
@@ -32,7 +37,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
         return `${day}/${month}/${year}`;
     };
 
-    // Filter and search logic
     const filteredJobs = jobs.filter((job) => {
         const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus =
@@ -48,7 +52,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
         return matchesSearch && matchesStatus && matchesLocation;
     });
 
-    // Extract unique locations for filter dropdown
     const uniqueLocations = Array.from(
         new Set(
             jobs
@@ -61,12 +64,52 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
         )
     );
 
-    // Reset all filters
     const handleClearFilters = () => {
         setSearchQuery("");
         setStatusFilter("all");
         setLocationFilter("");
     };
+
+    if (!isMounted) {
+        // Server-side fallback: minimal static content
+        return (
+            <div
+                className={`min-h-screen flex flex-col ${
+                    mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
+                }`}
+            >
+                <Head>
+                    <title>Job Openings | Growthpad Careers</title>
+                    <meta
+                        name="description"
+                        content="Explore current job openings at Growthpad Consulting Group and apply today!"
+                    />
+                    <meta name="keywords" content="job openings, careers, Growthpad, employment" />
+                    <meta name="robots" content="index, follow" />
+                    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+                </Head>
+                <JobsHeader
+                    mode={mode}
+                    toggleMode={toggleMode}
+                    pageName="Current Job Openings"
+                    pageDescription="Explore exciting career opportunities at Growthpad Consulting Group and apply today!"
+                />
+                <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-7xl mx-auto">
+                        <h1
+                            className={`text-3xl md:text-4xl font-bold mb-8 text-center ${
+                                mode === "dark" ? "text-white" : "text-[#231812]"
+                            }`}
+                        >
+                            <Icon icon="mdi:briefcase" className="inline-block mr-2 w-8 h-8 text-[#f05d23]" />
+                            Current Job Openings
+                        </h1>
+                    </div>
+                </main>
+                <Footer mode={mode} />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -74,6 +117,7 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
+            <Toaster /> {/* Only renders on client */}
             <Head>
                 <title>Job Openings | Growthpad Careers</title>
                 <meta
@@ -103,14 +147,12 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                         Current Job Openings
                     </h1>
 
-                    {/* Filters and Search */}
                     <div
                         className={`p-6 rounded-lg shadow-md mb-8 ${
                             mode === "dark" ? "bg-gray-800" : "bg-white"
                         }`}
                     >
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Search Bar */}
                             <div className="relative">
                                 <Icon
                                     icon="mdi:magnify"
@@ -130,8 +172,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                                     }`}
                                 />
                             </div>
-
-                            {/* Status Filter */}
                             <div className="relative">
                                 <Icon
                                     icon="mdi:filter"
@@ -153,8 +193,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                                     <option value="expired">Expired</option>
                                 </select>
                             </div>
-
-                            {/* Location Filter */}
                             <div className="relative">
                                 <Icon
                                     icon="mdi:map-marker"
@@ -180,8 +218,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                                 </select>
                             </div>
                         </div>
-
-                        {/* Clear Filters Button */}
                         <div className="mt-4 flex justify-end">
                             <button
                                 onClick={handleClearFilters}
@@ -197,7 +233,6 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                         </div>
                     </div>
 
-                    {/* Job Listings */}
                     {filteredJobs.length === 0 ? (
                         <div
                             className={`p-6 rounded-lg shadow-md text-center ${
@@ -247,7 +282,7 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                                         {job.description && (
                                             <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                                                 <Icon icon="mdi:text" className="inline-block w-5 h-5 text-[#f05d23] mr-2" />
-                                                {job.description.replace(/<[^>]+>/g, "")} {/* Strip HTML tags */}
+                                                {job.description.replace(/<[^>]+>/g, "")}
                                             </p>
                                         )}
                                         <p
@@ -292,15 +327,13 @@ export async function getServerSideProps() {
     };
 
     try {
-        // Fetch jobs from Supabase
         const { data: jobsData, error: jobsError } = await supabase
             .from("job_openings")
             .select("*")
             .order("created_at", { ascending: false });
         if (jobsError) throw jobsError;
 
-        // Fetch countries.json
-        const countriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/assets/misc/countries.json`);
+        const countriesRes = await fetch("/assets/misc/countries.json");
         const countries = await countriesRes.json();
 
         const jobs = jobsData.map((job) => {
@@ -315,7 +348,7 @@ export async function getServerSideProps() {
 
             return {
                 ...job,
-                expires_on: formatDate(job.expires_on), // Display as DD/MM/YYYY
+                expires_on: formatDate(job.expires_on),
                 is_expired: new Date(job.expires_on) < new Date(),
                 location: parsedLocation,
             };
@@ -324,7 +357,7 @@ export async function getServerSideProps() {
         return { props: { initialJobs: jobs, countries } };
     } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to load job openings");
+        // Avoid triggering toast on server-side (it’s client-only)
         return { props: { initialJobs: [], countries: [] } };
     }
 }
