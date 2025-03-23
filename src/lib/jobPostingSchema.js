@@ -24,17 +24,21 @@ export function generateJobPostingSchema(job, countries) {
                   "@type": "Place",
                   address: {
                       "@type": "PostalAddress",
-                      addressLocality: job.location.city,
-                      addressRegion: job.location.region,
-                      addressCountry: countryCode, // ISO code for Schema.org
+                      streetAddress: job.location.streetAddress || "Mitsumi Business Park, 7th floor",
+                      addressLocality: job.location.city || "Nairobi",
+                      addressRegion: job.location.region || "Nairobi County",
+                      postalCode: job.location.postalCode || "00100",
+                      addressCountry: countryCode,
                   },
               }
             : {
                   "@type": "Place",
                   address: {
                       "@type": "PostalAddress",
+                      streetAddress: "Mitsumi Business Park, 7th floor",
                       addressLocality: "Nairobi",
                       addressRegion: "Nairobi County",
+                      postalCode: "00100",
                       addressCountry: "KE",
                   },
               },
