@@ -1,23 +1,20 @@
-import { useState, useEffect } from "react"; // Add useEffect
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Head from "next/head";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import JobsHeader from "@/layouts/JobsHeader";
 import Footer from "@/layouts/footer";
 import { Icon } from "@iconify/react";
 import { generateJobPostingSchema } from "@/lib/jobPostingSchema";
+import fs from "fs/promises"; // For filesystem access in Node.js
+import path from "path"; // For resolving file paths
 
 export default function PublicJobListings({ mode, toggleMode, initialJobs, countries }) {
     const [jobs, setJobs] = useState(initialJobs);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [locationFilter, setLocationFilter] = useState("");
-    const [isMounted, setIsMounted] = useState(false); // Track client-side mount
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
     const schema = {
         "@context": "https://schema.org",
@@ -70,54 +67,12 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
         setLocationFilter("");
     };
 
-    if (!isMounted) {
-        // Server-side fallback: minimal static content
-        return (
-            <div
-                className={`min-h-screen flex flex-col ${
-                    mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
-                }`}
-            >
-                <Head>
-                    <title>Job Openings | Growthpad Careers</title>
-                    <meta
-                        name="description"
-                        content="Explore current job openings at Growthpad Consulting Group and apply today!"
-                    />
-                    <meta name="keywords" content="job openings, careers, Growthpad, employment" />
-                    <meta name="robots" content="index, follow" />
-                    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-                </Head>
-                <JobsHeader
-                    mode={mode}
-                    toggleMode={toggleMode}
-                    pageName="Current Job Openings"
-                    pageDescription="Explore exciting career opportunities at Growthpad Consulting Group and apply today!"
-                />
-                <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-7xl mx-auto">
-                        <h1
-                            className={`text-3xl md:text-4xl font-bold mb-8 text-center ${
-                                mode === "dark" ? "text-white" : "text-[#231812]"
-                            }`}
-                        >
-                            <Icon icon="mdi:briefcase" className="inline-block mr-2 w-8 h-8 text-[#f05d23]" />
-                            Current Job Openings
-                        </h1>
-                    </div>
-                </main>
-                <Footer mode={mode} />
-            </div>
-        );
-    }
-
     return (
         <div
             className={`min-h-screen flex flex-col ${
                 mode === "dark" ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"
             }`}
         >
-            <Toaster /> {/* Only renders on client */}
             <Head>
                 <title>Job Openings | Growthpad Careers</title>
                 <meta
@@ -327,14 +282,17 @@ export async function getServerSideProps() {
     };
 
     try {
+        // Fetch jobs from Supabase
         const { data: jobsData, error: jobsError } = await supabase
             .from("job_openings")
             .select("*")
             .order("created_at", { ascending: false });
         if (jobsError) throw jobsError;
 
-        const countriesRes = await fetch("/assets/misc/countries.json");
-        const countries = await countriesRes.json();
+        // Read countries.json from the public folder
+        const filePath = path.join(process.cwd(), "public", "assets", "misc", "countries.json");
+        const countriesData = await fs.readFile(filePath, "utf8");
+        const countries = JSON.parse(countriesData);
 
         const jobs = jobsData.map((job) => {
             let parsedLocation = job.location;
@@ -357,7 +315,7 @@ export async function getServerSideProps() {
         return { props: { initialJobs: jobs, countries } };
     } catch (error) {
         console.error("Error fetching data:", error);
-        // Avoid triggering toast on server-side (it’s client-only)
+        toast.error("Failed to load job openings");
         return { props: { initialJobs: [], countries: [] } };
     }
 }
