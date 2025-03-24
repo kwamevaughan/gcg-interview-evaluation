@@ -17,7 +17,7 @@ module.exports = {
         "/hr/login",
     ],
     outDir: "public",
-    sitemapBaseFileName: "sitemap-static",
+    // sitemapBaseFileName: "sitemap-static",
     generateIndexSitemap: true,
     robotsTxtOptions: {
         policies: [
