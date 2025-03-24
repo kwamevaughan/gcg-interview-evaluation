@@ -7,7 +7,6 @@ import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import Select from "react-select";
 
-// Dynamically import EditorComponent with SSR disabled
 const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
 export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPreview }) {
@@ -15,7 +14,6 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
     const [countries, setCountries] = useState([]);
     const [countryOptions, setCountryOptions] = useState([]);
 
-    // Fetch job data and countries when modal opens
     useEffect(() => {
         const fetchJobData = async () => {
             if (!job || !job.id) {
@@ -26,7 +24,6 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             console.log("Received job prop:", job);
             let jobData = { ...job };
 
-            // Fetch fresh data if job prop is incomplete
             if (!job.title || !job.expires_on) {
                 console.log("Fetching fresh job data from Supabase for ID:", job.id);
                 const { data, error } = await supabase
@@ -43,27 +40,23 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                 console.log("Fetched job data:", jobData);
             }
 
-            // Safely format expires_on to YYYY-MM-DD
             if (jobData.expires_on) {
                 const date = new Date(jobData.expires_on);
-                if (!isNaN(date.getTime())) { // Check if the date is valid
-                    jobData.expires_on = date.toISOString().split("T")[0]; // Ensure YYYY-MM-DD
-                } else {
-                    // Fallback for DD/MM/YYYY or other unexpected formats
-                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(jobData.expires_on)) {
-                        const [day, month, year] = jobData.expires_on.split("/");
-                        const parsedDate = new Date(`${year}-${month}-${day}`);
-                        if (!isNaN(parsedDate.getTime())) {
-                            jobData.expires_on = parsedDate.toISOString().split("T")[0];
-                            console.log(`Parsed DD/MM/YYYY: ${jobData.expires_on} -> ${parsedDate}`);
-                        } else {
-                            console.warn("Invalid expires_on value after DD/MM/YYYY parse:", jobData.expires_on);
-                            jobData.expires_on = ""; // Default to empty if still invalid
-                        }
+                if (!isNaN(date.getTime())) {
+                    jobData.expires_on = date.toISOString().split("T")[0];
+                } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(jobData.expires_on)) {
+                    const [day, month, year] = jobData.expires_on.split("/");
+                    const parsedDate = new Date(`${year}-${month}-${day}`);
+                    if (!isNaN(parsedDate.getTime())) {
+                        jobData.expires_on = parsedDate.toISOString().split("T")[0];
+                        console.log(`Parsed DD/MM/YYYY: ${jobData.expires_on} -> ${parsedDate}`);
                     } else {
-                        console.warn("Invalid expires_on value:", jobData.expires_on);
-                        jobData.expires_on = ""; // Default to empty if invalid
+                        console.warn("Invalid expires_on value after DD/MM/YYYY parse:", jobData.expires_on);
+                        jobData.expires_on = "";
                     }
+                } else {
+                    console.warn("Invalid expires_on value:", jobData.expires_on);
+                    jobData.expires_on = "";
                 }
             } else {
                 console.log("expires_on is null or undefined, setting to empty string");
@@ -74,7 +67,6 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             setEditJob(jobData);
         };
 
-        // Fetch countries for the dropdown
         const fetchCountries = async () => {
             try {
                 const res = await fetch("/assets/misc/countries.json");
@@ -144,6 +136,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             },
             remote: editJob.remote || false,
             department: editJob.department || null,
+            slug: editJob.slug, // Ensure slug is preserved
         };
         console.log("Updated job data:", updatedJobData);
 
@@ -156,7 +149,23 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
             toast.error("Failed to update job opening.", { id: toastId });
             console.error("Update error details:", error);
         } else {
-            toast.success("Job opening updated successfully!", { id: toastId });
+            const jobUrl = `https://careers.growthpad.co.ke/jobs/${editJob.slug}`;
+            try {
+                const response = await fetch("/api/notify-google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: jobUrl }),
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Failed to notify Google");
+                }
+                toast.success("Job opening updated and Google notified successfully!", { icon: "✅", id: toastId });
+            } catch (indexingError) {
+                toast.success("Job opening updated, but failed to notify Google.", { icon: "⚠️", id: toastId });
+                console.error("Indexing API error:", indexingError);
+            }
+
             setEditJob({
                 ...editJob,
                 title: "",
@@ -200,10 +209,8 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
         }
     };
 
-    // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
-    // Custom styles for react-select
     const customStyles = {
         control: (provided) => ({
             ...provided,
@@ -459,7 +466,7 @@ export default function EditJobModal({ isOpen, job, onClose, onSave, mode, onPre
                                         onChange={(e) =>
                                             setEditJob((prev) => ({ ...prev, expires_on: e.target.value }))
                                         }
-                                        min={today} // Prevent past dates
+                                        min={today}
                                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] ${
                                             mode === "dark"
                                                 ? "bg-gray-700 text-gray-200 border-gray-600"
