@@ -137,7 +137,7 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                                 </td>
                                 <td className="p-2 sm:p-4 text-xs sm:text-sm flex flex-col sm:flex-row gap-2">
                                     <Link
-                                        href={`/hr/jobs/${job.slug}`}
+                                        href={`/jobs/${job.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs sm:text-sm"
@@ -195,7 +195,7 @@ export default function JobListings({ mode, jobs, onJobDeleted }) {
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Link
-                                    href={`/hr/jobs/${job.slug}`}
+                                    href={`/jobs/${job.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="px-2 py-1 bg-[#f05d23] text-white rounded-lg hover:bg-[#d94f1e] transition duration-200 flex items-center gap-1 text-xs"

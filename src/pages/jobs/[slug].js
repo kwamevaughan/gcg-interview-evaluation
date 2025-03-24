@@ -137,7 +137,7 @@ export default function JobDetail({ mode, toggleMode, initialJob, countries }) {
                     }
                 />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={`https://careers.growthpad.co.ke/hr/jobs/${slug}`} />
+                <meta property="og:url" content={`https://careers.growthpad.co.ke/jobs/${slug}`} />
                 {job && (
                     <script
                         type="application/ld+json"
@@ -389,7 +389,7 @@ export async function getServerSideProps(context) {
     const { slug } = params;
 
     // Read countries.json from public/assets/misc
-    const filePath = path.join(process.cwd(), "public", "assets", "migrated", "countries.json");
+    const filePath = path.join(process.cwd(), "public", "assets", "misc", "countries.json");
     const countries = JSON.parse(fs.readFileSync(filePath, "utf8"));
 
     try {

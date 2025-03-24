@@ -170,7 +170,7 @@ export default function EmailTemplates({ mode = "light", toggleMode, initialTemp
         // Job Opening Sample Data
         jobTitle: "Digital Media Manager",
         expiresOn: "01/04/2025",
-        jobUrl: "https://careers.growthpad.co.ke/hr/jobs/digital-media-manager",
+        jobUrl: "https://careers.growthpad.co.ke/jobs/digital-media-manager",
     };
 
     return (

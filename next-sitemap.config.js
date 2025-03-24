@@ -31,7 +31,7 @@ module.exports = {
     const jobPaths = jobs
       .filter((job) => new Date(job.expires_on) >= new Date()) // Only active jobs
       .map((job) => ({
-        loc: `/hr/jobs/${job.slug}`,
+        loc: `/jobs/${job.slug}`,
         lastmod: new Date(job.updated_at).toISOString(),
         changefreq: "daily",
         priority: 0.7,
@@ -45,6 +45,7 @@ module.exports = {
         userAgent: "*",
         allow: "/",
         disallow: [
+          "/hr/jobs",
           "/hr/analytics",
           "/hr/applicants",
           "/hr/automations",

@@ -202,7 +202,7 @@ export default function PublicJobListings({ mode, toggleMode, initialJobs, count
                             {filteredJobs.map((job) => (
                                 <Link
                                     key={job.id}
-                                    href={`/hr/jobs/${job.slug}`}
+                                    href={`/jobs/${job.slug}`}
                                     className={`block p-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                                         mode === "dark"
                                             ? "bg-gray-800 text-white border-gray-700"

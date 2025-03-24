@@ -44,7 +44,7 @@ export default async function handler(req, res) {
         }
 
         const { subject, body } = templateData;
-        const jobUrl = `${process.env.BASE_URL}/hr/jobs/${jobData.slug}`;
+        const jobUrl = `${process.env.BASE_URL}/jobs/${jobData.slug}`;
         const finalSubject = subject.replace("{{jobTitle}}", jobTitle).replace("{{jobUrl}}", jobUrl);
         const finalBody = body
             .replace("{{jobTitle}}", jobTitle)
