@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && npx next-sitemap && node scripts/fix-sitemap-index.js",
     "start": "next start",
-    "postbuild": "next-sitemap",
     "lint": "next lint"
   },
   "dependencies": {

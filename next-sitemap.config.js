@@ -17,7 +17,7 @@ module.exports = {
         "/hr/login",
     ],
     outDir: "public",
-    // sitemapBaseFileName: "sitemap-static",
+    sitemapBaseFileName: "sitemap-static",
     generateIndexSitemap: true,
     robotsTxtOptions: {
         policies: [
@@ -39,6 +39,6 @@ module.exports = {
                 ],
             },
         ],
-        additionalSitemaps: ["https://careers.growthpad.co.ke/api/sitemap-jobs.xml"], // Updated URL
+        additionalSitemaps: ["https://careers.growthpad.co.ke/api/sitemap-jobs.xml"],
     },
 };
