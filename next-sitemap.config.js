@@ -5,7 +5,6 @@ module.exports = {
   siteUrl: "https://careers.growthpad.co.ke",
   generateRobotsTxt: true,
   sitemapSize: 7000,
-  // Exclude admin-restricted pages
   exclude: [
     "/hr/analytics",
     "/hr/applicants",
@@ -16,25 +15,26 @@ module.exports = {
     "/hr/recruiters",
     "/hr/settings",
     "/hr/verify",
-    "/hr/login", // Login page
+    "/hr/login",
   ],
   async additionalPaths(config) {
-    // Fetch job slugs from Supabase for /hr/jobs/[slug]
     const { data: jobs, error } = await supabase
       .from("job_openings")
-      .select("slug, updated_at");
+      .select("slug, updated_at, expires_on"); // Add expires_on
 
     if (error) {
       console.error("Error fetching jobs for sitemap:", error);
       return [];
     }
 
-    const jobPaths = jobs.map((job) => ({
-      loc: `/hr/jobs/${job.slug}`,
-      lastmod: new Date(job.updated_at).toISOString(),
-      changefreq: "daily",
-      priority: 0.7,
-    }));
+    const jobPaths = jobs
+      .filter((job) => new Date(job.expires_on) >= new Date()) // Only active jobs
+      .map((job) => ({
+        loc: `/hr/jobs/${job.slug}`,
+        lastmod: new Date(job.updated_at).toISOString(),
+        changefreq: "daily",
+        priority: 0.7,
+      }));
 
     return jobPaths;
   },
