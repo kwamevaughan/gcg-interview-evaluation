@@ -16,9 +16,9 @@ module.exports = {
         "/hr/verify",
         "/hr/login",
     ],
-    outDir: "public", // Ensure output goes to public folder
-    sitemapBaseFileName: "sitemap-static", // Rename default sitemap to sitemap-static.xml
-    generateIndexSitemap: true, // Generate sitemap.xml as index
+    outDir: "public",
+    sitemapBaseFileName: "sitemap-static",
+    generateIndexSitemap: true,
     robotsTxtOptions: {
         policies: [
             {
@@ -39,6 +39,6 @@ module.exports = {
                 ],
             },
         ],
-        additionalSitemaps: ["https://careers.growthpad.co.ke/sitemap-jobs.xml"], // Point to renamed dynamic sitemap
+        additionalSitemaps: ["https://careers.growthpad.co.ke/api/sitemap-jobs.xml"], // Updated URL
     },
 };

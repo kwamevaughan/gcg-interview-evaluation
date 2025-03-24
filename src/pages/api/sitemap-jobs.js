@@ -1,4 +1,4 @@
-// pages/sitemap-jobs.xml.js
+// pages/api/sitemap-jobs.xml.js
 import { supabase } from "@/lib/supabase";
 
 export default async function handler(req, res) {
