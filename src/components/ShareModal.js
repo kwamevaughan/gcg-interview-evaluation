@@ -3,7 +3,7 @@ import { Icon } from "@iconify/react";
 export default function ShareModal({ isOpen, onClose, job, mode, onNotify }) {
     if (!isOpen || !job) return null;
 
-    const jobUrl = `https://careers.growthpad.co.ke/hr/jobs/${job.slug}`;
+    const jobUrl = `https://careers.growthpad.co.ke/jobs/${job.slug}`; // Updated to /jobs/[slug]
 
     const shareOptions = [
         {
@@ -29,6 +29,12 @@ export default function ShareModal({ isOpen, onClose, job, mode, onNotify }) {
             icon: "mdi:email",
             url: `mailto:?subject=${encodeURIComponent(job.title)}&body=Check out this job: ${encodeURIComponent(jobUrl)}`,
             color: "hover:bg-gray-600",
+        },
+        {
+            platform: "Facebook",
+            icon: "mdi:facebook",
+            url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(jobUrl)}&quote=${encodeURIComponent(`Check out this job: ${job.title}`)}`, // Fixed "e= to &quote=
+            color: "hover:bg-blue-600",
         },
     ];
 
@@ -58,7 +64,7 @@ export default function ShareModal({ isOpen, onClose, job, mode, onNotify }) {
                                 href={option.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`flex items-center justify-center gap-2 py-2 rounded-lg font-medium transition-colors ${option.color} ${
+                                className={`flex items-center justify-center gap-2 py-2 rounded-lg font-medium transition-colors ${option.color} hover:text-white ${
                                     mode === "dark" ? "bg-gray-700 text-white" : "bg-gray-100 text-[#231812]"
                                 }`}
                             >
