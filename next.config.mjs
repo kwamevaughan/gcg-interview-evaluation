@@ -12,7 +12,6 @@ const nextConfig = {
             },
         ];
     },
-    generateRobotsTxt: true,
 };
 
 export default nextConfig;
