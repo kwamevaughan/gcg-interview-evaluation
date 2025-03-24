@@ -16,7 +16,6 @@ module.exports = {
         "/hr/verify",
         "/hr/login",
     ],
-    // Remove additionalPaths since sitemap is dynamic
     robotsTxtOptions: {
         policies: [
             {
@@ -37,6 +36,6 @@ module.exports = {
                 ],
             },
         ],
-        additionalSitemaps: ["https://careers.growthpad.co.ke/api/sitemap"], // Point to dynamic sitemap
+        // Remove additionalSitemaps since /sitemap.xml is now the single source
     },
 };

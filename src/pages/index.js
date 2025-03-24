@@ -38,7 +38,7 @@ export default function LandingPage({ initialOpenings }) {
                 <title>Careers at Growthpad Consulting Group | Job Openings in Nairobi</title>
                 <meta
                     name="description"
-                    content="Explore career opportunities at Growthpad Consulting Group. We are a Nairobi Headquartered – cross-Africa communication, technology, and digital services firm that blends strategy, creativity, and technology to bring powerful results for organizations in the African market."
+                    content="Explore career opportunities at Growthpad Consulting Group, a Nairobi-based firm offering jobs in communication, technology, and digital services across Africa. Apply today!"
                 />
                 <meta
                     name="keywords"
