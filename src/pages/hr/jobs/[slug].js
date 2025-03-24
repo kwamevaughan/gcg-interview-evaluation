@@ -122,7 +122,11 @@ export default function JobDetail({ mode, toggleMode, initialJob, countries }) {
                     }
                 />
                 <meta name="keywords" content="job opening, careers, Growthpad, employment" />
-                <meta name="robots" content="index, follow" />
+                {job?.is_expired ? (
+                    <meta name="robots" content="noindex" />
+                ) : (
+                    <meta name="robots" content="index, follow" />
+                )}
                 <meta property="og:title" content={job ? job.title : "Job Details"} />
                 <meta
                     property="og:description"
@@ -385,7 +389,7 @@ export async function getServerSideProps(context) {
     const { slug } = params;
 
     // Read countries.json from public/assets/misc
-    const filePath = path.join(process.cwd(), "public", "assets", "misc", "countries.json");
+    const filePath = path.join(process.cwd(), "public", "assets", "migrated", "countries.json");
     const countries = JSON.parse(fs.readFileSync(filePath, "utf8"));
 
     try {
