@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import Select from "react-select";
+import { notifyGoogle } from "@/lib/indexing";
 
 const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
@@ -17,7 +18,7 @@ export default function JobForm({ mode, onJobAdded }) {
     const [employmentType, setEmploymentType] = useState("FULL_TIME");
     const [locationCity, setLocationCity] = useState("Nairobi");
     const [locationRegion, setLocationRegion] = useState("Nairobi County");
-    const [locationCountry, setLocationCountry] = useState("Kenya"); // Default to full name
+    const [locationCountry, setLocationCountry] = useState("Kenya");
     const [remote, setRemote] = useState(false);
     const [department, setDepartment] = useState("");
     const [step, setStep] = useState(1);
@@ -30,7 +31,6 @@ export default function JobForm({ mode, onJobAdded }) {
     ];
     const totalSteps = steps.length;
 
-    // Fetch countries.json and prepare options for react-select
     useEffect(() => {
         fetch("/assets/misc/countries.json")
             .then((res) => res.json())
@@ -130,7 +130,9 @@ export default function JobForm({ mode, onJobAdded }) {
             },
             remote,
             department: department || null,
+            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""), // Generate slug
         };
+
         console.log("Job data to insert:", jobData);
 
         const { data, error } = await supabase.from("job_openings").insert([jobData]).select().single();
@@ -138,7 +140,16 @@ export default function JobForm({ mode, onJobAdded }) {
             toast.error("Failed to submit job opening.", { id: toastId });
             console.error("Insert error:", error);
         } else {
-            toast.success("Job opening added successfully!", { icon: "✅", id: toastId });
+            // Notify Google Indexing API
+            const jobUrl = `https://careers.growthpad.co.ke/jobs/${data.slug}`;
+            try {
+                await notifyGoogle(jobUrl);
+                toast.success("Job opening added and Google notified successfully!", { icon: "✅", id: toastId });
+            } catch (indexingError) {
+                toast.success("Job opening added, but failed to notify Google.", { icon: "⚠️", id: toastId });
+                console.error("Indexing API error:", indexingError);
+            }
+
             setTitle("");
             setDescription("");
             setFile(null);
@@ -163,6 +174,8 @@ export default function JobForm({ mode, onJobAdded }) {
         });
     };
 
+    // Rest of your functions (handleFileChange, handleRemoveFile, etc.) remain unchanged
+
     const handleFileChange = (e) => setFile(e.target.files[0]);
     const handleRemoveFile = () => setFile(null);
     const handleReplaceFile = () => document.getElementById("file-upload").click();
@@ -172,10 +185,8 @@ export default function JobForm({ mode, onJobAdded }) {
         input.showPicker();
     };
 
-    // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
 
-    // Custom styles for react-select
     const customStyles = {
         control: (provided) => ({
             ...provided,
@@ -412,7 +423,7 @@ export default function JobForm({ mode, onJobAdded }) {
                                         type="date"
                                         value={expiresOn}
                                         onChange={(e) => setExpiresOn(e.target.value)}
-                                        min={today} // Prevent past dates
+                                        min={today}
                                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f05d23] transition-all duration-200 ${
                                             mode === "dark"
                                                 ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
