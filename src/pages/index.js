@@ -1,10 +1,10 @@
-// src/pages/index.js
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
+import Head from "next/head"; // Added for SEO
 
 const JobDescriptionModal = dynamic(() => import("../components/JobDescriptionModal"), { ssr: false });
 
@@ -34,6 +34,36 @@ export default function LandingPage({ initialOpenings }) {
 
     return (
         <div className="relative min-h-screen flex flex-col justify-center items-center px-4 sm:px-6">
+            <Head>
+                <title>Careers at Growthpad Consulting Group | Job Openings in Nairobi</title>
+                <meta
+                    name="description"
+                    content="Explore career opportunities at Growthpad Consulting Group. We are a Nairobi Headquartered – cross-Africa communication, technology, and digital services firm that blends strategy, creativity, and technology to bring powerful results for organizations in the African market."
+                />
+                <meta
+                    name="keywords"
+                    content="careers, job openings, Growthpad Consulting, Nairobi jobs, Africa jobs, communication jobs, technology jobs, digital services, employment opportunities"
+                />
+                <meta name="robots" content="index, follow" />
+                <meta name="author" content="Growthpad Consulting Group" />
+                <meta property="og:title" content="Careers at Growthpad Consulting Group | Job Openings in Nairobi" />
+                <meta
+                    property="og:description"
+                    content="Join Growthpad Consulting Group in Nairobi. Explore current job openings in communication, technology, and digital services across Africa. Start your career today!"
+                />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://careers.growthpad.co.ke/" />
+                <meta property="og:image" content="https://careers.growthpad.co.ke/assets/images/logo-tagline-orange.svg" />
+                <meta property="og:site_name" content="Growthpad Careers" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Careers at Growthpad Consulting Group | Job Openings in Nairobi" />
+                <meta
+                    name="twitter:description"
+                    content="Discover job opportunities at Growthpad Consulting Group in Nairobi and across Africa. Apply now for roles in communication, tech, and digital services!"
+                />
+                <meta name="twitter:image" content="https://careers.growthpad.co.ke/assets/images/logo-tagline-orange.svg" />
+            </Head>
+
             <div className="absolute top-0 left-0 w-full h-full z-0">
                 <iframe
                     className="w-full h-full object-cover"
@@ -179,6 +209,6 @@ export async function getStaticProps() {
         props: {
             initialOpenings: data.map((job) => job.title),
         },
-        revalidate: 60, // Revalidate every 60 seconds
+        revalidate: 60,
     };
 }

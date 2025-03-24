@@ -1,4 +1,3 @@
-// src/pages/interview.js
 import { useState, useEffect } from "react";
 import Header from "@/layouts/header";
 import toast, { Toaster } from "react-hot-toast";
@@ -12,6 +11,7 @@ import { Icon } from "@iconify/react";
 import Footer from "@/layouts/footer";
 import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabase";
+import Head from "next/head"; // Added for SEO
 
 export default function InterviewPage({ mode, toggleMode, initialQuestions }) {
     const router = useRouter();
@@ -183,6 +183,36 @@ export default function InterviewPage({ mode, toggleMode, initialQuestions }) {
 
     return (
         <>
+            <Head>
+                <title>Apply Now | Growthpad Consulting Group Interview Process</title>
+                <meta
+                    name="description"
+                    content="Start your job application with Growthpad Consulting Group. Complete our interview process, answer questions, and upload your resume and cover letter to join our Nairobi-based team."
+                />
+                <meta
+                    name="keywords"
+                    content="job application, interview process, Growthpad Consulting, Nairobi careers, apply online, submit resume, job opportunities Africa"
+                />
+                <meta name="robots" content="index, follow" />
+                <meta name="author" content="Growthpad Consulting Group" />
+                <meta property="og:title" content="Apply Now | Growthpad Consulting Group Interview Process" />
+                <meta
+                    property="og:description"
+                    content="Apply for a job at Growthpad Consulting Group. Complete the interview steps, submit your resume, and join our team in Nairobi and across Africa."
+                />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://careers.growthpad.co.ke/interview" />
+                <meta property="og:image" content="https://careers.growthpad.co.ke/assets/images/logo-tagline-orange.svg" />
+                <meta property="og:site_name" content="Growthpad Careers" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Apply Now | Growthpad Consulting Group Interview Process" />
+                <meta
+                    name="twitter:description"
+                    content="Begin your career with Growthpad Consulting Group. Apply online through our interview process and submit your application today!"
+                />
+                <meta name="twitter:image" content="https://careers.growthpad.co.ke/assets/images/logo-tagline-orange.svg" />
+            </Head>
+
             <Header
                 mode={mode}
                 toggleMode={toggleMode}
@@ -280,7 +310,7 @@ export async function getStaticProps() {
             props: {
                 initialQuestions: questions,
             },
-            revalidate: 60, // Revalidate every 60 seconds
+            revalidate: 60,
         };
     } catch (error) {
         console.error("Error fetching questions in getStaticProps:", error);
