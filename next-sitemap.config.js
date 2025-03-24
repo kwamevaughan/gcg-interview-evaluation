@@ -6,6 +6,7 @@ module.exports = {
   generateRobotsTxt: true,
   sitemapSize: 7000,
   exclude: [
+    "/hr/jobs",
     "/hr/analytics",
     "/hr/applicants",
     "/hr/automations",
