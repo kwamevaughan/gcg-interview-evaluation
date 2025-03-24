@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import Select from "react-select";
-import { notifyGoogle } from "@/lib/indexing";
 
 const EditorComponent = dynamic(() => import("../components/EditorComponent"), { ssr: false });
 
@@ -130,7 +129,7 @@ export default function JobForm({ mode, onJobAdded }) {
             },
             remote,
             department: department || null,
-            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""), // Generate slug
+            slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
         };
 
         console.log("Job data to insert:", jobData);
@@ -140,10 +139,17 @@ export default function JobForm({ mode, onJobAdded }) {
             toast.error("Failed to submit job opening.", { id: toastId });
             console.error("Insert error:", error);
         } else {
-            // Notify Google Indexing API
             const jobUrl = `https://careers.growthpad.co.ke/jobs/${data.slug}`;
             try {
-                await notifyGoogle(jobUrl);
+                const response = await fetch("/api/notify-google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: jobUrl }),
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Failed to notify Google");
+                }
                 toast.success("Job opening added and Google notified successfully!", { icon: "✅", id: toastId });
             } catch (indexingError) {
                 toast.success("Job opening added, but failed to notify Google.", { icon: "⚠️", id: toastId });
@@ -173,8 +179,6 @@ export default function JobForm({ mode, onJobAdded }) {
             reader.onerror = (error) => reject(error);
         });
     };
-
-    // Rest of your functions (handleFileChange, handleRemoveFile, etc.) remain unchanged
 
     const handleFileChange = (e) => setFile(e.target.files[0]);
     const handleRemoveFile = () => setFile(null);
