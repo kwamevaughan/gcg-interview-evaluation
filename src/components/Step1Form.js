@@ -184,21 +184,29 @@ export default function Step1Form({ formData, handleChange, mode }) {
                     </div>
 
                     <div className="relative">
-                        <label className="block text-sm font-medium mb-1">
-                            Applying for <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex items-center">
-                            <Icon icon="mdi:briefcase" className="absolute left-3 text-[#f05d23] w-5 h-5" />
-                            <input
-                                type="text"
-                                value={formData.opening || "Please select an opening on the landing page"}
-                                readOnly
-                                className={`w-full pl-10 pr-4 py-3 border rounded-lg shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed ${
-                                    mode === "dark" ? "bg-gray-600 border-gray-500 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-500"
-                                }`}
-                            />
-                        </div>
-                    </div>
+    <label className="block text-sm font-medium mb-1">
+        Applying for <span className="text-red-500">*</span>
+    </label>
+    <div className="flex items-center">
+        <Icon icon="mdi:briefcase" className="absolute left-3 text-[#f05d23] w-5 h-5" />
+        <input
+            type="text"
+            value={formData.opening || "Please select an opening on the landing page"}
+            readOnly
+            className={`w-full pl-10 pr-4 py-3 border rounded-lg shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed ${
+                mode === "dark" ? "bg-gray-600 border-gray-500 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-500"
+            }`}
+        />
+    </div>
+    {!formData.opening && (
+        <div className="text-center mt-2">
+            <a href="/" className="text-[#f05d23] underline">
+                Click here to return to the landing page
+            </a>
+        </div>
+    )}
+</div>
+
                 </div>
             </div>
         </div>
