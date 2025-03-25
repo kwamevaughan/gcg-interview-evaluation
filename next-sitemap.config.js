@@ -18,7 +18,7 @@ module.exports = {
     ],
     outDir: "public",
     sitemapBaseFileName: "sitemap-static",
-    generateIndexSitemap: true,
+    generateIndexSitemap: false,
     robotsTxtOptions: {
         policies: [
             {
