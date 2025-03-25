@@ -17,7 +17,7 @@ export function generateJobPostingSchema(job, countries) {
             "@type": "Organization",
             name: "Growthpad Consulting Group",
             sameAs: "https://growthpad.co.ke",
-            logo: "https://growthpad.co.ke/wp-content/uploads/2024/10/GCG-final-logo-proposals_v6-6.png",
+            logo: "https://careers.growthpad.co.ke/favicon.png",
         },
         jobLocation: job.location
             ? {
